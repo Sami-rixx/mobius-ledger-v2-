@@ -16,23 +16,8 @@ router.get('/', StudentController.getStudents);
 // GET /api/students/all - Get all students without pagination
 router.get('/all', StudentController.getAllStudents);
 
-// GET /api/students/:id - Get a single student by ID
-router.get('/:id', StudentController.getStudentById);
-
 // GET /api/students/admission/:admissionNumber - Get a student by admission number
 router.get('/admission/:admissionNumber', StudentController.getStudentByAdmissionNumber);
-
-// POST /api/students - Create a new student
-router.post('/', StudentController.createStudent);
-
-// PUT /api/students/:id - Update a student (full update)
-router.put('/:id', StudentController.updateStudent);
-
-// PATCH /api/students/:id - Partially update a student
-router.patch('/:id', StudentController.patchStudent);
-
-// DELETE /api/students/:id - Delete a student
-router.delete('/:id', StudentController.deleteStudent);
 
 // GET /api/students/class/:classId - Get students by class
 router.get('/class/:classId', StudentController.getStudentsByClass);
@@ -48,6 +33,21 @@ router.get('/summary', StudentController.getStudentSummary);
 
 // GET /api/students/check-admission/:admissionNumber - Check admission number availability
 router.get('/check-admission/:admissionNumber', StudentController.checkAdmissionNumber);
+
+// GET /api/students/:id - Get a single student by ID (must come AFTER all specific routes)
+router.get('/:id', StudentController.getStudentById);
+
+// POST /api/students - Create a new student
+router.post('/', StudentController.createStudent);
+
+// PUT /api/students/:id - Update a student (full update)
+router.put('/:id', StudentController.updateStudent);
+
+// PATCH /api/students/:id - Partially update a student
+router.patch('/:id', StudentController.patchStudent);
+
+// DELETE /api/students/:id - Delete a student
+router.delete('/:id', StudentController.deleteStudent);
 
 /**
  * API Documentation for Student Routes

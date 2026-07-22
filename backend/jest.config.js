@@ -1,9 +1,8 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
-module.exports = {
-  preset: 'ts-jest',
+/** @type {import('jest').Config} */
+export default {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
-  testMatch: ['**/__tests__/**/*.test.js'],
+  testMatch: ['**/__tests__/**/*.test.js', '**/routes/__tests__/**/*.test.js', '**/utils/__tests__/**/*.test.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
@@ -17,4 +16,9 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
   verbose: true,
   testTimeout: 10000,
+  transform: {},
+  transformIgnorePatterns: [
+    'node_modules/(?!(better-sqlite3)/)',
+  ],
+  moduleFileExtensions: ['js', 'mjs', 'cjs', 'json', 'node'],
 };

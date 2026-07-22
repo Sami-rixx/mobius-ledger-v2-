@@ -66,10 +66,13 @@ app.use((req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Mobius Ledger backend running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
-});
+// Only start server if this file is run directly (not imported)
+const isMainModule = process.argv[1]?.includes('app.js');
+if (isMainModule) {
+  app.listen(PORT, () => {
+    console.log(`Mobius Ledger backend running on port ${PORT}`);
+    console.log(`Health check: http://localhost:${PORT}/api/health`);
+  });
+}
 
 export default app;

@@ -7,7 +7,7 @@ const router = Router();
  * Health check endpoint
  * GET /api/health
  */
-router.get('/health', (req, res) => {
+router.get('/', (req, res) => {
   try {
     // Check database connection
     const dbCheck = db.prepare('SELECT 1').get();
@@ -33,7 +33,7 @@ router.get('/health', (req, res) => {
  * Database info endpoint
  * GET /api/health/db
  */
-router.get('/health/db', (req, res) => {
+router.get('/db', (req, res) => {
   try {
     const tableCount = db.prepare('SELECT COUNT(*) as count FROM sqlite_master WHERE type = ?').get('table').count;
     const rowCounts = db.prepare(`
