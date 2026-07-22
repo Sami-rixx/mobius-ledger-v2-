@@ -1,2 +1,2 @@
 // Export all models
-// Models will be added as they are created
+export { default as Student } from './Student.js';

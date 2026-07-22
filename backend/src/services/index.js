@@ -1,2 +1,2 @@
 // Export all services
-// Services will be added as they are created
+export { default as Student } from './studentService.js';
