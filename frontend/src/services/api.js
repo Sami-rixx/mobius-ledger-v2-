@@ -3,6 +3,8 @@
  * Centralized API client for Mobius Ledger
  */
 
+// Use relative path for development (proxy handles /api)
+// In production, this should be the full API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 /**
@@ -48,7 +50,7 @@ class ApiClient {
     } catch (error) {
       // Handle network errors
       if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-        throw new Error('Network error. Please check your connection.');
+        throw new Error('Network error. Please check your connection and try again.');
       }
       throw error;
     }
