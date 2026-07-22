@@ -3,3 +3,6 @@ export { default as Button } from './Button.jsx';
 export { default as Card } from './Card.jsx';
 export { default as Input } from './Input.jsx';
 export { default as Table } from './Table.jsx';
+export { default as StudentForm } from './StudentForm.jsx';
+export { default as StudentCard } from './StudentCard.jsx';
+export { default as StudentTable } from './StudentTable.jsx';
