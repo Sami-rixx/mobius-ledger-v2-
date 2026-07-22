@@ -7,6 +7,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { setupDatabase } from './config/database.js';
 import healthRoutes from './routes/healthRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
+import classRoutes from './routes/classRoutes.js';
 
 // Initialize Express app
 const app = express();
@@ -40,6 +41,7 @@ setupDatabase();
 // API routes
 app.use('/api/health', healthRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/classes', classRoutes);
 // Future routes will be mounted here:
 // app.use('/api/transactions', transactionRoutes);
 // app.use('/api/fees', feeRoutes);
