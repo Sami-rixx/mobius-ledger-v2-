@@ -34,6 +34,7 @@ try {
   console.log('Database schema applied successfully');
   
   // Insert initial system settings if not exists
+  const currentYear = new Date().getFullYear();
   const insertSettings = db.prepare(`
     INSERT OR IGNORE INTO system_settings (key, value, description) VALUES 
     ('currency', 'KES', 'Default currency for the application'),
@@ -46,7 +47,6 @@ try {
     ('school_email', '', 'Email of the school')
   `);
   
-  const currentYear = new Date().getFullYear();
   insertSettings.run(currentYear.toString());
   
   console.log('System settings initialized');

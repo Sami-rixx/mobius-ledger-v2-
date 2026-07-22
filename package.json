@@ -1,0 +1,35 @@
+{
+  "name": "mobius-ledger-v2",
+  "version": "1.0.0",
+  "description": "Mobius Ledger v2 - Financial Management System for Schools",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "db:setup": "cd backend && npm run db:setup",
+    "db:seed": "cd database && node seed.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:frontend": "cd frontend && npm run build",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "lint:frontend": "cd frontend && npm run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "finance",
+    "school",
+    "ledger",
+    "sqlite",
+    "react",
+    "express"
+  ],
+  "author": "Sami-rixx",
+  "license": "MIT"
+}

@@ -14,6 +14,17 @@ try {
   const db = new Database(DB_PATH);
   db.pragma('foreign_keys = ON');
 
+  // Ensure system user exists
+  console.log('Ensuring system user exists...');
+  const insertSystemUser = db.prepare(`
+    INSERT OR IGNORE INTO users (username, full_name, email, role, is_active) 
+    VALUES ('system', 'System Administrator', 'admin@mobius.school', 'admin', 1)
+  `);
+  insertSystemUser.run();
+  
+  const systemUser = db.prepare('SELECT id FROM users WHERE username = ?').get('system');
+  const systemUserId = systemUser?.id || 1;
+
   // Clear existing demo data (but keep system data)
   console.log('Clearing existing demo data...');
   db.exec(`
@@ -33,10 +44,6 @@ try {
 
   // Reset receipt sequence
   db.prepare('UPDATE system_settings SET value = ? WHERE key = ?').run('0', 'receipt_sequence');
-
-  // Get system user ID
-  const systemUser = db.prepare('SELECT id FROM users WHERE username = ?').get('system');
-  const systemUserId = systemUser?.id || 1;
 
   // Insert sample classes
   console.log('Inserting sample classes...');
@@ -98,149 +105,261 @@ try {
     studentIds[admissionNumber] = student?.id;
   });
 
-  // Insert sample school fee payments
-  console.log('Inserting sample school fee payments...');
-  const today = new Date().toISOString().split('T')[0];
-  const lastWeek = new Date();
-  lastWeek.setDate(lastWeek.getDate() - 7);
-  const lastWeekStr = lastWeek.toISOString().split('T')[0];
-  const lastMonth = new Date();
-  lastMonth.setMonth(lastMonth.getMonth() - 1);
-  const lastMonthStr = lastMonth.toISOString().split('T')[0];
+  // Get category IDs
+  const schoolFeesCategory = db.prepare('SELECT id FROM income_categories WHERE name = ?').get('School Fees')?.id || 1;
+  const lunchFeesCategory = db.prepare('SELECT id FROM income_categories WHERE name = ?').get('Lunch Fees')?.id || 2;
+  const kitchenCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Kitchen')?.id || 1;
+  const academicCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Academic')?.id || 2;
+  const operationalCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Operational')?.id || 3;
+  const cashPaymentMethod = db.prepare('SELECT id FROM payment_methods WHERE name = ?').get('Cash')?.id || 1;
+  const mpesaPaymentMethod = db.prepare('SELECT id FROM payment_methods WHERE name = ?').get('M-Pesa')?.id || 2;
 
+  // Insert sample transactions
+  console.log('Inserting sample transactions...');
   const transactionInsert = db.prepare(`
-    INSERT INTO transactions (receipt_number, transaction_type, amount, income_category_id, student_id, description, payment_method_id, transaction_date, created_by, updated_by) 
+    INSERT INTO transactions (receipt_number, transaction_type, amount, category_id, student_id, description, payment_method_id, transaction_date, created_by, updated_by) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  const schoolFeeCategory = db.prepare('SELECT id FROM income_categories WHERE name = ?').get('School Fees')?.id;
-  const lunchCategory = db.prepare('SELECT id FROM income_categories WHERE name = ?').get('Lunch Fees')?.id;
-  const cashMethod = db.prepare('SELECT id FROM payment_methods WHERE name = ?').get('Cash')?.id;
-  const mpesaMethod = db.prepare('SELECT id FROM payment_methods WHERE name = ?').get('M-Pesa')?.id;
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const lastWeek = new Date(Date.now() - 604800000).toISOString().split('T')[0];
 
-  // Generate receipt numbers sequentially
-  let receiptSequence = 0;
-  const getNextReceiptNumber = () => {
-    receiptSequence++;
-    const sequenceStr = receiptSequence.toString().padStart(6, '0');
-    return `ML-2026-${sequenceStr}`;
+  // Generate receipt numbers manually for seed data
+  let receiptCounter = 1;
+  const generateSeedReceipt = () => {
+    const year = new Date().getFullYear();
+    return `ML-${year}-${String(receiptCounter++).padStart(6, '0')}`;
   };
 
-  // School fee payments
-  const schoolFeePayments = [
-    [getNextReceiptNumber(), 'school_fee', 15000.00, schoolFeeCategory, studentIds['ML-2026-001'], 'Term 1 School Fees', cashMethod, lastMonthStr, systemUserId, systemUserId],
-    [getNextReceiptNumber(), 'school_fee', 15000.00, schoolFeeCategory, studentIds['ML-2026-002'], 'Term 1 School Fees', mpesaMethod, lastMonthStr, systemUserId, systemUserId],
-    [getNextReceiptNumber(), 'school_fee', 15000.00, schoolFeeCategory, studentIds['ML-2026-003'], 'Term 1 School Fees', cashMethod, lastWeekStr, systemUserId, systemUserId],
-    [getNextReceiptNumber(), 'school_fee', 15000.00, schoolFeeCategory, studentIds['ML-2026-004'], 'Term 1 School Fees', mpesaMethod, lastWeekStr, systemUserId, systemUserId],
-    [getNextReceiptNumber(), 'school_fee', 15000.00, schoolFeeCategory, studentIds['ML-2026-005'], 'Term 1 School Fees', cashMethod, today, systemUserId, systemUserId],
-    [getNextReceiptNumber(), 'school_fee', 7500.00, schoolFeeCategory, studentIds['ML-2026-006'], 'Term 1 School Fees (Partial)', cashMethod, today, systemUserId, systemUserId]
+  const transactions = [
+    // School fee payments
+    [generateSeedReceipt(), 'school_fee', 15000, schoolFeesCategory, studentIds['ML-2026-001'], 'Term 1 School Fees - John Doe', cashPaymentMethod, today, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'school_fee', 15000, schoolFeesCategory, studentIds['ML-2026-002'], 'Term 1 School Fees - Jane Smith', mpesaPaymentMethod, today, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'school_fee', 15000, schoolFeesCategory, studentIds['ML-2026-003'], 'Term 1 School Fees - Michael Johnson', cashPaymentMethod, yesterday, systemUserId, systemUserId],
+    
+    // Lunch payments
+    [generateSeedReceipt(), 'lunch_fee', 2000, lunchFeesCategory, studentIds['ML-2026-001'], 'January Lunch Fees - John Doe', mpesaPaymentMethod, today, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'lunch_fee', 2000, lunchFeesCategory, studentIds['ML-2026-002'], 'January Lunch Fees - Jane Smith', cashPaymentMethod, yesterday, systemUserId, systemUserId],
+    
+    // Income
+    [generateSeedReceipt(), 'income', 5000, schoolFeesCategory, null, 'Donation from Parent', cashPaymentMethod, lastWeek, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'income', 3000, lunchFeesCategory, null, 'Book Sales', mpesaPaymentMethod, lastWeek, systemUserId, systemUserId],
+    
+    // Expenses
+    [generateSeedReceipt(), 'expense', 8000, kitchenCategory, null, 'Rice and Beans Purchase', cashPaymentMethod, today, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'expense', 3000, academicCategory, null, 'Printing Exam Papers', cashPaymentMethod, yesterday, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'expense', 2000, operationalCategory, null, 'Electricity Bill', cashPaymentMethod, lastWeek, systemUserId, systemUserId],
+    
+    // Director withdrawal
+    [generateSeedReceipt(), 'director_withdrawal', 10000, null, null, 'Director Monthly Withdrawal', cashPaymentMethod, today, systemUserId, systemUserId],
   ];
 
-  schoolFeePayments.forEach(payment => transactionInsert.run(...payment));
+  transactions.forEach(txn => transactionInsert.run(...txn));
 
-  // Lunch payments
-  const lunchPayments = [
-    [getNextReceiptNumber(), 'lunch_fee', 200.00, lunchCategory, studentIds['ML-2026-001'], 'Daily Lunch', cashMethod, today, systemUserId, systemUserId],
-    [getNextReceiptNumber(), 'lunch_fee', 1000.00, lunchCategory, studentIds['ML-2026-002'], 'Weekly Lunch', mpesaMethod, today, systemUserId, systemUserId],
-    [getNextReceiptNumber(), 'lunch_fee', 200.00, lunchCategory, studentIds['ML-2026-003'], 'Daily Lunch', cashMethod, today, systemUserId, systemUserId],
-    [getNextReceiptNumber(), 'lunch_fee', 200.00, lunchCategory, studentIds['ML-2026-004'], 'Daily Lunch', cashMethod, today, systemUserId, systemUserId],
-    [getNextReceiptNumber(), 'lunch_fee', 200.00, lunchCategory, studentIds['ML-2026-005'], 'Daily Lunch', cashMethod, today, systemUserId, systemUserId]
-  ];
+  // Insert school fee payments
+  console.log('Inserting school fee payments...');
+  const feePaymentInsert = db.prepare(`
+    INSERT INTO school_fee_payments (student_id, transaction_id, amount, payment_date, academic_year, term, created_by, updated_by) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
 
-  lunchPayments.forEach(payment => transactionInsert.run(...payment));
+  const schoolFeeTxns = db.prepare(`
+    SELECT id, student_id, amount, transaction_date 
+    FROM transactions 
+    WHERE transaction_type = 'school_fee' 
+    ORDER BY transaction_date DESC
+  `).all();
 
-  // Insert sample expenses
-  console.log('Inserting sample expenses...');
-  const kitchenCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Kitchen')?.id;
-  const riceCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Rice')?.id;
-  const oilCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Cooking Oil')?.id;
-  const academicCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Academic')?.id;
-  const booksCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Books')?.id;
-  const operationalCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Operational')?.id;
-  const electricityCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Electricity')?.id;
-
-  const expensePayments = [
-    [getNextReceiptNumber(), 'expense', 5000.00, null, null, 'Rice purchase for kitchen', cashMethod, lastMonthStr, systemUserId, systemUserId, riceCategory],
-    [getNextReceiptNumber(), 'expense', 3000.00, null, null, 'Cooking oil purchase', cashMethod, lastMonthStr, systemUserId, systemUserId, oilCategory],
-    [getNextReceiptNumber(), 'expense', 2000.00, null, null, 'Books for library', cashMethod, lastWeekStr, systemUserId, systemUserId, booksCategory],
-    [getNextReceiptNumber(), 'expense', 10000.00, null, null, 'Electricity bill payment', cashMethod, lastWeekStr, systemUserId, systemUserId, electricityCategory],
-    [getNextReceiptNumber(), 'expense', 8000.00, null, null, 'Monthly stationery supply', cashMethod, today, systemUserId, systemUserId, academicCategory]
-  ];
-
-  // Insert expenses with proper category IDs
-  expensePayments.forEach(([receipt, type, amount, incomeCat, student, desc, paymentMethod, date, createdBy, updatedBy, expenseCat]) => {
-    transactionInsert.run(receipt, type, amount, incomeCat, student, desc, paymentMethod, date, createdBy, updatedBy, null, null, expenseCat);
+  schoolFeeTxns.forEach((txn, index) => {
+    const term = index % 3 === 0 ? 'Term 1' : index % 3 === 1 ? 'Term 2' : 'Term 3';
+    feePaymentInsert.run(
+      txn.student_id,
+      txn.id,
+      txn.amount,
+      txn.transaction_date,
+      '2026',
+      term,
+      systemUserId,
+      systemUserId
+    );
   });
 
-  // Insert sample director withdrawals
-  console.log('Inserting sample director withdrawals...');
-  const withdrawalCategory = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Other Expenses')?.id;
-  
-  const withdrawals = [
-    [getNextReceiptNumber(), 'director_withdrawal', 20000.00, null, null, 'Director monthly withdrawal', cashMethod, lastMonthStr, systemUserId, systemUserId, withdrawalCategory]
-  ];
+  // Insert lunch payments
+  console.log('Inserting lunch payments...');
+  const lunchPaymentInsert = db.prepare(`
+    INSERT INTO lunch_payments (student_id, transaction_id, amount, payment_date, payment_type, start_date, end_date, created_by, updated_by) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
 
-  withdrawals.forEach(([receipt, type, amount, incomeCat, student, desc, paymentMethod, date, createdBy, updatedBy, expenseCat]) => {
-    transactionInsert.run(receipt, type, amount, incomeCat, student, desc, paymentMethod, date, createdBy, updatedBy, null, null, expenseCat);
+  const lunchTxns = db.prepare(`
+    SELECT id, student_id, amount, transaction_date 
+    FROM transactions 
+    WHERE transaction_type = 'lunch_fee' 
+    ORDER BY transaction_date DESC
+  `).all();
+
+  lunchTxns.forEach((txn, index) => {
+    const paymentType = index % 3 === 0 ? 'monthly' : index % 3 === 1 ? 'weekly' : 'daily';
+    let startDate = txn.transaction_date;
+    let endDate = txn.transaction_date;
+    
+    if (paymentType === 'monthly') {
+      const date = new Date(txn.transaction_date);
+      endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().split('T')[0];
+    } else if (paymentType === 'weekly') {
+      const date = new Date(txn.transaction_date);
+      endDate = new Date(date.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    }
+    
+    lunchPaymentInsert.run(
+      txn.student_id,
+      txn.id,
+      txn.amount,
+      txn.transaction_date,
+      paymentType,
+      startDate,
+      endDate,
+      systemUserId,
+      systemUserId
+    );
   });
+
+  // Insert lunch attendance
+  console.log('Inserting lunch attendance...');
+  const lunchAttendanceInsert = db.prepare(`
+    INSERT INTO lunch_attendance (student_id, date, status, payment_id, created_by, updated_by) 
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  // Create lunch attendance for the past 5 days for each student
+  const studentList = Object.values(studentIds);
+  const dates = [];
+  for (let i = 0; i < 5; i++) {
+    const date = new Date(Date.now() - i * 86400000);
+    dates.push(date.toISOString().split('T')[0]);
+  }
+
+  studentList.forEach(studentId => {
+    dates.forEach(date => {
+      // Randomly mark some as paid, some as unpaid
+      const statuses = ['paid', 'paid', 'paid', 'unpaid', 'absent'];
+      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+      
+      // Find a payment for this student
+      const payment = db.prepare(`
+        SELECT id FROM lunch_payments 
+        WHERE student_id = ? AND start_date <= ? AND end_date >= ?
+        LIMIT 1
+      `).get(studentId, date, date);
+      
+      lunchAttendanceInsert.run(
+        studentId,
+        date,
+        randomStatus,
+        payment?.id || null,
+        systemUserId,
+        systemUserId
+      );
+    });
+  });
+
+  // Insert director withdrawals
+  console.log('Inserting director withdrawals...');
+  const withdrawalTxn = db.prepare(`
+    SELECT id FROM transactions 
+    WHERE transaction_type = 'director_withdrawal' 
+    LIMIT 1
+  `).get();
+
+  if (withdrawalTxn) {
+    db.prepare(`
+      INSERT INTO director_withdrawals (transaction_id, amount, withdrawal_date, description, approved_by, approved_at, created_by, updated_by) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      withdrawalTxn.id,
+      10000,
+      today,
+      'Monthly withdrawal',
+      systemUserId,
+      new Date().toISOString(),
+      systemUserId,
+      systemUserId
+    );
+  }
 
   // Insert sample student charges
   console.log('Inserting sample student charges...');
   const chargeInsert = db.prepare(`
-    INSERT INTO student_charges (name, description, amount, charge_type, class_id, created_by, updated_by) 
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO student_charges (name, description, amount, charge_type, class_id, due_date, created_by, updated_by) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const charges = [
-    ['Swimming Lessons', 'Weekly swimming lessons', 500.00, 'class', classIds['Grade 1'], systemUserId, systemUserId],
-    ['Educational Trip', 'Annual educational trip to Nairobi', 2000.00, 'all', null, systemUserId, systemUserId],
-    ['Sports Day Fee', 'Participation fee for sports day', 300.00, 'all', null, systemUserId, systemUserId]
+    ['Swimming Lessons', 'Weekly swimming classes', 2500, 'class', classIds['Grade 1'], '2026-03-31', systemUserId, systemUserId],
+    ['Educational Trip', 'Museum visit', 3500, 'all', null, '2026-04-15', systemUserId, systemUserId],
+    ['Sports Day Fee', 'Annual sports day participation', 1500, 'all', null, '2026-05-20', systemUserId, systemUserId],
   ];
 
   charges.forEach(charge => chargeInsert.run(...charge));
 
-  // Get charge IDs
-  const chargeIds = {};
-  charges.forEach(([name]) => {
-    const charge = db.prepare('SELECT id FROM student_charges WHERE name = ?').get(name);
-    chargeIds[name] = charge?.id;
-  });
-
   // Assign charges to students
   console.log('Assigning charges to students...');
+  const chargeAssignments = [];
+  
+  // Swimming for Grade 1 students
+  const grade1Students = students.filter(([admissionNumber]) => {
+    const student = db.prepare('SELECT class_id FROM students WHERE admission_number = ?').get(admissionNumber);
+    return student?.class_id === classIds['Grade 1'];
+  });
+  
+  const swimmingCharge = db.prepare('SELECT id FROM student_charges WHERE name = ?').get('Swimming Lessons')?.id;
+  if (swimmingCharge) {
+    grade1Students.forEach(([admissionNumber]) => {
+      const studentId = studentIds[admissionNumber];
+      chargeAssignments.push([swimmingCharge, studentId, 2500, new Date().toISOString(), '']);
+    });
+  }
+
+  // Educational trip for all students
+  const allStudents = Object.values(studentIds);
+  const tripCharge = db.prepare('SELECT id FROM student_charges WHERE name = ?').get('Educational Trip')?.id;
+  if (tripCharge) {
+    allStudents.forEach(studentId => {
+      chargeAssignments.push([tripCharge, studentId, 3500, new Date().toISOString(), '']);
+    });
+  }
+
+  // Sports day for all students
+  const sportsCharge = db.prepare('SELECT id FROM student_charges WHERE name = ?').get('Sports Day Fee')?.id;
+  if (sportsCharge) {
+    allStudents.forEach(studentId => {
+      chargeAssignments.push([sportsCharge, studentId, 1500, new Date().toISOString(), '']);
+    });
+  }
+
   const assignmentInsert = db.prepare(`
-    INSERT INTO student_charge_assignments (charge_id, student_id, amount, created_by, updated_by) 
+    INSERT INTO student_charge_assignments (charge_id, student_id, amount, assigned_at, notes) 
     VALUES (?, ?, ?, ?, ?)
   `);
+  
+  chargeAssignments.forEach(assignment => assignmentInsert.run(...assignment));
 
-  // Assign swimming lessons to Grade 1 students
-  const grade1Students = students.filter(s => s[3] === classIds['Grade 1']);
-  grade1Students.forEach(([admissionNumber]) => {
-    assignmentInsert.run(chargeIds['Swimming Lessons'], studentIds[admissionNumber], 500.00, systemUserId, systemUserId);
-  });
+  // Get counts
+  const studentCount = db.prepare('SELECT COUNT(*) as count FROM students').get().count;
+  const transactionCount = db.prepare('SELECT COUNT(*) as count FROM transactions').get().count;
+  const classCount = db.prepare('SELECT COUNT(*) as count FROM classes').get().count;
 
-  // Assign educational trip to all students
-  students.forEach(([admissionNumber]) => {
-    assignmentInsert.run(chargeIds['Educational Trip'], studentIds[admissionNumber], 2000.00, systemUserId, systemUserId);
-  });
-
-  // Assign sports day fee to all students
-  students.forEach(([admissionNumber]) => {
-    assignmentInsert.run(chargeIds['Sports Day Fee'], studentIds[admissionNumber], 300.00, systemUserId, systemUserId);
-  });
-
-  // Update receipt sequence in system settings
-  db.prepare('UPDATE system_settings SET value = ? WHERE key = ?').run(receiptSequence.toString(), 'receipt_sequence');
-
-  console.log('Demo data seeding complete!');
-  console.log(`- ${classes.length} classes created`);
-  console.log(`- ${students.length} students created`);
-  console.log(`- ${schoolFeePayments.length + lunchPayments.length + expensePayments.length + withdrawals.length} transactions created`);
-  console.log(`- ${charges.length} student charges created`);
-
+  console.log('\nSeeding completed successfully!');
+  console.log(`- Classes: ${classCount}`);
+  console.log(`- Students: ${studentCount}`);
+  console.log(`- Transactions: ${transactionCount}`);
+  console.log(`- Receipt sequence reset to: 0`);
+  
   db.close();
-
+  
 } catch (error) {
-  console.error('Database seeding error:', error.message);
+  console.error('Seeding error:', error.message);
+  console.error(error.stack);
   process.exit(1);
 }
