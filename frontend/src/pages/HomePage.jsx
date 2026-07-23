@@ -45,6 +45,20 @@ function HomePage() {
               >
                 Add New Class
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/school-fees')}
+                className="quick-access-button"
+              >
+                Manage School Fees
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/school-fees/create')}
+                className="quick-access-button"
+              >
+                Record Fee Payment
+              </Button>
             </div>
           </Card>
 
