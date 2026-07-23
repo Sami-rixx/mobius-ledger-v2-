@@ -6,3 +6,6 @@ export { default as Table } from './Table.jsx';
 export { default as StudentForm } from './StudentForm.jsx';
 export { default as StudentCard } from './StudentCard.jsx';
 export { default as StudentTable } from './StudentTable.jsx';
+export { default as ClassForm } from './ClassForm.jsx';
+export { default as ClassCard } from './ClassCard.jsx';
+export { default as ClassTable } from './ClassTable.jsx';
