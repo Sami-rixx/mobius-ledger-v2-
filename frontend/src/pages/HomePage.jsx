@@ -31,6 +31,20 @@ function HomePage() {
               >
                 Add New Student
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/classes')}
+                className="quick-access-button"
+              >
+                Manage Classes
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/classes/create')}
+                className="quick-access-button"
+              >
+                Add New Class
+              </Button>
             </div>
           </Card>
 
@@ -45,6 +59,7 @@ function HomePage() {
               <h3>Features:</h3>
               <ul>
                 <li>Student Management</li>
+                <li>Class Management</li>
                 <li>School Fees Tracking</li>
                 <li>Lunch Management</li>
                 <li>Income & Expense Tracking</li>

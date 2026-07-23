@@ -6,6 +6,12 @@ import {
   StudentEditPage,
   StudentDetailPage
 } from '@pages/Students';
+import {
+  ClassListPage,
+  ClassCreatePage,
+  ClassEditPage,
+  ClassDetailPage
+} from '@pages/Classes';
 
 function App() {
   return (
@@ -27,6 +33,9 @@ function App() {
               <NavLink to="/students" className="nav-link" end>
                 Students
               </NavLink>
+              <NavLink to="/classes" className="nav-link" end>
+                Classes
+              </NavLink>
             </div>
           </div>
         </nav>
@@ -35,10 +44,16 @@ function App() {
         <main className="app-main">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            {/* Student Routes */}
             <Route path="/students" element={<StudentListPage />} />
             <Route path="/students/create" element={<StudentCreatePage />} />
             <Route path="/students/:id" element={<StudentDetailPage />} />
             <Route path="/students/edit/:id" element={<StudentEditPage />} />
+            {/* Class Routes */}
+            <Route path="/classes" element={<ClassListPage />} />
+            <Route path="/classes/create" element={<ClassCreatePage />} />
+            <Route path="/classes/:id" element={<ClassDetailPage />} />
+            <Route path="/classes/edit/:id" element={<ClassEditPage />} />
           </Routes>
         </main>
 
