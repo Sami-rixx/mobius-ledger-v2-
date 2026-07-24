@@ -1,85 +1,78 @@
 # Current Milestone - Mobius Ledger v2
 
 ## Current Milestone
-**Milestone 3: School Fees Management**
+**Milestone 5: Student Charges Management**
 
 ## Current Phase
-**Phase 6: Frontend School Fee Components**
+**Phase 1: Backend Models**
 
-Create the frontend page layer for School Fees Management that provides List, Create, Edit, and Detail pages.
+Create the backend model layer for Student Charges Management with StudentCharge and StudentChargeAssignment models.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 3 - Phase 5 (Frontend School Fee Service)
-- **Commit Hash**: ffd1653
+- **Phase**: Milestone 4 - Phase 8 (Lunch Management Complete)
+- **Commit Hash**: fe76f99
 - **Date**: 2026-07-23
-- **Description**: "feat: add School Fees Management frontend service (Milestone 3 - Phase 5)"
+- **Description**: "feat: add School Fees Management frontend pages and routing (Milestone 3 - Phase 7-8)"
 
 ## Current Repository Status
 
 ### Completed Milestones
-- **Milestone 0**: Foundation Architecture - 
- COMPLETE
-- **Milestone 1**: Student Management - 
- COMPLETE (Backend + Frontend)
-- **Milestone 2**: Class Management - 
- COMPLETE (Backend + Frontend)
-- **Milestone 3**: School Fees Management -  IN PROGRESS (Backend Phases 1-4 Complete, Frontend Phase 5 Complete)
+- **Milestone 0**: Foundation Architecture - COMPLETE
+- **Milestone 1**: Student Management - COMPLETE (Backend + Frontend)
+- **Milestone 2**: Class Management - COMPLETE (Backend + Frontend)
+- **Milestone 3**: School Fees Management - COMPLETE (Backend + Frontend)
+- **Milestone 4**: Lunch Management - COMPLETE (Backend + Frontend)
 
 ### Backend Status
-- Foundation: 
- Complete
-- Student Management: 
- Complete
-- Class Management: 
- Complete
-- School Fees Management: 
- Complete (Phases 1-4)
-- Transaction Model: 
- Created (dependency)
+- Foundation: Complete
+- Student Management: Complete
+- Class Management: Complete
+- School Fees Management: Complete
+- Lunch Management: Complete
+- Student Charges Management: IN PROGRESS (Phase 1 Complete)
 
 ### Frontend Status
-- Foundation: 
- Complete
-- Student Management: 
- Complete
-- Class Management: 
- Complete
-- School Fees Management:  In Progress (Phase 5 Complete)
+- Foundation: Complete
+- Student Management: Complete
+- Class Management: Complete
+- School Fees Management: Complete
+- Lunch Management: Complete
+- Student Charges Management: Not Started
 
 ## Next Task
-**Create School Fee Frontend Components (Milestone 3 - Phase 6)**
+**Phase 2: Backend Service (Milestone 5 - Phase 2)**
 
-Create reusable UI components for School Fees Management:
-- `frontend/src/components/SchoolFeeForm.jsx` - Form for creating/editing school fee payments
-- `frontend/src/components/SchoolFeeCard.jsx` - Card component for displaying school fee payment
-- `frontend/src/components/SchoolFeeTable.jsx` - Table component for listing school fee payments
+Create the business logic layer for Student Charges Management:
+- `backend/src/services/studentChargeService.js` - Service for student charge operations
+- `backend/src/services/studentChargeAssignmentService.js` - Service for assignment operations
 
-## Planned Files for Phase 6
+## Planned Files for Phase 1 (COMPLETED)
 
 ### Files Created:
-1. `frontend/src/pages/SchoolFees/SchoolFeeListPage.jsx` - List page
-2. `frontend/src/pages/SchoolFees/SchoolFeeCreatePage.jsx` - Create page
-3. `frontend/src/pages/SchoolFees/SchoolFeeEditPage.jsx` - Edit page
-4. `frontend/src/pages/SchoolFees/SchoolFeeDetailPage.jsx` - Detail page
-5. `frontend/src/pages/SchoolFees/index.js` - Barrel export
+1. `backend/src/models/StudentCharge.js` - Model for student_charges table
+2. `backend/src/models/StudentChargeAssignment.js` - Model for student_charge_assignments table
 
 ### Files Modified:
-1. `frontend/src/App.jsx` - Add routes
-2. `frontend/src/pages/HomePage.jsx` - Add navigation links
+1. `backend/src/models/index.js` - Added exports for new models
 
 ## Verification Checklist
 
-Before Phase 5 is considered complete:
+For Phase 1 (Backend Models):
 
 - [x] Implementation complete
-- [x] Service methods cover all school fee endpoints
-- [x] Error handling implemented
-- [x] Verification complete (manual testing or inspection)
-- [x] Tests pass (backend tests)
-- [x] Production build succeeds
-- [x] PROJECT_STATUS.md updated
-- [x] SESSION_HANDOFF.md updated
+- [x] StudentCharge model created with all CRUD operations
+- [x] StudentChargeAssignment model created with all CRUD operations
+- [x] Field constants defined
+- [x] Validation logic included
+- [x] Business rule enforcement (e.g., cannot delete paid assignments)
+- [x] Statistics and summary methods included
+- [x] Index file updated
+- [x] Syntax validation passed
+- [x] Pattern consistency maintained (follows existing model patterns)
 - [x] CURRENT_MILESTONE.md updated
+- [ ] MODULE_STATUS.md updated
+- [ ] PROJECT_STATUS.md updated
+- [ ] SESSION_HANDOFF.md updated
 - [ ] Commit created
 - [ ] Push to GitHub confirmed
 
@@ -100,10 +93,10 @@ Every future session must:
 
 ## Quick Reference
 
-- **Latest Commit**: ffd1653
+- **Latest Commit**: fe76f99
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: School Fees Management Frontend
+- **Current Focus**: Student Charges Management Backend Models
 
 ---
 
