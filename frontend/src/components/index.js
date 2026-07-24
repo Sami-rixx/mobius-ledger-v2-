@@ -12,3 +12,7 @@ export { default as ClassTable } from './ClassTable.jsx';
 export { default as SchoolFeeForm } from './SchoolFeeForm.jsx';
 export { default as SchoolFeeCard } from './SchoolFeeCard.jsx';
 export { default as SchoolFeeTable } from './SchoolFeeTable.jsx';
+export { default as StudentChargeForm } from './StudentChargeForm.jsx';
+export { default as StudentChargeCard } from './StudentChargeCard.jsx';
+export { default as StudentChargeTable } from './StudentChargeTable.jsx';
+export { default as StudentChargeAssignmentTable } from './StudentChargeAssignmentTable.jsx';
