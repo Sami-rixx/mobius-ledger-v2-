@@ -59,6 +59,34 @@ function HomePage() {
               >
                 Record Fee Payment
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/lunch/payments')}
+                className="quick-access-button"
+              >
+                Manage Lunch Payments
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/lunch/payments/create')}
+                className="quick-access-button"
+              >
+                Record Lunch Payment
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/lunch/attendance')}
+                className="quick-access-button"
+              >
+                Manage Lunch Attendance
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/lunch/attendance/create')}
+                className="quick-access-button"
+              >
+                Record Lunch Attendance
+              </Button>
             </div>
           </Card>
 

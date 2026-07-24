@@ -182,7 +182,9 @@ This project uses a comprehensive self-documenting system. For current developme
 
 ## Milestone 2: Class Management
 
-**Status**: ⏳ NOT STARTED  
+**Status**: ✅ COMPLETE  
+**Commit**: ee36570  
+**Date**: 2026-07-23  
 **Objective**: Manage school classes/grades
 
 ### Backend
@@ -219,7 +221,9 @@ This project uses a comprehensive self-documenting system. For current developme
 
 ## Milestone 3: School Fees Management
 
-**Status**: ⏳ NOT STARTED  
+**Status**: ✅ COMPLETE  
+**Commit**: fe76f99  
+**Date**: 2026-07-23  
 **Objective**: Track school fee payments with individual ledgers
 
 ### Backend
@@ -261,7 +265,8 @@ This project uses a comprehensive self-documenting system. For current developme
 
 ## Milestone 4: Lunch Management
 
-**Status**: ⏳ NOT STARTED  
+**Status**: 🚧 IN PROGRESS  
+**Started**: 2026-07-23  
 **Objective**: Track lunch payments and attendance
 
 ### Backend
