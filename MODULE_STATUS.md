@@ -158,31 +158,49 @@ This file tracks the status of every major module in the system. Each module rep
 | Aspect | Status |
 |--------|--------|
 | Current Status | \ud83d\udea7 In Progress |
-| Current Phase | Phase 1 (Backend Models) |
-| Completion % | 10% |
-| Backend Status | \ud83d\udea7 In Progress (Models Complete) |
+| Current Phase | Phase 3 (Backend Controller) |
+| Completion % | 40% |
+| Backend Status | \u2705 Complete (Phases 1-3) |
 | Frontend Status | \u23f3 Not Started |
 | Integration Status | \u23f3 Not Started |
 | Testing Status | \u23f3 Not Started |
 | Documentation Status | \u2705 Backend documented |
 | Latest Commit | N/A |
-| Next Planned Work | Backend Service, Controller, Routes |
+| Next Planned Work | Backend Routes verification, Tests, Frontend |
 
 **Components**:
-- Backend: \u2705 Model (StudentCharge.js, StudentChargeAssignment.js), Service, Controller, Routes
+- Backend: \u2705 Model (StudentCharge.js, StudentChargeAssignment.js), \u2705 Service, \u2705 Controller, \u2705 Routes
 - Frontend: Service, Components, Pages, Routing
 - Database: student_charges, student_charge_assignments tables (schema exists)
 
-**API Endpoints (Planned)**:
-- GET /api/charges - List charges
-- POST /api/charges - Create charge
+**API Endpoints**:
+- GET /api/charges - List charges (paginated)
+- GET /api/charges/all - List all charges
 - GET /api/charges/:id - Get charge by ID
+- GET /api/charges/class/:classId - Get charges by class
+- GET /api/charges/active - Get active charges
+- GET /api/charges/statistics - Get charge statistics
+- GET /api/charges/student/:studentId - Get charges for student
+- GET /api/charges/student/:studentId/unpaid - Get unpaid charges
+- GET /api/charges/student/:studentId/outstanding - Get outstanding amount
+- POST /api/charges - Create charge
+- POST /api/charges/:id/assign - Assign charge to students
 - PUT /api/charges/:id - Update charge
 - DELETE /api/charges/:id - Delete charge
-- GET /api/charges/assignments - List charge assignments
-- POST /api/charges/assign - Assign charge to students
-- GET /api/charges/student/:studentId - Get student's charges
-- GET /api/charges/statistics - Get charge statistics
+- DELETE /api/charges/:id/force - Force delete charge
+
+**Assignment Endpoints**:
+- GET /api/charges/assignments - List assignments (paginated)
+- GET /api/charges/assignments/all - List all assignments
+- GET /api/charges/assignments/:id - Get assignment by ID
+- GET /api/charges/assignments/charge/:chargeId - Get by charge
+- GET /api/charges/assignments/student/:studentId - Get by student
+- POST /api/charges/assignments - Create assignment
+- POST /api/charges/assignments/bulk - Bulk create
+- POST /api/charges/assignments/:id/pay - Mark as paid
+- POST /api/charges/assignments/:id/unpay - Mark as unpaid
+- PUT /api/charges/assignments/:id - Update assignment
+- DELETE /api/charges/assignments/:id - Delete assignment
 
 ---
 

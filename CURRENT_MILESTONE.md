@@ -4,15 +4,15 @@
 **Milestone 5: Student Charges Management**
 
 ## Current Phase
-**Phase 1: Backend Models**
+**Phase 3: Backend Controller**
 
-Create the backend model layer for Student Charges Management with StudentCharge and StudentChargeAssignment models.
+Create the backend controller layer for Student Charges Management with route handlers.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 4 - Phase 8 (Lunch Management Complete)
-- **Commit Hash**: fe76f99
-- **Date**: 2026-07-23
-- **Description**: "feat: add School Fees Management frontend pages and routing (Milestone 3 - Phase 7-8)"
+- **Phase**: Milestone 5 - Phase 2 (Backend Service)
+- **Commit Hash**: d79a6ba
+- **Date**: 2026-07-24
+- **Description**: "feat: add Student Charges Management backend models (Milestone 5 - Phase 1)"
 
 ## Current Repository Status
 
@@ -29,7 +29,7 @@ Create the backend model layer for Student Charges Management with StudentCharge
 - Class Management: Complete
 - School Fees Management: Complete
 - Lunch Management: Complete
-- Student Charges Management: IN PROGRESS (Phase 1 Complete)
+- Student Charges Management: IN PROGRESS (Phases 1-3 Complete)
 
 ### Frontend Status
 - Foundation: Complete
@@ -40,35 +40,91 @@ Create the backend model layer for Student Charges Management with StudentCharge
 - Student Charges Management: Not Started
 
 ## Next Task
-**Phase 2: Backend Service (Milestone 5 - Phase 2)**
+**Phase 4: Backend Routes (Milestone 5 - Phase 4)**
 
-Create the business logic layer for Student Charges Management:
-- `backend/src/services/studentChargeService.js` - Service for student charge operations
-- `backend/src/services/studentChargeAssignmentService.js` - Service for assignment operations
+Create the route configuration for Student Charges Management:
+- Verify routes are mounted in app.js
+- Test all endpoints
+- Write tests for the new modules
 
-## Planned Files for Phase 1 (COMPLETED)
+## What Was Completed in This Session
 
-### Files Created:
+### Phase 1: Backend Models (COMPLETED)
+**Files Created:**
 1. `backend/src/models/StudentCharge.js` - Model for student_charges table
 2. `backend/src/models/StudentChargeAssignment.js` - Model for student_charge_assignments table
 
-### Files Modified:
+**Files Modified:**
 1. `backend/src/models/index.js` - Added exports for new models
+
+### Phase 2: Backend Service (COMPLETED)
+**Files Created:**
+1. `backend/src/services/studentChargeService.js` - Business logic for student charges
+2. `backend/src/services/studentChargeAssignmentService.js` - Business logic for assignments
+
+**Files Modified:**
+1. `backend/src/services/index.js` - Added exports for new services
+
+### Phase 3: Backend Controller (COMPLETED)
+**Files Created:**
+1. `backend/src/controllers/studentChargeController.js` - Route handlers for charges
+2. `backend/src/controllers/studentChargeAssignmentController.js` - Route handlers for assignments
+
+**Files Modified:**
+1. `backend/src/controllers/index.js` - Added exports for new controllers
+2. `backend/src/routes/studentChargeRoutes.js` - Routes for charges
+3. `backend/src/routes/studentChargeAssignmentRoutes.js` - Routes for assignments
+4. `backend/src/routes/index.js` - Added exports for new routes
+5. `backend/src/app.js` - Mounted new routes
+
+## API Endpoints Created
+
+### Student Charges (/api/charges)
+- GET / - List charges (paginated)
+- GET /all - List all charges
+- GET /:id - Get charge by ID
+- GET /class/:classId - Get charges by class
+- GET /active - Get active charges
+- GET /statistics - Get statistics
+- GET /student/:studentId - Get charges for student
+- GET /student/:studentId/unpaid - Get unpaid charges for student
+- GET /student/:studentId/outstanding - Get outstanding amount
+- POST / - Create charge
+- POST /:id/assign - Assign charge to students
+- PUT /:id - Update charge
+- DELETE /:id - Delete charge
+- DELETE /:id/force - Force delete charge
+
+### Student Charge Assignments (/api/charges/assignments)
+- GET / - List assignments (paginated)
+- GET /all - List all assignments
+- GET /:id - Get assignment by ID
+- GET /charge/:chargeId - Get assignments by charge
+- GET /charge/:chargeId/unpaid - Get unpaid by charge
+- GET /student/:studentId - Get assignments by student
+- GET /student/:studentId/unpaid - Get unpaid by student
+- GET /student/:studentId/outstanding - Get outstanding amount
+- GET /statistics - Get statistics
+- GET /outstanding/summary - Get outstanding summary
+- GET /check - Check if student assigned to charge
+- POST / - Create assignment
+- POST /bulk - Create multiple assignments
+- POST /:id/pay - Mark as paid
+- POST /:id/unpay - Mark as unpaid
+- PUT /:id - Update assignment
+- DELETE /:id - Delete assignment
+- DELETE /charge/:chargeId - Delete all for charge
 
 ## Verification Checklist
 
-For Phase 1 (Backend Models):
+For Phases 1-3:
 
-- [x] Implementation complete
-- [x] StudentCharge model created with all CRUD operations
-- [x] StudentChargeAssignment model created with all CRUD operations
-- [x] Field constants defined
-- [x] Validation logic included
-- [x] Business rule enforcement (e.g., cannot delete paid assignments)
-- [x] Statistics and summary methods included
-- [x] Index file updated
-- [x] Syntax validation passed
-- [x] Pattern consistency maintained (follows existing model patterns)
+- [x] Implementation complete (Models, Services, Controllers, Routes)
+- [x] All files created with proper patterns
+- [x] Syntax validation passed for all files
+- [x] Routes mounted in app.js
+- [x] Index files updated
+- [x] Pattern consistency maintained
 - [x] CURRENT_MILESTONE.md updated
 - [ ] MODULE_STATUS.md updated
 - [ ] PROJECT_STATUS.md updated
@@ -93,10 +149,10 @@ Every future session must:
 
 ## Quick Reference
 
-- **Latest Commit**: fe76f99
+- **Latest Commit**: d79a6ba
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Student Charges Management Backend Models
+- **Current Focus**: Student Charges Management Backend (Phases 1-3)
 
 ---
 
