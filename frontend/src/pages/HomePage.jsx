@@ -87,6 +87,20 @@ function HomePage() {
               >
                 Record Lunch Attendance
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/student-charges')}
+                className="quick-access-button"
+              >
+                Manage Charges
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/student-charges/create')}
+                className="quick-access-button"
+              >
+                Create New Charge
+              </Button>
             </div>
           </Card>
 
@@ -104,6 +118,7 @@ function HomePage() {
                 <li>Class Management</li>
                 <li>School Fees Tracking</li>
                 <li>Lunch Management</li>
+                <li>Student Charges (Swimming, Trips, Sports, etc.)</li>
                 <li>Income & Expense Tracking</li>
                 <li>Daily Ledger</li>
                 <li>Reports & Analytics</li>

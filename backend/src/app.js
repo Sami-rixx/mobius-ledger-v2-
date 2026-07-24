@@ -10,6 +10,7 @@ import studentRoutes from './routes/studentRoutes.js';
 import classRoutes from './routes/classRoutes.js';
 import schoolFeeRoutes from './routes/schoolFeeRoutes.js';
 import lunchRoutes from './routes/lunchRoutes.js';
+import studentChargeRoutes from './routes/studentChargeRoutes.js';
 
 // Initialize Express app
 const app = express();
@@ -46,6 +47,7 @@ app.use('/api/students', studentRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/school-fees', schoolFeeRoutes);
 app.use('/api/lunch', lunchRoutes);
+app.use('/api/student-charges', studentChargeRoutes);
 // Future routes will be mounted here:
 // app.use('/api/transactions', transactionRoutes);
 // app.use('/api/reports', reportRoutes);

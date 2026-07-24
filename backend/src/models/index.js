@@ -5,3 +5,5 @@ export { default as SchoolFee } from './SchoolFee.js';
 export { default as Transaction } from './Transaction.js';
 export { default as LunchPayment } from './LunchPayment.js';
 export { default as LunchAttendance } from './LunchAttendance.js';
+export { default as StudentCharge } from './StudentCharge.js';
+export { default as StudentChargeAssignment } from './StudentChargeAssignment.js';
