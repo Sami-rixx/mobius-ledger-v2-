@@ -210,20 +210,74 @@ This file tracks the status of every major module in the system. Each module rep
 
 | Aspect | Status |
 |--------|--------|
+| Current Status | \ud83d\udea7 In Progress |
+| Current Phase | Phase 1 (Backend Models) |
+| Completion % | 12.5% |
+| Backend Status | \ud83d\udea7 Phase 1 Complete |
+| Frontend Status | \u23f3 Not Started |
+| Integration Status | \u2705 Database Schema Ready |
+| Testing Status | \u23f3 Not Started |
+| Documentation Status | \u2705 Complete |
+| Latest Commit | [To be updated after commit] |
+| Next Planned Work | Backend Service, Controller, Routes |
+
+**Components**:
+- Backend: \u2705 Model (Income.js, IncomeCategory.js), \u23f3 Service, \u23f3 Controller, \u23f3 Routes, \u23f3 Tests
+- Frontend: \u23f3 Service, \u23f3 Components, \u23f3 Pages, \u23f3 Routing
+- Database: \u2705 income_categories table (schema exists), \u2705 income table (schema added)
+
+**Files Created (Phase 1)**:
+- `backend/src/models/Income.js` - Model for income records
+- `backend/src/models/IncomeCategory.js` - Model for income categories
+- Updated `backend/src/models/index.js` with exports
+- Updated `database/schema.sql` with income and expenses tables
+
+---
+
+## Module 7: Expense Management
+
+**Purpose**: Track all expenses with hierarchical categories.
+
+| Aspect | Status |
+|--------|--------|
 | Current Status | \u23f3 Not Started |
 | Current Phase | N/A |
 | Completion % | 0% |
 | Backend Status | \u23f3 Not Started |
 | Frontend Status | \u23f3 Not Started |
-| Integration Status | \u2705 Complete |
+| Integration Status | \u2705 Database Schema Ready |
 | Testing Status | \u23f3 Not Started |
 | Documentation Status | \u23f3 Not Started |
-| Latest Commit | ef24336 |
+| Latest Commit | [To be updated after commit] |
 | Next Planned Work | Backend Model, Service, Controller, Routes |
 
 **Planned Components**:
 - Backend: Model, Service, Controller, Routes
 - Frontend: Service, Components, Pages, Routing
-- Database: income_categories table (schema exists)
+- Database: expense_categories table (schema exists), expenses table (schema added)
+
+---
+
+## Module 8: Director Withdrawals
+
+**Purpose**: Track director/management withdrawals.
+
+| Aspect | Status |
+|--------|--------|
+| Current Status | \u23f3 Not Started |
+| Current Phase | N/A |
+| Completion % | 0% |
+| Backend Status | \u23f3 Not Started |
+| Frontend Status | \u23f3 Not Started |
+| Integration Status | \u2705 Database Schema Ready |
+| Testing Status | \u23f3 Not Started |
+| Documentation Status | \u23f3 Not Started |
+| Latest Commit | [To be updated after commit] |
+| Next Planned Work | Backend Model, Service, Controller, Routes |
+
+**Planned Components**:
+- Backend: Model, Service, Controller, Routes
+- Frontend: Service, Components, Pages, Routing
+- Database: director_withdrawals table (schema exists)
 
 ---

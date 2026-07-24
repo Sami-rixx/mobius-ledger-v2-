@@ -355,6 +355,64 @@ CREATE TABLE IF NOT EXISTS lunch_attendance (
 );
 
 -- ============================================
+-- ============================================
+-- INCOME RECORDS
+-- ============================================
+CREATE TABLE IF NOT EXISTS income (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  transaction_id INTEGER NOT NULL,
+  category_id INTEGER NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  income_date DATE NOT NULL,
+  description TEXT,
+  payer_name TEXT,
+  payer_phone TEXT,
+  reference TEXT,
+  notes TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_by INTEGER,
+  updated_by INTEGER,
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id),
+  FOREIGN KEY (category_id) REFERENCES income_categories(id),
+  FOREIGN KEY (created_by) REFERENCES users(id),
+  FOREIGN KEY (updated_by) REFERENCES users(id)
+);
+
+-- Income indexes
+CREATE INDEX IF NOT EXISTS idx_income_transaction ON income(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_income_category ON income(category_id);
+CREATE INDEX IF NOT EXISTS idx_income_date ON income(income_date);
+
+-- ============================================
+-- EXPENSE RECORDS
+-- ============================================
+CREATE TABLE IF NOT EXISTS expenses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  transaction_id INTEGER NOT NULL,
+  category_id INTEGER NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  expense_date DATE NOT NULL,
+  description TEXT,
+  payee_name TEXT,
+  payee_phone TEXT,
+  reference TEXT,
+  notes TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_by INTEGER,
+  updated_by INTEGER,
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id),
+  FOREIGN KEY (category_id) REFERENCES expense_categories(id),
+  FOREIGN KEY (created_by) REFERENCES users(id),
+  FOREIGN KEY (updated_by) REFERENCES users(id)
+);
+
+-- Expense indexes
+CREATE INDEX IF NOT EXISTS idx_expenses_transaction ON expenses(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(expense_date);
+
 -- DIRECTOR WITHDRAWALS
 -- ============================================
 CREATE TABLE IF NOT EXISTS director_withdrawals (
