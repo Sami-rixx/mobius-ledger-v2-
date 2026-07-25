@@ -190,7 +190,8 @@ This project uses a comprehensive self-documenting system. **Every developer and
 
 ### 📋 Essential Reading (Read Before Every Session)
 
-1. **CURRENT_MILESTONE.md** - Single source of truth for what to work on next
+1. **AGENT.md** - Single authoritative operating manual with Startup Protocol
+2. **CURRENT_MILESTONE.md** - Single source of truth for what to work on next
    - Current milestone and phase
    - Last completed phase
    - Next actionable task

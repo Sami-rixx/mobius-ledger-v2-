@@ -29,11 +29,12 @@ This session continued **Milestone 6: Income Management** by completing Phase 3 
 1. `AGENT.md` - Single authoritative operating manual with Startup Protocol
 
 **Documentation Updated:**
-1. `AGENT.md` - Created comprehensive operating manual
-2. `CURRENT_MILESTONE.md` - Updated to Phase 4, documented Phase 3 completion
-3. `MODULE_STATUS.md` - Updated Module 6 status to Phase 3 complete (37.5%)
-4. `PROJECT_STATUS.md` - Updated to Phase 4, Backend Phases 1-3 complete
-5. `SESSION_HANDOFF.md` - This file
+1. `AGENT.md` - Created comprehensive operating manual with all policies
+2. `README.md` - Added AGENT.md reference
+3. `CURRENT_MILESTONE.md` - Updated to Phase 4, documented Phase 3 completion
+4. `MODULE_STATUS.md` - Updated Module 6 status to Phase 3 complete (37.5%)
+5. `PROJECT_STATUS.md` - Updated to Phase 4, Backend Phases 1-3 complete
+6. `SESSION_HANDOFF.md` - This file
 
 **Previous Session (2026-07-24):**
 - Completed Milestone 5: Student Charges Management (Phases 6-8)

@@ -8,6 +8,137 @@ This file is the **SINGLE SOURCE OF TRUTH** for all AI agents, developers, and c
 
 ---
 
+## Autonomous Execution Policy
+
+The agent is expected to work autonomously once given a milestone or phase.
+
+After completing one phase, it must automatically continue to the next phase without asking for confirmation unless a Stop Condition occurs.
+
+Do not stop simply to ask:
+- "Should I continue?"
+- "Would you like me to proceed?"
+- "Ready for the next phase?"
+
+Instead, continue automatically.
+
+---
+
+## Standard Workflow
+
+For every phase:
+1. Verify repository state.
+2. Read CURRENT_MILESTONE.md.
+3. Implement the phase.
+4. Verify the implementation.
+5. Update documentation:
+   - CURRENT_MILESTONE.md
+   - MODULE_STATUS.md
+   - PROJECT_STATUS.md
+   - SESSION_HANDOFF.md (when appropriate)
+6. Commit.
+7. Push immediately to origin/main.
+8. Continue automatically to the next phase.
+
+Repeat until the current milestone is fully complete.
+
+---
+
+## Commit Policy
+
+A completed phase must NEVER remain uncommitted.
+
+Every completed phase must have:
+- its own commit
+- its own push
+- documentation updated before committing
+
+Never combine multiple completed phases into one commit unless explicitly instructed.
+
+Push immediately after every successful commit.
+Never accumulate multiple local commits.
+GitHub should always reflect the latest verified state.
+
+**Commit Message Format:**
+- Use imperative mood: "Add", "Update", "Fix" (not "Added", "Updated", "Fixed")
+- Use lowercase for first word
+- Include milestone and phase context
+- Example: `feat: add Income Management backend controllers (Milestone 6 - Phase 3)`
+
+---
+
+## Verification Policy
+
+Before every commit:
+- verify imports
+- verify exports
+- verify routing
+- verify architecture consistency
+- verify documentation consistency
+
+If tests exist, run them.
+If builds exist, verify they succeed.
+Never commit known broken code.
+
+---
+
+## Repository Safety Rules
+
+Never:
+- force push
+- rewrite history
+- delete working code without documenting why
+- ignore failing verification
+- skip documentation updates
+- leave completed work uncommitted
+
+---
+
+## Recovery Policy
+
+If interrupted by:
+- API limits
+- network loss
+- timeout
+- session termination
+- unexpected errors
+
+The agent must:
+1. Finish the current logical unit if possible.
+2. Update CURRENT_MILESTONE.md.
+3. Update SESSION_HANDOFF.md.
+4. Commit completed work.
+5. Push if possible.
+6. Clearly document the blocker.
+
+---
+
+## Stop Conditions
+
+Stop only if:
+- documentation contradicts repository state
+- merge conflicts occur
+- build failures cannot be resolved safely
+- failing tests require architectural decisions
+- required information is missing
+- repository corruption is detected
+
+Otherwise continue autonomously.
+
+---
+
+## Milestone Completion
+
+When a milestone is complete:
+1. Perform a final verification.
+2. Update all documentation.
+3. Commit.
+4. Push.
+5. Stop and report that the milestone is complete.
+
+Do NOT automatically begin the next milestone unless the current session was explicitly instructed to do so.
+
+---
+
 ## Startup Protocol
 
 Every new session (AI or human) must execute this protocol in order, without deviation:
@@ -99,34 +230,13 @@ Update ALL relevant documentation files to reflect the completed work:
 - Cross-references between documents must be correct
 - Never leave documentation stale
 
-### 3. Commit
+### 3. Commit and Push
 ```bash
 cd /data/data/com.termux/files/home/mobius-ledger-v2-
 git add .
 git commit -m "<descriptive message>"
-```
-
-**Commit Message Format:**
-- Use imperative mood: "Add", "Update", "Fix" (not "Added", "Updated", "Fixed")
-- Use lowercase for first word
-- Include milestone and phase context
-- Example: `feat: add Income Management backend controllers (Milestone 6 - Phase 3)`
-
-**Commit Content:**
-- Include ALL changed files (code, documentation)
-- Do not leave any related changes uncommitted
-- Verify with `git status` that all changes are staged
-
-### 4. Push to GitHub
-```bash
 git push origin main
 ```
-
-**Push Rules:**
-- Push immediately after every commit
-- Verify push succeeded
-- Never leave completed work only in local sandbox
-- **GitHub is the permanent source of truth**
 
 ---
 
@@ -134,7 +244,7 @@ git push origin main
 
 ### Documentation Rules
 1. ❌ **NEVER** write code without reading AGENT.md first
-2. ❌ **NEVER** write code without reading all 7 documentation files
+2. ❌ **NEVER** write code without reading all 8 documentation files
 3. ❌ **NEVER** proceed if documentation is inconsistent
 4. ❌ **NEVER** leave documentation stale after completing work
 5. ❌ **NEVER** skip documentation updates
@@ -211,10 +321,19 @@ Every completed feature requires:
 
 ---
 
-## Quick Reference
+## After Updating AGENT.md
 
-### Current Milestone Structure
-See `CURRENT_MILESTONE.md` for the exact current milestone and phase.
+1. Verify that it is consistent with the repository and existing documentation.
+2. Update README.md if it should reference AGENT.md.
+3. Update SESSION_HANDOFF.md.
+4. Commit.
+5. Push.
+
+Commit message: Use descriptive format following the Commit Policy above.
+
+---
+
+## Quick Reference
 
 ### File Naming Conventions
 - **Models**: PascalCase (`Student.js`, `IncomeCategory.js`)
