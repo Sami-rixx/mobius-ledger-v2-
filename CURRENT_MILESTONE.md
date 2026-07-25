@@ -4,15 +4,15 @@
 **Milestone 6: Income Management**
 
 ## Current Phase
-**Phase 2: Backend Service**
+**Phase 4: Backend Routes**
 
-Create the backend service layer for Income Management.
+Create the backend routes for Income Management.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 6 - Phase 1 (Backend Models)
+- **Phase**: Milestone 6 - Phase 3 (Backend Controllers)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-25
-- **Description**: "feat: add Income Management backend models (Milestone 6 - Phase 1)"
+- **Description**: "feat: add Income Management backend controllers (Milestone 6 - Phase 3)"
 
 ## Current Repository Status
 
@@ -31,7 +31,7 @@ Create the backend service layer for Income Management.
 - School Fees Management: Complete
 - Lunch Management: Complete
 - Student Charges Management: COMPLETE (Phases 1-4)
-- Income Management: IN PROGRESS (Phase 2)
+- Income Management: IN PROGRESS (Phase 3)
 
 ### Frontend Status
 - Foundation: Complete
@@ -40,19 +40,34 @@ Create the backend service layer for Income Management.
 - School Fees Management: Complete
 - Lunch Management: Complete
 - Student Charges Management: COMPLETE (Phases 5-8)
-- Income Management: IN PROGRESS (Phase 2)
+- Income Management: NOT STARTED
 
 ## Next Task
-**Phase 2: Backend Service (Milestone 6 - Phase 2)**
+**Phase 4: Backend Routes (Milestone 6 - Phase 4)**
 
-Create the backend service layer for Income Management:
-- `backend/src/services/incomeService.js` - Service for income records
-- `backend/src/services/incomeCategoryService.js` - Service for income categories
-- Update `backend/src/services/index.js` to export new services
+Create the backend routes for Income Management:
+- `backend/src/routes/incomeRoutes.js` - Routes for income endpoints
+- `backend/src/routes/incomeCategoryRoutes.js` - Routes for category endpoints
+- Update `backend/src/routes/index.js` to export new routes
+- Update `backend/src/app.js` to mount new routes
 
 See DEVELOPMENT_ROADMAP.md for detailed requirements.
 
 ## What Was Completed in Previous Session
+
+### Milestone 6: Income Management - Phase 3 COMPLETE
+
+**Phase 3: Backend Controllers**
+- `backend/src/controllers/incomeController.js` - Controller for income endpoints (10+ functions)
+- `backend/src/controllers/incomeCategoryController.js` - Controller for category endpoints (10+ functions)
+- Updated `backend/src/controllers/index.js` to export new controllers
+
+### Milestone 6: Income Management - Phase 2 COMPLETE
+
+**Phase 2: Backend Services**
+- `backend/src/services/incomeService.js` - Service for income records (10+ functions)
+- `backend/src/services/incomeCategoryService.js` - Service for income categories (10+ functions)
+- Updated `backend/src/services/index.js` with new exports
 
 ### Milestone 6: Income Management - Phase 1 COMPLETE
 
@@ -146,7 +161,7 @@ Every future session must:
 - **Latest Commit**: [To be updated after commit]
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 6 - Phase 1 Complete, Phase 2 in Progress
+- **Current Focus**: Milestone 6 - Phase 3 Complete, Phase 4 Ready
 
 ---
 

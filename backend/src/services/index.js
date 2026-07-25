@@ -4,3 +4,5 @@ export { default as classService } from './classService.js';
 export { default as schoolFeeService } from './schoolFeeService.js';
 export { default as studentChargeService } from './studentChargeService.js';
 export { default as studentChargeAssignmentService } from './studentChargeAssignmentService.js';
+export { default as incomeService } from './incomeService.js';
+export { default as incomeCategoryService } from './incomeCategoryService.js';
