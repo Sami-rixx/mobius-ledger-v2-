@@ -4,15 +4,15 @@
 **Milestone 6: Income Management**
 
 ## Current Phase
-**Phase 1: Backend Models**
+**Phase 2: Backend Service**
 
-Create the backend data models for Income Management.
+Create the backend service layer for Income Management.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 5 - Phase 8 (Routing, Navigation, Integration, Verification & Final Testing)
+- **Phase**: Milestone 6 - Phase 1 (Backend Models)
 - **Commit Hash**: [To be updated after commit]
-- **Date**: 2026-07-24
-- **Description**: "feat: complete Student Charges Management with routing and integration (Milestone 5 - Phase 8)"
+- **Date**: 2026-07-25
+- **Description**: "feat: add Income Management backend models (Milestone 6 - Phase 1)"
 
 ## Current Repository Status
 
@@ -31,7 +31,7 @@ Create the backend data models for Income Management.
 - School Fees Management: Complete
 - Lunch Management: Complete
 - Student Charges Management: COMPLETE (Phases 1-4)
-- Income Management: IN PROGRESS (Phase 1)
+- Income Management: IN PROGRESS (Phase 2)
 
 ### Frontend Status
 - Foundation: Complete
@@ -40,19 +40,27 @@ Create the backend data models for Income Management.
 - School Fees Management: Complete
 - Lunch Management: Complete
 - Student Charges Management: COMPLETE (Phases 5-8)
-- Income Management: Not Started
+- Income Management: IN PROGRESS (Phase 2)
 
 ## Next Task
-**Phase 1: Backend Models (Milestone 6 - Phase 1)**
+**Phase 2: Backend Service (Milestone 6 - Phase 2)**
 
-Create the backend data models for Income Management:
-- `backend/src/models/Income.js` - Model for income records
-- `backend/src/models/IncomeCategory.js` - Model for income categories
-- Update `backend/src/models/index.js` to export new models
+Create the backend service layer for Income Management:
+- `backend/src/services/incomeService.js` - Service for income records
+- `backend/src/services/incomeCategoryService.js` - Service for income categories
+- Update `backend/src/services/index.js` to export new services
 
 See DEVELOPMENT_ROADMAP.md for detailed requirements.
 
 ## What Was Completed in Previous Session
+
+### Milestone 6: Income Management - Phase 1 COMPLETE
+
+**Phase 1: Backend Models**
+- `backend/src/models/Income.js` - Income record model
+- `backend/src/models/IncomeCategory.js` - Income category model
+- `database/schema.sql` - Added income table with indexes
+- Updated `backend/src/models/index.js` with new exports
 
 ### Milestone 5: Student Charges Management - COMPLETE
 
@@ -138,7 +146,7 @@ Every future session must:
 - **Latest Commit**: [To be updated after commit]
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 5 Complete, Starting Milestone 6
+- **Current Focus**: Milestone 6 - Phase 1 Complete, Phase 2 in Progress
 
 ---
 

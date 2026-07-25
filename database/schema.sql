@@ -108,6 +108,39 @@ INSERT OR IGNORE INTO income_categories (name, description, is_system) VALUES
   ('Other Income', 'Miscellaneous income', 1);
 
 -- ============================================
+-- INCOME
+-- ============================================
+CREATE TABLE IF NOT EXISTS income (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  receipt_number TEXT UNIQUE NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  income_category_id INTEGER NOT NULL,
+  description TEXT,
+  payer_name TEXT NOT NULL,
+  payer_contact TEXT,
+  payment_method_id INTEGER,
+  transaction_id INTEGER,
+  income_date DATE NOT NULL,
+  notes TEXT,
+  is_verified BOOLEAN DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_by INTEGER,
+  updated_by INTEGER,
+  FOREIGN KEY (income_category_id) REFERENCES income_categories(id),
+  FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id),
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id),
+  FOREIGN KEY (created_by) REFERENCES users(id),
+  FOREIGN KEY (updated_by) REFERENCES users(id)
+);
+
+-- Indexes for income table
+CREATE INDEX IF NOT EXISTS idx_income_receipt ON income(receipt_number);
+CREATE INDEX IF NOT EXISTS idx_income_category ON income(income_category_id);
+CREATE INDEX IF NOT EXISTS idx_income_date ON income(income_date);
+CREATE INDEX IF NOT EXISTS idx_income_payer ON income(payer_name);
+
+-- ============================================
 -- EXPENSE CATEGORIES
 -- ============================================
 CREATE TABLE IF NOT EXISTS expense_categories (
