@@ -4,15 +4,15 @@
 **Milestone 6: Income Management**
 
 ## Current Phase
-**Phase 5: Backend Testing**
+**Phase 6: Frontend Services**
 
-Create backend tests for Income Management.
+Create frontend services for Income Management.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 6 - Phase 4 (Backend Routes)
-- **Commit Hash**: 343caea
+- **Phase**: Milestone 6 - Phase 5 (Backend Testing)
+- **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-25
-- **Description**: "feat: add Income Management backend routes (Milestone 6 - Phase 4)"
+- **Description**: "feat: add Income Management backend tests (Milestone 6 - Phase 5)"
 
 ## Current Repository Status
 
@@ -31,7 +31,7 @@ Create backend tests for Income Management.
 - School Fees Management: Complete
 - Lunch Management: Complete
 - Student Charges Management: COMPLETE (Phases 1-4)
-- Income Management: IN PROGRESS (Phase 4)
+- Income Management: COMPLETE (Phases 1-5)
 
 ### Frontend Status
 - Foundation: Complete
@@ -43,15 +43,22 @@ Create backend tests for Income Management.
 - Income Management: NOT STARTED
 
 ## Next Task
-**Phase 5: Backend Testing (Milestone 6 - Phase 5)**
+**Phase 6: Frontend Services (Milestone 6 - Phase 6)**
 
-Create backend tests for Income Management:
-- `backend/src/__tests__/income.test.js` - Tests for income endpoints
-- `backend/src/__tests__/incomeCategory.test.js` - Tests for category endpoints
+Create frontend services for Income Management:
+- `frontend/src/services/incomeService.js` - API client for income endpoints
+- `frontend/src/services/incomeCategoryService.js` - API client for category endpoints
+- Update `frontend/src/services/index.js` to export new services
 
 See DEVELOPMENT_ROADMAP.md for detailed requirements.
 
 ## What Was Completed in Previous Session
+
+### Milestone 6: Income Management - Phase 5 COMPLETE
+
+**Phase 5: Backend Testing**
+- `backend/src/__tests__/income.test.js` - Tests for income endpoints
+- `backend/src/__tests__/incomeCategory.test.js` - Tests for category endpoints
 
 ### Milestone 6: Income Management - Phase 4 COMPLETE
 
@@ -164,10 +171,10 @@ Every future session must:
 
 ## Quick Reference
 
-- **Latest Commit**: 343caea
+- **Latest Commit**: [To be updated after commit]
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 6 - Phase 4 Complete, Phase 5 Ready
+- **Current Focus**: Milestone 6 - Phase 5 Complete, Phase 6 Ready
 
 ---
 
