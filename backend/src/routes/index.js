@@ -5,3 +5,5 @@ export { default as classRoutes } from './classRoutes.js';
 export { default as schoolFeeRoutes } from './schoolFeeRoutes.js';
 export { default as studentChargeRoutes } from './studentChargeRoutes.js';
 export { default as studentChargeAssignmentRoutes } from './studentChargeAssignmentRoutes.js';
+export { default as incomeRoutes } from './incomeRoutes.js';
+export { default as incomeCategoryRoutes } from './incomeCategoryRoutes.js';

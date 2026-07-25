@@ -211,18 +211,18 @@ This file tracks the status of every major module in the system. Each module rep
 | Aspect | Status |
 |--------|--------|
 | Current Status | \ud83d\udea7 In Progress |
-| Current Phase | Phase 3 (Backend Controllers) |
-| Completion % | 37.5% |
-| Backend Status | \u2705 Phase 3 Complete (Controllers) |
+| Current Phase | Phase 4 (Backend Routes) |
+| Completion % | 50% |
+| Backend Status | \u2705 Phase 4 Complete (Routes) |
 | Frontend Status | \u23f3 Not Started |
 | Integration Status | \u2705 Complete |
 | Testing Status | \u23f3 Not Started |
 | Documentation Status | \ud83d\udea7 Partial |
-| Latest Commit | 7dd0ad8 |
-| Next Planned Work | Backend Routes |
+| Latest Commit | [To be updated after commit] |
+| Next Planned Work | Backend Testing |
 
 **Components**:
-- Backend: \u2705 Model (Income.js, IncomeCategory.js), \u2705 Service (incomeService.js, incomeCategoryService.js), \u2705 Controller (incomeController.js, incomeCategoryController.js), Routes
+- Backend: \u2705 Model (Income.js, IncomeCategory.js), \u2705 Service (incomeService.js, incomeCategoryService.js), \u2705 Controller (incomeController.js, incomeCategoryController.js), \u2705 Routes (incomeRoutes.js, incomeCategoryRoutes.js)
 - Database: \u2705 income_categories table, \u2705 income table (schema added)
 
 ---
