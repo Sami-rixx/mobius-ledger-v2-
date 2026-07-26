@@ -4,15 +4,15 @@
 **Milestone 9: Director Withdrawals**
 
 ## Current Phase
-**Phase 4: Backend Routes**
+**Phase 5: Backend Testing**
 
-Create Director Withdrawal routes and mount in app.js.
+Create tests for Director Withdrawal model, service, and controller.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 9 - Phase 4 (Backend Routes)
+- **Phase**: Milestone 9 - Phase 5 (Backend Testing)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add Director Withdrawals backend routes (Milestone 9 - Phase 4)"
+- **Description**: "feat: add Director Withdrawals backend tests (Milestone 9 - Phase 5)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 8 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -131,7 +131,7 @@ All 8 phases completed successfully:
 - Income Management: COMPLETE (Phases 1-5)
 - Expense Management: COMPLETE (Phases 1-5)
 - Reports & Analytics: COMPLETE (Phases 1-5)
-- Director Withdrawals: Phases 1-4 Complete (Models, Services, Controllers, Routes)
+- Director Withdrawals: Phases 1-5 Complete (Models, Services, Controllers, Routes, Tests)
 
 ### Frontend Status
 - Foundation: Complete
@@ -175,6 +175,13 @@ All 8 phases completed successfully:
 - Updated `backend/src/app.js` to mount routes at /api/withdrawals
 - Features: All CRUD routes, approval workflow routes, statistics, labels, search, count
 
+### Milestone 9: Director Withdrawals - Phase 5 COMPLETE
+
+**Phase 5: Backend Testing**
+- `backend/src/__tests__/directorWithdrawal.test.js` - Comprehensive tests for Director Withdrawal module
+- Tests cover: Model constants, Service functions (CRUD, approval workflow, statistics), Validation, Status transitions, Error handling
+- Test categories: Constants validation, Model fields, Service CRUD, Approval workflow, Statistics, Exports
+
 ## Next Task
 **Milestone 8: Reports & Analytics - COMPLETE**
 
@@ -190,10 +197,10 @@ All 8 phases of Milestone 8 are now complete:
 
 **Next Milestone: Milestone 9 (Director Withdrawals)**
 
-### Milestone 9: Director Withdrawals - Phase 5 IN PROGRESS
+### Milestone 9: Director Withdrawals - Phase 6 IN PROGRESS
 
-**Phase 5: Backend Testing**
-Create tests for Director Withdrawal model, service, and controller.
+**Phase 6: Frontend Services**
+Create Director Withdrawal frontend API client service.
 
 ## What Was Completed in Previous Session
 
