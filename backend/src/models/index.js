@@ -15,3 +15,4 @@ export { default as Analytics } from './Analytics.js';
 export { default as DirectorWithdrawal, WITHDRAWAL_STATUS } from './DirectorWithdrawal.js';
 export { default as AuditTrail } from './AuditTrail.js';
 export { default as Notification, NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from './Notification.js';
+export { default as UserSession, USER_SESSIONS_TABLE, USER_SESSION_FIELDS } from './UserSession.js';

@@ -32,6 +32,28 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- ============================================
+-- USER SESSIONS (for authentication tracking)
+-- ============================================
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  session_token TEXT UNIQUE NOT NULL,
+  ip_address TEXT,
+  user_agent TEXT,
+  expires_at DATETIME NOT NULL,
+  is_active BOOLEAN DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Indexes for user_sessions table
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_session_token ON user_sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_is_active ON user_sessions(is_active);
+
+-- ============================================
 -- CLASSES/GRADES
 -- ============================================
 CREATE TABLE IF NOT EXISTS classes (

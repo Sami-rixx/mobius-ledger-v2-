@@ -1,22 +1,22 @@
 # Current Milestone - Mobius Ledger v2
 
 ## Current Milestone
-**Milestone 12: Notification System**
+**Milestone 13: User Authentication**
 
 ## Current Phase
-**Phase 8: Frontend Pages, Routing, Navigation**
+**Phase 1: Backend Models**
+
+## Last Successfully Completed Phase
+- **Phase**: Milestone 13 - Phase 1 (Backend Models)
+- **Commit Hash**: [To be updated after commit]
+- **Date**: 2026-07-26
+- **Description**: "feat: add User Authentication backend models (Milestone 13 - Phase 1)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 12 - Phase 8 (Frontend Pages, Routing, Navigation)
-- **Commit Hash**: [To be updated after commit]
+- **Commit Hash**: bb32e4b
 - **Date**: 2026-07-26
-- **Description**: "feat: add Notification System frontend pages, routing, navigation (Milestone 12 - Phase 8)"
-
-## Last Successfully Completed Phase
-- **Phase**: Milestone 12 - Phase 4 (Backend Routes)
-- **Commit Hash**: 6f75c0c
-- **Date**: 2026-07-26
-- **Description**: "feat: add Notification System backend routes (Milestone 12 - Phase 4)"
+- **Description**: "feat: add Notification System frontend pages, routing, navigation"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 8 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -127,7 +127,8 @@ All 8 phases completed successfully:
 - **Milestone 9**: Director Withdrawals - COMPLETE (All Phases 1-8)
 - **Milestone 10**: Transactions - COMPLETE (All Phases 1-8)
 - **Milestone 11**: Audit Trail - COMPLETE (All Phases 1-8)
-- **Milestone 12**: Notification System - IN PROGRESS (Phase 1)
+- **Milestone 12**: Notification System - COMPLETE (All Phases 1-8)
+- **Milestone 13**: User Authentication - IN PROGRESS (Phase 1)
 
 ### Backend Status
 - Foundation: Complete
@@ -213,13 +214,12 @@ All 8 phases completed successfully:
 - Features: Full CRUD, approval workflow, status management, responsive design
 
 ## Next Task
-**Milestone 13: User Authentication - Phase 1: Backend Models**
+**Milestone 13: User Authentication - Phase 2: Backend Services**
 
-Create backend models for user authentication.
+Create backend services for user authentication.
 Files to create:
-- `backend/src/models/UserSession.js` - User session model for tracking login sessions
-- Update `backend/src/models/index.js` with new exports
-- Update `database/schema.sql` with user_sessions table and indexes
+- `backend/src/services/userSessionService.js` - Service layer for UserSession model
+- Update `backend/src/services/index.js` with new exports
 
 See ARCHITECTURE.md and DEVELOPMENT_ROADMAP.md for implementation patterns.
 
@@ -381,6 +381,16 @@ Enhanced Transaction model for unified transaction management.
 - Updated `frontend/src/App.jsx` with routes: /notifications, /notifications/create, /notifications/:id
 - Updated `frontend/src/App.jsx` with navigation link for Notifications
 - Updated `frontend/src/pages/HomePage.jsx` with quick access buttons and feature list entry
+
+### Milestone 13: User Authentication - Phase 1 COMPLETE
+
+**Phase 1: Backend Models**
+- `backend/src/models/UserSession.js` - User session model with 14 functions (CRUD, validation, session management)
+  - Features: Session token management, IP address tracking, user agent tracking, expiration handling, active status management
+  - Functions: createUserSession, getUserSessionById, getUserSessionByToken, getActiveSessionsByUser, getAllUserSessions, updateUserSession, deactivateUserSession, deactivateAllUserSessions, deactivateExpiredSessions, deleteUserSession, deleteAllUserSessions, getUserSessionCount, validateSessionToken, extendUserSession
+  - Constants: USER_SESSIONS_TABLE, USER_SESSION_FIELDS, DEFAULT_SESSION_DURATION
+- Updated `backend/src/models/index.js` with UserSession, USER_SESSIONS_TABLE, USER_SESSION_FIELDS exports
+- Updated `database/schema.sql` with user_sessions table and 4 indexes (user_id, session_token, expires_at, is_active)
 
 #### Milestone 10: Transactions - Phase 2 COMPLETE
 
@@ -689,9 +699,9 @@ Every future session must:
 - **Latest Commit**: [To be updated after commit]
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 12 (Notification System) Phase 1 - Backend Models
-- **Milestones Completed**: 11 of 19
-- **Overall Completion**: ~79%
+- **Current Focus**: Milestone 13 (User Authentication) Phase 2 - Backend Services
+- **Milestones Completed**: 12 of 19
+- **Overall Completion**: ~84%
 
 ---
 
