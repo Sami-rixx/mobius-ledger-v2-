@@ -12,3 +12,4 @@ export { default as expenseCategoryRoutes } from './expenseCategoryRoutes.js';
 export { default as reportRoutes } from './reportRoutes.js';
 export { default as analyticsRoutes } from './analyticsRoutes.js';
 export { default as dailySummaryRoutes } from './dailySummaryRoutes.js';
+export { default as directorWithdrawalRoutes } from './directorWithdrawalRoutes.js';

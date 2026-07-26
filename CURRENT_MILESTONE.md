@@ -4,15 +4,15 @@
 **Milestone 9: Director Withdrawals**
 
 ## Current Phase
-**Phase 3: Backend Controllers**
+**Phase 4: Backend Routes**
 
-Create Director Withdrawal controller for API endpoints.
+Create Director Withdrawal routes and mount in app.js.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 9 - Phase 3 (Backend Controllers)
+- **Phase**: Milestone 9 - Phase 4 (Backend Routes)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add Director Withdrawals backend controllers (Milestone 9 - Phase 3)"
+- **Description**: "feat: add Director Withdrawals backend routes (Milestone 9 - Phase 4)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 8 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -131,7 +131,7 @@ All 8 phases completed successfully:
 - Income Management: COMPLETE (Phases 1-5)
 - Expense Management: COMPLETE (Phases 1-5)
 - Reports & Analytics: COMPLETE (Phases 1-5)
-- Director Withdrawals: Phases 1-3 Complete (Models, Services, Controllers)
+- Director Withdrawals: Phases 1-4 Complete (Models, Services, Controllers, Routes)
 
 ### Frontend Status
 - Foundation: Complete
@@ -167,6 +167,14 @@ All 8 phases completed successfully:
 - Updated `backend/src/controllers/index.js` with new exports
 - Features: CRUD endpoints, approval workflow endpoints, statistics, labels, search, count
 
+### Milestone 9: Director Withdrawals - Phase 4 COMPLETE
+
+**Phase 4: Backend Routes**
+- `backend/src/routes/directorWithdrawalRoutes.js` - Routes for 15 endpoints
+- Updated `backend/src/routes/index.js` with new exports
+- Updated `backend/src/app.js` to mount routes at /api/withdrawals
+- Features: All CRUD routes, approval workflow routes, statistics, labels, search, count
+
 ## Next Task
 **Milestone 8: Reports & Analytics - COMPLETE**
 
@@ -182,10 +190,10 @@ All 8 phases of Milestone 8 are now complete:
 
 **Next Milestone: Milestone 9 (Director Withdrawals)**
 
-### Milestone 9: Director Withdrawals - Phase 4 IN PROGRESS
+### Milestone 9: Director Withdrawals - Phase 5 IN PROGRESS
 
-**Phase 4: Backend Routes**
-Create Director Withdrawal routes and mount in app.js.
+**Phase 5: Backend Testing**
+Create tests for Director Withdrawal model, service, and controller.
 
 ## What Was Completed in Previous Session
 
