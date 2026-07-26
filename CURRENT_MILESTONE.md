@@ -4,7 +4,7 @@
 **Milestone 14: Authorization & Permissions**
 
 ## Current Phase
-**Phase 3: Backend Controllers**
+**Phase 4: Backend Routes**
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 13 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -214,15 +214,16 @@ All 8 phases completed successfully:
 - Features: Full CRUD, approval workflow, status management, responsive design
 
 ## Next Task
-**Milestone 14: Authorization & Permissions - Phase 3: Backend Controllers**
+**Milestone 14: Authorization & Permissions - Phase 4: Backend Routes**
 
-Create backend controllers for authorization and permissions.
+Create backend routes for authorization and permissions.
 Files to create:
-- `backend/src/controllers/permissionController.js` - Controller for Permission endpoints
-- `backend/src/controllers/roleController.js` - Controller for Role endpoints
-- `backend/src/controllers/userRoleController.js` - Controller for UserRole endpoints
-- `backend/src/controllers/rolePermissionController.js` - Controller for RolePermission endpoints
-- Update `backend/src/controllers/index.js` with new exports
+- `backend/src/routes/permissionRoutes.js` - Routes for Permission endpoints
+- `backend/src/routes/roleRoutes.js` - Routes for Role endpoints
+- `backend/src/routes/userRoleRoutes.js` - Routes for UserRole endpoints
+- `backend/src/routes/rolePermissionRoutes.js` - Routes for RolePermission endpoints
+- Update `backend/src/routes/index.js` with new exports
+- Update `backend/src/app.js` to mount new routes
 
 See ARCHITECTURE.md and DEVELOPMENT_ROADMAP.md for implementation patterns.
 
@@ -539,6 +540,21 @@ Enhanced Transaction model for unified transaction management.
 - `backend/src/services/rolePermissionService.js` - Service layer with 17 functions
   - Features: Validation, CRUD, pagination, role-permission assignment, permission checking, statistics
 - Updated `backend/src/services/index.js` with permissionService, roleService, userRoleService, rolePermissionService exports
+
+### Milestone 14: Authorization & Permissions - Phase 3 COMPLETE
+
+**Phase 3: Backend Controllers**
+- **Commit**: [To be updated after commit]
+- **Date**: 2026-07-26
+- `backend/src/controllers/permissionController.js` - Controller with 15 route handlers
+  - Endpoints: list, count, get by ID, get by name, get by module, check exists, search, stats, modules, count by module, create, update, delete
+- `backend/src/controllers/roleController.js` - Controller with 16 route handlers
+  - Endpoints: list, count, get by ID, get by name, get default, check exists, search, with permissions, stats, default names, create, update, delete, set default
+- `backend/src/controllers/userRoleController.js` - Controller with 16 route handlers
+  - Endpoints: list, count, get by ID, get by user/role, get roles for user, get role IDs for user, get users for role, check has role, check has any role, user count, role count, stats, create, remove, remove all, replace
+- `backend/src/controllers/rolePermissionController.js` - Controller with 16 route handlers
+  - Endpoints: list, count, get by ID, get by role/permission, get permissions for role, get permission IDs for role, get roles for permission, check has permission, check has any permission, permission count, role count, stats, create, remove, remove all, replace
+- Updated `backend/src/controllers/index.js` with Permission, Role, UserRole, RolePermission exports
 
 ### Milestone 13: User Authentication - COMPLETE
 

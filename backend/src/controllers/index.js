@@ -16,3 +16,7 @@ export { default as Transaction } from './transactionController.js';
 export { default as AuditTrail } from './auditTrailController.js';
 export { default as Notification } from './notificationController.js';
 export { default as UserSession } from './userSessionController.js';
+export { default as Permission } from './permissionController.js';
+export { default as Role } from './roleController.js';
+export { default as UserRole } from './userRoleController.js';
+export { default as RolePermission } from './rolePermissionController.js';
