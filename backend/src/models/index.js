@@ -14,3 +14,4 @@ export { default as Report, REPORT_TYPES_CONSTANTS as REPORT_TYPES } from './Rep
 export { default as Analytics } from './Analytics.js';
 export { default as DirectorWithdrawal, WITHDRAWAL_STATUS } from './DirectorWithdrawal.js';
 export { default as AuditTrail } from './AuditTrail.js';
+export { default as Notification, NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from './Notification.js';

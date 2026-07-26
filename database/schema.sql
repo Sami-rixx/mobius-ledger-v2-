@@ -729,3 +729,37 @@ SELECT
   MIN(net_flow) as min_amount,
   MAX(net_flow) as max_amount
 FROM daily_summaries;
+
+-- ============================================
+-- NOTIFICATIONS (Milestone 12)
+-- ============================================
+
+-- Notifications table: System notifications for users
+CREATE TABLE IF NOT EXISTS notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'INFO' CHECK(type IN ('INFO', 'WARNING', 'ERROR', 'SUCCESS', 'REMINDER', 'ALERT')),
+  priority TEXT NOT NULL DEFAULT 'MEDIUM' CHECK(priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+  user_id INTEGER,
+  is_read BOOLEAN NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT 1,
+  related_table TEXT,
+  related_id INTEGER,
+  scheduled_at DATETIME,
+  sent_at DATETIME,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Indexes for notifications table
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
+CREATE INDEX IF NOT EXISTS idx_notifications_priority ON notifications(priority);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_active ON notifications(is_active);
+CREATE INDEX IF NOT EXISTS idx_notifications_related_table ON notifications(related_table);
+CREATE INDEX IF NOT EXISTS idx_notifications_related_id ON notifications(related_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_scheduled_at ON notifications(scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
