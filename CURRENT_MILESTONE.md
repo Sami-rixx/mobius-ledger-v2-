@@ -4,15 +4,15 @@
 **Milestone 7: Expense Management**
 
 ## Current Phase
-**Phase 5: Backend Testing**
+**Phase 6: Frontend Services**
 
-Create backend tests for Expense Management.
+Create frontend services for Expense Management.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 7 - Phase 4 (Backend Routes)
+- **Phase**: Milestone 7 - Phase 5 (Backend Testing)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add Expense Management backend routes (Milestone 7 - Phase 4)"
+- **Description**: "test: add Expense Management backend tests (Milestone 7 - Phase 5)"
 
 ## Current Repository Status
 
@@ -44,15 +44,23 @@ Create backend tests for Expense Management.
 - Income Management: **COMPLETE** (Phases 6-8)
 
 ## Next Task
-**Phase 5: Backend Testing (Milestone 7 - Phase 5)**
+**Phase 6: Frontend Services (Milestone 7 - Phase 6)**
 
-Create backend tests for Expense Management:
-- `backend/src/__tests__/expense.test.js` - Tests for expense endpoints
-- `backend/src/__tests__/expenseCategory.test.js` - Tests for expense category endpoints
+Create frontend services for Expense Management:
+- `frontend/src/services/expenseService.js` - API client for expense endpoints
+- `frontend/src/services/expenseCategoryService.js` - API client for expense category endpoints
+- Update `frontend/src/services/index.js` with new exports
 
 See DEVELOPMENT_ROADMAP.md for detailed requirements.
 
 ## What Was Completed in Previous Session
+
+### Milestone 7: Expense Management - Phase 5 COMPLETE
+
+**Phase 5: Backend Testing**
+- `backend/src/__tests__/expense.test.js` - Tests for expense model, service, and edge cases
+- `backend/src/__tests__/expenseCategory.test.js` - Tests for expense category model, service, and hierarchical operations
+- Tests cover: CRUD operations, query operations, service layer, edge cases, validation
 
 ### Milestone 7: Expense Management - Phase 4 COMPLETE
 
@@ -240,7 +248,7 @@ Every future session must:
 - **Latest Commit**: 0ad2d9e
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 6 COMPLETE, Milestone 7 Phase 4 COMPLETE, Phase 5 Ready
+- **Current Focus**: Milestone 6 COMPLETE, Milestone 7 Phase 5 COMPLETE, Phase 6 Ready
 
 ---
 
