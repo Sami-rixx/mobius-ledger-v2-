@@ -14,3 +14,4 @@ export * from './dailySummaryService.js';
 export * from './directorWithdrawalService.js';
 export * from './transactionService.js';
 export * from './auditTrailService.js';
+export * from './notificationService.js';
