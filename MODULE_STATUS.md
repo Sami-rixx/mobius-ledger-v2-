@@ -296,3 +296,49 @@ This file tracks the status of every major module in the system. Each module rep
 - DELETE /api/expense-categories/:id - Delete category
 
 ---
+
+
+---
+
+## Module 8: Reports & Analytics
+
+**Purpose**: Generate comprehensive financial reports, daily summaries, and analytics for school financial management.
+
+| Aspect | Status |
+|--------|--------|
+| Current Status | 🚧 In Progress |
+| Current Phase | Phase 2 (Backend Services) |
+| Completion % | 25% |
+| Backend Status | ✅ Phase 1 Complete (Models) |
+| Frontend Status | 📵 Not Started |
+| Integration Status | 📵 Not Started |
+| Testing Status | 📵 Not Started |
+| Documentation Status | ✅ Complete |
+| Latest Commit | [To be updated after commit] |
+| Next Planned Work | Phase 2: Backend Services |
+
+**Components**:
+- Backend: ✅ Phase 1 Complete (Report.js, DailySummary.js, Analytics.js models)
+- Database: ✅ Phase 1 Complete (reports, daily_summaries tables, indexes, views)
+- Frontend: 📵 Not Started
+
+**API Endpoints (Planned)**:
+- GET /api/reports - List all reports
+- GET /api/reports/:id - Get report by ID
+- GET /api/reports/daily - Get daily summary report
+- GET /api/reports/weekly - Get weekly summary report
+- GET /api/reports/monthly - Get monthly summary report
+- GET /api/reports/yearly - Get yearly summary report
+- GET /api/reports/income-expense - Get income vs expense report
+- GET /api/reports/category-summary - Get summary by category
+- GET /api/reports/student-balances - Get student balances report
+- POST /api/reports/generate - Generate custom report
+
+- GET /api/analytics - Get analytics dashboard data
+- GET /api/analytics/income-trends - Get income trends
+- GET /api/analytics/expense-trends - Get expense trends
+- GET /api/analytics/net-flow - Get net cash flow
+- GET /api/analytics/top-income-sources - Get top income sources
+- GET /api/analytics/top-expenses - Get top expenses
+
+---

@@ -600,3 +600,90 @@ SELECT
   (SELECT COUNT(*) FROM transactions t WHERE t.transaction_date = dl.date AND t.transaction_type IN ('expense', 'director_withdrawal')) as expense_count
 FROM daily_ledger dl
 ORDER BY dl.date DESC;
+
+-- ============================================
+-- REPORTS & ANALYTICS TABLES (Milestone 8)
+-- ============================================
+
+-- Reports table: Stores generated report metadata and data
+CREATE TABLE IF NOT EXISTS reports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  report_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  parameters TEXT,
+  report_data TEXT,
+  file_path TEXT,
+  generated_by INTEGER NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (generated_by) REFERENCES users(id)
+);
+
+-- Daily summaries table: Pre-computed daily financial summaries
+-- This improves performance for reports and analytics
+CREATE TABLE IF NOT EXISTS daily_summaries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  summary_date DATE NOT NULL UNIQUE,
+  total_income DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  income_count INTEGER NOT NULL DEFAULT 0,
+  total_expenses DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  expense_count INTEGER NOT NULL DEFAULT 0,
+  net_flow DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  transaction_count INTEGER NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for reports table
+CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(report_type);
+CREATE INDEX IF NOT EXISTS idx_reports_generated_by ON reports(generated_by);
+CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at);
+CREATE INDEX IF NOT EXISTS idx_reports_title ON reports(title);
+
+-- Indexes for daily_summaries table
+CREATE INDEX IF NOT EXISTS idx_daily_summaries_date ON daily_summaries(summary_date);
+CREATE INDEX IF NOT EXISTS idx_daily_summaries_created_at ON daily_summaries(created_at);
+
+-- View for report statistics
+CREATE VIEW IF NOT EXISTS vw_report_statistics AS
+SELECT 
+  report_type,
+  COUNT(*) as total_reports,
+  MIN(created_at) as first_report_date,
+  MAX(created_at) as last_report_date,
+  COUNT(DISTINCT generated_by) as unique_users
+FROM reports
+GROUP BY report_type
+ORDER BY total_reports DESC;
+
+-- View for financial overview
+CREATE VIEW IF NOT EXISTS vw_financial_overview AS
+SELECT 
+  'income' as type,
+  COUNT(*) as count,
+  COALESCE(SUM(amount), 0) as total_amount,
+  AVG(amount) as avg_amount,
+  MIN(amount) as min_amount,
+  MAX(amount) as max_amount
+FROM income
+
+UNION ALL
+
+SELECT 
+  'expense' as type,
+  COUNT(*) as count,
+  COALESCE(SUM(amount), 0) as total_amount,
+  AVG(amount) as avg_amount,
+  MIN(amount) as min_amount,
+  MAX(amount) as max_amount
+FROM expenses
+
+UNION ALL
+
+SELECT 
+  'daily_summary' as type,
+  COUNT(*) as count,
+  COALESCE(SUM(net_flow), 0) as total_amount,
+  AVG(net_flow) as avg_amount,
+  MIN(net_flow) as min_amount,
+  MAX(net_flow) as max_amount
+FROM daily_summaries;

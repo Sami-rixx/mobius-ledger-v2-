@@ -1,0 +1,431 @@
+import db from '../config/database.js';
+
+/**
+ * Report Model
+ * Data access layer for generated reports
+ * 
+ * Stores report metadata and generated report data:
+ * - Report type and parameters
+ * - Generated data (JSON)
+ * - Creation timestamp
+ * - User who generated the report
+ */
+
+// Table name
+const TABLE = 'reports';
+
+// Related tables
+const USERS_TABLE = 'users';
+
+// Field names for consistency
+const FIELDS = {
+  ID: 'id',
+  REPORT_TYPE: 'report_type',
+  TITLE: 'title',
+  DESCRIPTION: 'description',
+  PARAMETERS: 'parameters',
+  DATA: 'report_data',
+  FILE_PATH: 'file_path',
+  GENERATED_BY: 'generated_by',
+  CREATED_AT: 'created_at'
+};
+
+// Report types
+const REPORT_TYPES = {
+  DAILY_SUMMARY: 'daily_summary',
+  WEEKLY_SUMMARY: 'weekly_summary',
+  MONTHLY_SUMMARY: 'monthly_summary',
+  YEARLY_SUMMARY: 'yearly_summary',
+  INCOME_VS_EXPENSE: 'income_vs_expense',
+  CATEGORY_SUMMARY: 'category_summary',
+  STUDENT_BALANCES: 'student_balances',
+  CUSTOM: 'custom'
+};
+
+/**
+ * Get all reports with optional filtering
+ * @param {Object} options - Filter options
+ * @param {string} options.reportType - Filter by report type
+ * @param {string} options.title - Filter by title (partial match)
+ * @param {number} options.generatedBy - Filter by user ID who generated
+ * @param {string} options.startDate - Filter by start date
+ * @param {string} options.endDate - Filter by end date
+ * @param {number} options.limit - Limit results
+ * @param {number} options.offset - Offset for pagination
+ * @param {string} options.orderBy - Field to order by
+ * @param {string} options.orderDirection - ASC or DESC
+ * @returns {Promise<Array>} - Array of report records
+ */
+export async function getAll(options = {}) {
+  const {
+    reportType,
+    title,
+    generatedBy,
+    startDate,
+    endDate,
+    limit = 100,
+    offset = 0,
+    orderBy = FIELDS.CREATED_AT,
+    orderDirection = 'DESC'
+  } = options;
+
+  // Validate order direction
+  const validOrderDirections = ['ASC', 'DESC'];
+  if (!validOrderDirections.includes(orderDirection.toUpperCase())) {
+    throw new Error(`Invalid orderDirection. Must be one of: ${validOrderDirections.join(', ')}`);
+  }
+
+  // Validate order by field
+  const validOrderByFields = Object.values(FIELDS);
+  if (orderBy && !validOrderByFields.includes(orderBy)) {
+    throw new Error(`Invalid orderBy field. Must be one of: ${validOrderByFields.join(', ')}`);
+  }
+
+  let query = `SELECT * FROM ${TABLE}`;
+  const params = [];
+
+  // Build WHERE clause
+  const whereClauses = [];
+  
+  if (reportType) {
+    whereClauses.push(`${FIELDS.REPORT_TYPE} = ?`);
+    params.push(reportType);
+  }
+  
+  if (title) {
+    whereClauses.push(`${FIELDS.TITLE} LIKE ?`);
+    params.push(`%${title}%`);
+  }
+  
+  if (generatedBy) {
+    whereClauses.push(`${FIELDS.GENERATED_BY} = ?`);
+    params.push(generatedBy);
+  }
+  
+  if (startDate) {
+    whereClauses.push(`${FIELDS.CREATED_AT} >= ?`);
+    params.push(startDate);
+  }
+  
+  if (endDate) {
+    whereClauses.push(`${FIELDS.CREATED_AT} <= ?`);
+    params.push(endDate);
+  }
+
+  if (whereClauses.length > 0) {
+    query += ` WHERE ${whereClauses.join(' AND ')}`;
+  }
+
+  // Add ordering
+  const orderByField = validOrderByFields.includes(orderBy) ? orderBy : FIELDS.CREATED_AT;
+  query += ` ORDER BY ${orderByField} ${orderDirection}`;
+
+  // Add pagination
+  query += ` LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
+
+  const stmt = db.prepare(query);
+  return stmt.all(...params);
+}
+
+/**
+ * Get a report by ID
+ * @param {number} id - Report ID
+ * @returns {Promise<Object|undefined>} - Report record or undefined
+ */
+export async function getById(id) {
+  if (!id) {
+    throw new Error('ID is required');
+  }
+
+  const stmt = db.prepare(`SELECT * FROM ${TABLE} WHERE ${FIELDS.ID} = ?`);
+  return stmt.get(id);
+}
+
+/**
+ * Get reports by type
+ * @param {string} reportType - Report type
+ * @param {Object} options - Additional options
+ * @param {number} options.limit - Limit results
+ * @param {number} options.offset - Offset for pagination
+ * @returns {Promise<Array>} - Array of report records
+ */
+export async function getByType(reportType, options = {}) {
+  if (!reportType) {
+    throw new Error('Report type is required');
+  }
+
+  const { limit = 100, offset = 0 } = options;
+
+  const stmt = db.prepare(`
+    SELECT * FROM ${TABLE} 
+    WHERE ${FIELDS.REPORT_TYPE} = ?
+    ORDER BY ${FIELDS.CREATED_AT} DESC
+    LIMIT ? OFFSET ?
+  `);
+  
+  return stmt.all(reportType, limit, offset);
+}
+
+/**
+ * Get the most recent report of a specific type
+ * @param {string} reportType - Report type
+ * @returns {Promise<Object|undefined>} - Most recent report or undefined
+ */
+export async function getLatestByType(reportType) {
+  if (!reportType) {
+    throw new Error('Report type is required');
+  }
+
+  const stmt = db.prepare(`
+    SELECT * FROM ${TABLE} 
+    WHERE ${FIELDS.REPORT_TYPE} = ?
+    ORDER BY ${FIELDS.CREATED_AT} DESC
+    LIMIT 1
+  `);
+  
+  return stmt.get(reportType);
+}
+
+/**
+ * Get reports generated by a specific user
+ * @param {number} userId - User ID
+ * @param {Object} options - Additional options
+ * @param {number} options.limit - Limit results
+ * @param {number} options.offset - Offset for pagination
+ * @returns {Promise<Array>} - Array of report records
+ */
+export async function getByUser(userId, options = {}) {
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+
+  const { limit = 100, offset = 0 } = options;
+
+  const stmt = db.prepare(`
+    SELECT * FROM ${TABLE} 
+    WHERE ${FIELDS.GENERATED_BY} = ?
+    ORDER BY ${FIELDS.CREATED_AT} DESC
+    LIMIT ? OFFSET ?
+  `);
+  
+  return stmt.all(userId, limit, offset);
+}
+
+/**
+ * Create a new report record
+ * @param {Object} data - Report data
+ * @param {string} data.report_type - Report type (required)
+ * @param {string} data.title - Report title (required)
+ * @param {string} data.description - Report description
+ * @param {Object} data.parameters - Report generation parameters (JSON)
+ * @param {Object} data.report_data - Generated report data (JSON)
+ * @param {string} data.file_path - Optional file path for exported reports
+ * @param {number} data.generated_by - User ID who generated the report (required)
+ * @returns {Promise<Object>} - Created report record with ID
+ */
+export async function create(data) {
+  const requiredFields = [FIELDS.REPORT_TYPE, FIELDS.TITLE, FIELDS.GENERATED_BY];
+
+  // Validate required fields
+  for (const field of requiredFields) {
+    if (data[field] === undefined || data[field] === null || data[field] === '') {
+      throw new Error(`Field '${field}' is required`);
+    }
+  }
+
+  // Validate report type
+  const validTypes = Object.values(REPORT_TYPES);
+  if (!validTypes.includes(data[FIELDS.REPORT_TYPE])) {
+    throw new Error(`Invalid report type. Must be one of: ${validTypes.join(', ')}`);
+  }
+
+  // Stringify JSON fields
+  const parametersJson = JSON.stringify(data[FIELDS.PARAMETERS] || {});
+  const reportDataJson = JSON.stringify(data[FIELDS.DATA] || {});
+
+  const stmt = db.prepare(`
+    INSERT INTO ${TABLE} (
+      ${FIELDS.REPORT_TYPE}, ${FIELDS.TITLE}, ${FIELDS.DESCRIPTION},
+      ${FIELDS.PARAMETERS}, ${FIELDS.DATA}, ${FIELDS.FILE_PATH},
+      ${FIELDS.GENERATED_BY}
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  const result = stmt.run(
+    data[FIELDS.REPORT_TYPE],
+    data[FIELDS.TITLE],
+    data[FIELDS.DESCRIPTION] || null,
+    parametersJson,
+    reportDataJson,
+    data[FIELDS.FILE_PATH] || null,
+    data[FIELDS.GENERATED_BY]
+  );
+  
+  return { ...data, id: result.lastInsertRowid };
+}
+
+/**
+ * Update a report record
+ * @param {number} id - Report ID
+ * @param {Object} updates - Fields to update
+ * @returns {Promise<Object>} - Updated report record
+ */
+export async function update(id, updates) {
+  if (!id) {
+    throw new Error('ID is required');
+  }
+
+  if (!updates || Object.keys(updates).length === 0) {
+    throw new Error('No updates provided');
+  }
+
+  // Validate report type if updating
+  if (updates[FIELDS.REPORT_TYPE]) {
+    const validTypes = Object.values(REPORT_TYPES);
+    if (!validTypes.includes(updates[FIELDS.REPORT_TYPE])) {
+      throw new Error(`Invalid report type. Must be one of: ${validTypes.join(', ')}`);
+    }
+  }
+
+  // Build update query
+  const setClauses = [];
+  const params = [];
+
+  for (const [key, value] of Object.entries(updates)) {
+    if (value !== undefined && FIELDS[key]) {
+      // Stringify JSON fields
+      let finalValue = value;
+      if ((key === FIELDS.PARAMETERS || key === FIELDS.DATA) && typeof value === 'object') {
+        finalValue = JSON.stringify(value);
+      }
+      setClauses.push(`${FIELDS[key]} = ?`);
+      params.push(finalValue);
+    }
+  }
+
+  if (setClauses.length === 0) {
+    throw new Error('No valid fields to update');
+  }
+
+  params.push(id);
+
+  const query = `
+    UPDATE ${TABLE} 
+    SET ${setClauses.join(', ')}
+    WHERE ${FIELDS.ID} = ?
+  `;
+
+  const stmt = db.prepare(query);
+  stmt.run(...params);
+  
+  // Return the updated record
+  return getById(id);
+}
+
+/**
+ * Delete a report record
+ * @param {number} id - Report ID
+ * @returns {Promise<boolean>} - True if deleted, false otherwise
+ */
+export async function deleteRecord(id) {
+  if (!id) {
+    throw new Error('ID is required');
+  }
+
+  const stmt = db.prepare(`DELETE FROM ${TABLE} WHERE ${FIELDS.ID} = ?`);
+  const result = stmt.run(id);
+  
+  return result.changes > 0;
+}
+
+/**
+ * Get report count by type
+ * @returns {Promise<Array>} - Array of objects with report_type and count
+ */
+export async function getCountByType() {
+  const stmt = db.prepare(`
+    SELECT 
+      ${FIELDS.REPORT_TYPE},
+      COUNT(*) as count
+    FROM ${TABLE}
+    GROUP BY ${FIELDS.REPORT_TYPE}
+    ORDER BY count DESC
+  `);
+  
+  return stmt.all();
+}
+
+/**
+ * Get recent reports (most recent N reports)
+ * @param {number} limit - Number of recent reports to get
+ * @returns {Promise<Array>} - Array of recent report records
+ */
+export async function getRecent(limit = 10) {
+  const stmt = db.prepare(`
+    SELECT * FROM ${TABLE}
+    ORDER BY ${FIELDS.CREATED_AT} DESC
+    LIMIT ?
+  `);
+  
+  return stmt.all(limit);
+}
+
+/**
+ * Search reports by title or description
+ * @param {string} query - Search query
+ * @param {number} limit - Limit results
+ * @returns {Promise<Array>} - Array of matching report records
+ */
+export async function search(query, limit = 50) {
+  if (!query) {
+    throw new Error('Search query is required');
+  }
+
+  const stmt = db.prepare(`
+    SELECT * FROM ${TABLE}
+    WHERE ${FIELDS.TITLE} LIKE ? OR ${FIELDS.DESCRIPTION} LIKE ?
+    ORDER BY ${FIELDS.CREATED_AT} DESC
+    LIMIT ?
+  `);
+  
+  const searchPattern = `%${query}%`;
+  return stmt.all(searchPattern, searchPattern, limit);
+}
+
+/**
+ * Get report statistics
+ * @returns {Promise<Object>} - Report statistics
+ */
+export async function getStatistics() {
+  const stmt = db.prepare(`
+    SELECT 
+      COUNT(*) as total_reports,
+      COUNT(DISTINCT ${FIELDS.REPORT_TYPE}) as report_types,
+      COUNT(DISTINCT ${FIELDS.GENERATED_BY}) as unique_users,
+      MIN(${FIELDS.CREATED_AT}) as first_report_date,
+      MAX(${FIELDS.CREATED_AT}) as last_report_date
+    FROM ${TABLE}
+  `);
+  
+  return stmt.get();
+}
+
+// Export report types
+export const REPORT_TYPES_CONSTANTS = REPORT_TYPES;
+
+// Export all functions
+export default {
+  getAll,
+  getById,
+  getByType,
+  getLatestByType,
+  getByUser,
+  create,
+  update,
+  delete: deleteRecord,
+  getCountByType,
+  getRecent,
+  search,
+  getStatistics
+};

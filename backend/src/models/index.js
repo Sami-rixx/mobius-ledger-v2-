@@ -9,3 +9,6 @@ export { default as Income } from './Income.js';
 export { default as IncomeCategory } from './IncomeCategory.js';
 export { default as Expense } from './Expense.js';
 export { default as ExpenseCategory } from './ExpenseCategory.js';
+export { default as DailySummary } from './DailySummary.js';
+export { default as Report, REPORT_TYPES_CONSTANTS as REPORT_TYPES } from './Report.js';
+export { default as Analytics } from './Analytics.js';
