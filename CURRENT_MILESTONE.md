@@ -508,6 +508,8 @@ Enhanced Transaction model for unified transaction management.
 ### Milestone 14: Authorization & Permissions - Phase 1 COMPLETE
 
 **Phase 1: Backend Models**
+- **Commit**: bbe74a4
+- **Date**: 2026-07-26
 - `backend/src/models/Permission.js` - Permission model with 14 functions (CRUD, filtering, search, count)
   - Constants: PERMISSIONS_TABLE, PERMISSION_FIELDS, PERMISSION_MODULES
   - Features: Permission name uniqueness, module categorization, active status management
