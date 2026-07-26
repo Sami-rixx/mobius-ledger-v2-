@@ -15,3 +15,4 @@ export * from './directorWithdrawalService.js';
 export * from './transactionService.js';
 export * from './auditTrailService.js';
 export * from './notificationService.js';
+export * from './userSessionService.js';
