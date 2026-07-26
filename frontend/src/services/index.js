@@ -16,3 +16,7 @@ export * from './transactionService.js';
 export * from './auditTrailService.js';
 export * from './notificationService.js';
 export * from './userSessionService.js';
+export * from './permissionService.js';
+export * from './roleService.js';
+export * from './userRoleService.js';
+export * from './rolePermissionService.js';
