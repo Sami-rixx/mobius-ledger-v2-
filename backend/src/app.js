@@ -22,6 +22,7 @@ import directorWithdrawalRoutes from './routes/directorWithdrawalRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 import auditTrailRoutes from './routes/auditTrailRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import userSessionRoutes from './routes/userSessionRoutes.js';
 
 // Initialize Express app
 const app = express();
@@ -70,6 +71,7 @@ app.use('/api/withdrawals', directorWithdrawalRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/audit-trail', auditTrailRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/user-sessions', userSessionRoutes);
 // Future routes will be mounted here:
 // app.use('/api/lunch', lunchRoutes);
 

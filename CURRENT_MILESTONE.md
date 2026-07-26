@@ -4,13 +4,13 @@
 **Milestone 13: User Authentication**
 
 ## Current Phase
-**Phase 3: Backend Controllers**
+**Phase 4: Backend Routes**
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 13 - Phase 3 (Backend Controllers)
+- **Phase**: Milestone 13 - Phase 4 (Backend Routes)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add User Authentication backend controllers (Milestone 13 - Phase 3)"
+- **Description**: "feat: add User Authentication backend routes (Milestone 13 - Phase 4)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 12 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -214,13 +214,11 @@ All 8 phases completed successfully:
 - Features: Full CRUD, approval workflow, status management, responsive design
 
 ## Next Task
-**Milestone 13: User Authentication - Phase 4: Backend Routes**
+**Milestone 13: User Authentication - Phase 5: Backend Testing**
 
-Create backend routes for user authentication.
+Create backend tests for user authentication.
 Files to create:
-- `backend/src/routes/userSessionRoutes.js` - Route definitions for UserSession endpoints
-- Update `backend/src/routes/index.js` with new exports
-- Update `backend/src/app.js` to mount new routes
+- `backend/src/__tests__/userSession.test.js` - Comprehensive test suite for UserSession module
 
 See ARCHITECTURE.md and DEVELOPMENT_ROADMAP.md for implementation patterns.
 
@@ -411,6 +409,16 @@ Enhanced Transaction model for unified transaction management.
   - HTTP methods: GET, POST, PUT, DELETE
   - Status codes: 200, 201, 400, 401, 404, 500
 - Updated `backend/src/controllers/index.js` with UserSession export
+
+### Milestone 13: User Authentication - Phase 4 COMPLETE
+
+**Phase 4: Backend Routes**
+- `backend/src/routes/userSessionRoutes.js` - Route definitions with 14 endpoints
+  - Endpoints: list, count, get by ID, get by token, get active by user, create, update, deactivate, deactivate all by user, cleanup expired, delete, delete all by user, validate token, extend session, statistics
+  - RESTful conventions: GET for retrieval, POST for creation/actions, PUT for updates, DELETE for removal
+  - URL patterns: /api/user-sessions, /api/user-sessions/:id, /api/user-sessions/token/:sessionToken, /api/user-sessions/user/:userId/active, /api/user-sessions/user/:userId/deactivate-all, /api/user-sessions/cleanup, /api/user-sessions/validate, /api/user-sessions/:id/extend, /api/user-sessions/stats
+- Updated `backend/src/routes/index.js` with userSessionRoutes export
+- Updated `backend/src/app.js` to mount routes at /api/user-sessions
 
 #### Milestone 10: Transactions - Phase 2 COMPLETE
 

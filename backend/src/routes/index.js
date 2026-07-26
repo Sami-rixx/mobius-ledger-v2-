@@ -16,3 +16,4 @@ export { default as directorWithdrawalRoutes } from './directorWithdrawalRoutes.
 export { default as transactionRoutes } from './transactionRoutes.js';
 export { default as auditTrailRoutes } from './auditTrailRoutes.js';
 export { default as notificationRoutes } from './notificationRoutes.js';
+export { default as userSessionRoutes } from './userSessionRoutes.js';
