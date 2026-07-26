@@ -1,16 +1,16 @@
 # Current Milestone - Mobius Ledger v2
 
 ## Current Milestone
-**Milestone 13: User Authentication**
+**Milestone 14: Authorization & Permissions**
 
 ## Current Phase
-**Phase 7: Frontend Components**
+**Phase 1: Backend Models**
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 13 - Phase 7 (Frontend Components)
+- **Phase**: Milestone 13 - Phase 8 (Frontend Pages, Routing, Navigation)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add User Authentication frontend components (Milestone 13 - Phase 7)"
+- **Description**: "feat: add User Authentication frontend pages, routing, navigation (Milestone 13 - Phase 8)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 12 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -128,7 +128,7 @@ All 8 phases completed successfully:
 - **Milestone 10**: Transactions - COMPLETE (All Phases 1-8)
 - **Milestone 11**: Audit Trail - COMPLETE (All Phases 1-8)
 - **Milestone 12**: Notification System - COMPLETE (All Phases 1-8)
-- **Milestone 13**: User Authentication - IN PROGRESS (Phase 1)
+- **Milestone 13**: User Authentication - COMPLETE (All Phases 1-8)
 
 ### Backend Status
 - Foundation: Complete
@@ -214,17 +214,15 @@ All 8 phases completed successfully:
 - Features: Full CRUD, approval workflow, status management, responsive design
 
 ## Next Task
-**Milestone 13: User Authentication - Phase 8: Frontend Pages, Routing, Navigation**
+**Milestone 14: Authorization & Permissions - Phase 1: Backend Models**
 
-Create frontend pages for user authentication.
+Create backend models for authorization and permissions.
 Files to create:
-- `frontend/src/pages/UserSessions/index.js` - Barrel export for UserSession pages
-- `frontend/src/pages/UserSessions/UserSessionListPage.jsx` - List page with filtering and pagination
-- `frontend/src/pages/UserSessions/UserSessionCreatePage.jsx` - Create page with form
-- `frontend/src/pages/UserSessions/UserSessionEditPage.jsx` - Edit page with form
-- `frontend/src/pages/UserSessions/UserSessionDetailPage.jsx` - Detail page with view/delete
-- Update `frontend/src/App.jsx` with UserSession routes and navigation
-- Update `frontend/src/pages/HomePage.jsx` with quick access buttons
+- `backend/src/models/Permission.js` - Permission model with CRUD operations
+- `backend/src/models/Role.js` - Role model with permission assignments
+- `backend/src/models/UserRole.js` - User-Role mapping model
+- Update `backend/src/models/index.js` with new exports
+- Update `database/schema.sql` with permissions, roles, user_roles tables and indexes
 
 See ARCHITECTURE.md and DEVELOPMENT_ROADMAP.md for implementation patterns.
 
@@ -475,6 +473,37 @@ Enhanced Transaction model for unified transaction management.
   - Props: userId, isActive, ipAddress, search, onFilterChange, onReset
 
 - Updated `frontend/src/components/index.js` with all UserSession component exports
+
+### Milestone 13: User Authentication - Phase 8 COMPLETE
+
+**Phase 8: Frontend Pages, Routing, Navigation**
+- `frontend/src/pages/UserSessions/index.js` - Barrel export for UserSession pages
+- `frontend/src/pages/UserSessions/UserSessionListPage.jsx` - List page with filtering, pagination, statistics, and management actions
+  - Features: Session statistics display, action buttons (create, refresh), filter controls, session table with actions
+  - State management: Loading, error, sessions, pagination, filters, action messages
+  - Actions: Create new session, refresh list, filter, deactivate, extend, delete, view details
+
+- `frontend/src/pages/UserSessions/UserSessionCreatePage.jsx` - Create page with form for new sessions
+  - Features: Form validation, success/error messages, loading state
+  - Actions: Create session, navigate to detail page on success
+
+- `frontend/src/pages/UserSessions/UserSessionEditPage.jsx` - Edit page with form for existing sessions
+  - Features: Load session data, form validation, success/error messages, loading state
+  - Actions: Update session, navigate to detail page on success
+
+- `frontend/src/pages/UserSessions/UserSessionDetailPage.jsx` - Detail page with view/edit/delete actions
+  - Features: Session details display, action buttons (back, edit, extend, deactivate, delete)
+  - State management: Loading, error, session data, action states
+  - Actions: Edit session, extend session, deactivate session, delete session
+
+- Updated `frontend/src/App.jsx`:
+  - Imported UserSession pages
+  - Added navigation link "Sessions" in nav bar
+  - Added routes: /user-sessions, /user-sessions/create, /user-sessions/:id, /user-sessions/edit/:id
+
+- Updated `frontend/src/pages/HomePage.jsx`:
+  - Added "Manage User Sessions" and "Create New Session" quick access buttons
+  - Added "User Authentication & Session Management" to feature list
 
 #### Milestone 10: Transactions - Phase 2 COMPLETE
 
@@ -783,9 +812,9 @@ Every future session must:
 - **Latest Commit**: [To be updated after commit]
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 13 (User Authentication) Phase 2 - Backend Services
-- **Milestones Completed**: 12 of 19
-- **Overall Completion**: ~84%
+- **Current Focus**: Milestone 14 (Authorization & Permissions) Phase 1 - Backend Models
+- **Milestones Completed**: 13 of 19
+- **Overall Completion**: ~89%
 
 ---
 

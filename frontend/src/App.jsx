@@ -81,6 +81,12 @@ import {
   NotificationCreatePage,
   NotificationDetailPage
 } from '@pages/Notifications';
+import {
+  UserSessionListPage,
+  UserSessionCreatePage,
+  UserSessionEditPage,
+  UserSessionDetailPage
+} from '@pages/UserSessions';
 
 function App() {
   return (
@@ -137,6 +143,9 @@ function App() {
               </NavLink>
               <NavLink to="/notifications" className="nav-link" end>
                 Notifications
+              </NavLink>
+              <NavLink to="/user-sessions" className="nav-link" end>
+                Sessions
               </NavLink>
             </div>
           </div>
@@ -212,6 +221,11 @@ function App() {
             <Route path="/notifications" element={<NotificationListPage />} />
             <Route path="/notifications/create" element={<NotificationCreatePage />} />
             <Route path="/notifications/:id" element={<NotificationDetailPage />} />
+            {/* UserSession Routes */}
+            <Route path="/user-sessions" element={<UserSessionListPage />} />
+            <Route path="/user-sessions/create" element={<UserSessionCreatePage />} />
+            <Route path="/user-sessions/:id" element={<UserSessionDetailPage />} />
+            <Route path="/user-sessions/edit/:id" element={<UserSessionEditPage />} />
           </Routes>
         </main>
 

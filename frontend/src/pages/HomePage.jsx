@@ -206,6 +206,20 @@ function HomePage() {
               >
                 Create Notification
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/user-sessions')}
+                className="quick-access-button"
+              >
+                Manage User Sessions
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/user-sessions/create')}
+                className="quick-access-button"
+              >
+                Create New Session
+              </Button>
             </div>
           </Card>
 
@@ -231,6 +245,7 @@ function HomePage() {
                 <li>Director Withdrawals</li>
                 <li>Audit Trail</li>
                 <li>Notification System</li>
+                <li>User Authentication & Session Management</li>
               </ul>
             </div>
           </Card>
