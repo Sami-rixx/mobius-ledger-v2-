@@ -9,3 +9,6 @@ export { default as incomeRoutes } from './incomeRoutes.js';
 export { default as incomeCategoryRoutes } from './incomeCategoryRoutes.js';
 export { default as expenseRoutes } from './expenseRoutes.js';
 export { default as expenseCategoryRoutes } from './expenseCategoryRoutes.js';
+export { default as reportRoutes } from './reportRoutes.js';
+export { default as analyticsRoutes } from './analyticsRoutes.js';
+export { default as dailySummaryRoutes } from './dailySummaryRoutes.js';

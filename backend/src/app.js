@@ -15,6 +15,9 @@ import incomeRoutes from './routes/incomeRoutes.js';
 import incomeCategoryRoutes from './routes/incomeCategoryRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
 import expenseCategoryRoutes from './routes/expenseCategoryRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
+import dailySummaryRoutes from './routes/dailySummaryRoutes.js';
 
 // Initialize Express app
 const app = express();
@@ -56,10 +59,12 @@ app.use('/api/income', incomeRoutes);
 app.use('/api/income-categories', incomeCategoryRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/expense-categories', expenseCategoryRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/daily-summaries', dailySummaryRoutes);
 // Future routes will be mounted here:
 // app.use('/api/transactions', transactionRoutes);
 // app.use('/api/lunch', lunchRoutes);
-// app.use('/api/reports', reportRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

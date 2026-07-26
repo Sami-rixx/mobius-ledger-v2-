@@ -4,15 +4,15 @@
 **Milestone 8: Reports & Analytics**
 
 ## Current Phase
-**Phase 4: Backend Routes**
+**Phase 5: Backend Testing**
 
-Create backend routes for Reports & Analytics.
+Create backend tests for Reports & Analytics.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 8 - Phase 3 (Backend Controllers)
+- **Phase**: Milestone 8 - Phase 4 (Backend Routes)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add Reports & Analytics backend controllers (Milestone 8 - Phase 3)"
+- **Description**: "feat: add Reports & Analytics backend routes (Milestone 8 - Phase 4)"
 
 ## Milestone 7: Expense Management - COMPLETE
 
@@ -52,6 +52,15 @@ All 8 phases completed successfully:
 - `backend/src/controllers/dailySummaryController.js` - Controller for daily summary endpoints (17 functions)
 - Updated `backend/src/controllers/index.js` with new exports
 
+### Milestone 8: Reports & Analytics - Phase 4 COMPLETE
+
+**Phase 4: Backend Routes**
+- `backend/src/routes/reportRoutes.js` - Routes for report endpoints (14 routes)
+- `backend/src/routes/analyticsRoutes.js` - Routes for analytics endpoints (12 routes)
+- `backend/src/routes/dailySummaryRoutes.js` - Routes for daily summary endpoints (17 routes)
+- Updated `backend/src/routes/index.js` with new exports
+- Updated `backend/src/app.js` to mount new routes at /api/reports, /api/analytics, /api/daily-summaries
+
 ## Current Repository Status
 
 ### Completed Milestones
@@ -83,14 +92,12 @@ All 8 phases completed successfully:
 - Income Management: **COMPLETE** (Phases 6-8)
 
 ## Next Task
-**Phase 4: Backend Routes (Milestone 8 - Phase 4)**
+**Phase 5: Backend Testing (Milestone 8 - Phase 5)**
 
-Create backend routes for Reports & Analytics:
-- `backend/src/routes/reportRoutes.js` - Routes for report endpoints
-- `backend/src/routes/analyticsRoutes.js` - Routes for analytics endpoints
-- `backend/src/routes/dailySummaryRoutes.js` - Routes for daily summary endpoints
-- Update `backend/src/routes/index.js` with new exports
-- Update `backend/src/app.js` to mount new routes
+Create backend tests for Reports & Analytics:
+- `backend/src/__tests__/report.test.js` - Tests for Report model and service
+- `backend/src/__tests__/analytics.test.js` - Tests for Analytics model and service
+- `backend/src/__tests__/dailySummary.test.js` - Tests for DailySummary model and service
 
 See DEVELOPMENT_ROADMAP.md for detailed requirements.
 
