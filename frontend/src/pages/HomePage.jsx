@@ -185,6 +185,13 @@ function HomePage() {
               >
                 Create New Transaction
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/audit-trail')}
+                className="quick-access-button"
+              >
+                View Audit Trail
+              </Button>
             </div>
           </Card>
 
@@ -208,6 +215,7 @@ function HomePage() {
                 <li>Daily Ledger</li>
                 <li>Reports & Analytics</li>
                 <li>Director Withdrawals</li>
+                <li>Audit Trail</li>
               </ul>
             </div>
           </Card>

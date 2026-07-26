@@ -72,6 +72,10 @@ import {
   TransactionEditPage,
   TransactionDetailPage
 } from '@pages/Transactions';
+import {
+  AuditTrailListPage,
+  AuditTrailDetailPage
+} from '@pages/AuditTrails';
 
 function App() {
   return (
@@ -122,6 +126,9 @@ function App() {
               </NavLink>
               <NavLink to="/transactions" className="nav-link" end>
                 Transactions
+              </NavLink>
+              <NavLink to="/audit-trail" className="nav-link" end>
+                Audit Trail
               </NavLink>
             </div>
           </div>
@@ -190,6 +197,9 @@ function App() {
             <Route path="/transactions/create" element={<TransactionCreatePage />} />
             <Route path="/transactions/:id" element={<TransactionDetailPage />} />
             <Route path="/transactions/edit/:id" element={<TransactionEditPage />} />
+            {/* Audit Trail Routes */}
+            <Route path="/audit-trail" element={<AuditTrailListPage />} />
+            <Route path="/audit-trail/:id" element={<AuditTrailDetailPage />} />
           </Routes>
         </main>
 
