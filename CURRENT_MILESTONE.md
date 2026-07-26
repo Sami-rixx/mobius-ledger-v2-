@@ -544,7 +544,7 @@ Enhanced Transaction model for unified transaction management.
 ### Milestone 14: Authorization & Permissions - Phase 3 COMPLETE
 
 **Phase 3: Backend Controllers**
-- **Commit**: [To be updated after commit]
+- **Commit**: 518fceb
 - **Date**: 2026-07-26
 - `backend/src/controllers/permissionController.js` - Controller with 15 route handlers
   - Endpoints: list, count, get by ID, get by name, get by module, check exists, search, stats, modules, count by module, create, update, delete

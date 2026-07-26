@@ -154,6 +154,7 @@ All 8 phases completed
 - c1dfa3b - "docs: update CURRENT_MILESTONE.md, PROJECT_STATUS.md, MODULE_STATUS.md, SESSION_HANDOFF.md with Milestone 13 completion"
 
 **Milestone 14 Commits:**
+- 518fceb - "feat: add Authorization & Permissions backend controllers (Milestone 14 - Phase 3)"
 - 9a3e0e4 - "feat: add Authorization & Permissions backend services (Milestone 14 - Phase 2)"
 - bbe74a4 - "feat: add Authorization & Permissions backend models (Milestone 14 - Phase 1)"
 
@@ -179,7 +180,7 @@ All milestones from 0 through 13 have been completed:
 - Milestone 12: Notification System
 - Milestone 13: User Authentication
 
-**Milestone 14: Authorization & Permissions - IN PROGRESS (Phase 2 Complete)**
+**Milestone 14: Authorization & Permissions - IN PROGRESS (Phase 3 Complete)**
 - All phases of Milestone 13 are now complete
 - Milestone 14 Phase 1: Backend Models - COMPLETE
   - Created Permission.js, Role.js, UserRole.js, RolePermission.js models
@@ -188,7 +189,10 @@ All milestones from 0 through 13 have been completed:
 - Milestone 14 Phase 2: Backend Services - COMPLETE
   - Created permissionService.js, roleService.js, userRoleService.js, rolePermissionService.js
   - Updated services/index.js with new exports
-- Starting Milestone 14 Phase 3: Backend Controllers
+- Milestone 14 Phase 3: Backend Controllers - COMPLETE
+  - Created permissionController.js, roleController.js, userRoleController.js, rolePermissionController.js
+  - Updated controllers/index.js with new exports
+- Starting Milestone 14 Phase 4: Backend Routes
 
 **Overall Completion**: ~94% (13 of 19 milestones complete, 1 in progress)
 
