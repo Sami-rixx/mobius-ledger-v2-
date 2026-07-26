@@ -6,3 +6,5 @@ export * from './schoolFeeService.js';
 export * from './studentChargeService.js';
 export * from './incomeService.js';
 export * from './incomeCategoryService.js';
+export * from './expenseService.js';
+export * from './expenseCategoryService.js';

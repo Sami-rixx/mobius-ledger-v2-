@@ -4,15 +4,15 @@
 **Milestone 7: Expense Management**
 
 ## Current Phase
-**Phase 6: Frontend Services**
+**Phase 7: Frontend Components**
 
-Create frontend services for Expense Management.
+Create frontend components for Expense Management.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 7 - Phase 5 (Backend Testing)
+- **Phase**: Milestone 7 - Phase 6 (Frontend Services)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "test: add Expense Management backend tests (Milestone 7 - Phase 5)"
+- **Description**: "feat: add Expense Management frontend services (Milestone 7 - Phase 6)"
 
 ## Current Repository Status
 
@@ -44,16 +44,27 @@ Create frontend services for Expense Management.
 - Income Management: **COMPLETE** (Phases 6-8)
 
 ## Next Task
-**Phase 6: Frontend Services (Milestone 7 - Phase 6)**
+**Phase 7: Frontend Components (Milestone 7 - Phase 7)**
 
-Create frontend services for Expense Management:
-- `frontend/src/services/expenseService.js` - API client for expense endpoints
-- `frontend/src/services/expenseCategoryService.js` - API client for expense category endpoints
-- Update `frontend/src/services/index.js` with new exports
+Create frontend components for Expense Management:
+- `frontend/src/components/ExpenseForm.jsx` - Form for creating/editing expenses
+- `frontend/src/components/ExpenseCard.jsx` - Card for displaying expense info
+- `frontend/src/components/ExpenseTable.jsx` - Table for listing expenses
+- `frontend/src/components/ExpenseCategoryForm.jsx` - Form for creating/editing categories
+- `frontend/src/components/ExpenseCategoryCard.jsx` - Card for displaying category info
+- `frontend/src/components/ExpenseCategoryTable.jsx` - Table for listing categories
+- Update `frontend/src/components/index.js` with new exports
 
 See DEVELOPMENT_ROADMAP.md for detailed requirements.
 
 ## What Was Completed in Previous Session
+
+### Milestone 7: Expense Management - Phase 6 COMPLETE
+
+**Phase 6: Frontend Services**
+- `frontend/src/services/expenseService.js` - API client for expense endpoints (11 functions)
+- `frontend/src/services/expenseCategoryService.js` - API client for expense category endpoints (15 functions)
+- Updated `frontend/src/services/index.js` with new exports
 
 ### Milestone 7: Expense Management - Phase 5 COMPLETE
 
@@ -248,7 +259,7 @@ Every future session must:
 - **Latest Commit**: 0ad2d9e
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 6 COMPLETE, Milestone 7 Phase 5 COMPLETE, Phase 6 Ready
+- **Current Focus**: Milestone 6 COMPLETE, Milestone 7 Phase 6 COMPLETE, Phase 7 Ready
 
 ---
 
