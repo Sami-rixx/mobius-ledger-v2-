@@ -8,3 +8,6 @@ export * from './incomeService.js';
 export * from './incomeCategoryService.js';
 export * from './expenseService.js';
 export * from './expenseCategoryService.js';
+export * from './reportService.js';
+export * from './analyticsService.js';
+export * from './dailySummaryService.js';
