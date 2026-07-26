@@ -4,7 +4,7 @@
 **Milestone 14: Authorization & Permissions**
 
 ## Current Phase
-**Phase 2: Backend Services**
+**Phase 3: Backend Controllers**
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 13 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -214,15 +214,15 @@ All 8 phases completed successfully:
 - Features: Full CRUD, approval workflow, status management, responsive design
 
 ## Next Task
-**Milestone 14: Authorization & Permissions - Phase 2: Backend Services**
+**Milestone 14: Authorization & Permissions - Phase 3: Backend Controllers**
 
-Create backend services for authorization and permissions.
+Create backend controllers for authorization and permissions.
 Files to create:
-- `backend/src/services/permissionService.js` - Service layer for Permission model
-- `backend/src/services/roleService.js` - Service layer for Role model
-- `backend/src/services/userRoleService.js` - Service layer for UserRole model
-- `backend/src/services/rolePermissionService.js` - Service layer for RolePermission model
-- Update `backend/src/services/index.js` with new exports
+- `backend/src/controllers/permissionController.js` - Controller for Permission endpoints
+- `backend/src/controllers/roleController.js` - Controller for Role endpoints
+- `backend/src/controllers/userRoleController.js` - Controller for UserRole endpoints
+- `backend/src/controllers/rolePermissionController.js` - Controller for RolePermission endpoints
+- Update `backend/src/controllers/index.js` with new exports
 
 See ARCHITECTURE.md and DEVELOPMENT_ROADMAP.md for implementation patterns.
 
@@ -524,6 +524,21 @@ Enhanced Transaction model for unified transaction management.
   - Features: Many-to-many mapping, permission assignment, role permission checking
 - Updated `backend/src/models/index.js` with Permission, Role, UserRole, RolePermission exports
 - Updated `database/schema.sql` with permissions, roles, user_roles, role_permissions tables and 13 indexes
+
+### Milestone 14: Authorization & Permissions - Phase 2 COMPLETE
+
+**Phase 2: Backend Services**
+- **Commit**: 9a3e0e4
+- **Date**: 2026-07-26
+- `backend/src/services/permissionService.js` - Service layer with 18 functions
+  - Features: Validation, CRUD, pagination, filtering, search, statistics
+- `backend/src/services/roleService.js` - Service layer with 18 functions
+  - Features: Validation, CRUD, pagination, default role management, search, statistics
+- `backend/src/services/userRoleService.js` - Service layer with 17 functions
+  - Features: Validation, CRUD, pagination, user-role assignment, role checking, statistics
+- `backend/src/services/rolePermissionService.js` - Service layer with 17 functions
+  - Features: Validation, CRUD, pagination, role-permission assignment, permission checking, statistics
+- Updated `backend/src/services/index.js` with permissionService, roleService, userRoleService, rolePermissionService exports
 
 ### Milestone 13: User Authentication - COMPLETE
 
