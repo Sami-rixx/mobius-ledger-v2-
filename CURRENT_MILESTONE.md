@@ -4,15 +4,15 @@
 **Milestone 11: Audit Trail**
 
 ## Current Phase
-**Phase 4: Backend Routes**
+**Phase 5: Backend Testing**
 
-Create AuditTrail routes for API endpoint definitions.
+Create tests for AuditTrail module.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 11 - Phase 3 (Backend Controllers)
+- **Phase**: Milestone 11 - Phase 4 (Backend Routes)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add Audit Trail backend controllers (Milestone 11 - Phase 3)"
+- **Description**: "feat: add Audit Trail backend routes (Milestone 11 - Phase 4)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 9 - Phase 7 (Frontend Components)
@@ -142,7 +142,7 @@ All 8 phases completed successfully:
 - Reports & Analytics: COMPLETE (Phases 1-5)
 - Director Withdrawals: COMPLETE (Phases 1-5)
 - Transactions: COMPLETE (Phases 1-5)
-- Audit Trail: COMPLETE (Phases 1-3)
+- Audit Trail: COMPLETE (Phases 1-4)
 
 ### Frontend Status
 - Foundation: Complete
@@ -214,9 +214,9 @@ All 8 phases completed successfully:
 - Features: Full CRUD, approval workflow, status management, responsive design
 
 ## Next Task
-**Milestone 11: Audit Trail - Phase 4: Backend Routes**
+**Milestone 11: Audit Trail - Phase 5: Backend Testing**
 
-Create AuditTrail routes for API endpoint definitions.
+Create tests for AuditTrail module.
 
 ### Milestone 9: Director Withdrawals - COMPLETE
 
@@ -272,6 +272,14 @@ Enhanced Transaction model for unified transaction management.
 - `backend/src/controllers/auditTrailController.js` - Controller with 11 route handlers
 - Features: CRUD operations, record/table filtering, recent entries, search, statistics, financial action logging
 - Updated `backend/src/controllers/index.js` with new export
+
+### Milestone 11: Audit Trail - Phase 4 COMPLETE
+
+**Phase 4: Backend Routes**
+- `backend/src/routes/auditTrailRoutes.js` - Routes for 11 endpoints
+- Updated `backend/src/routes/index.js` with new export
+- Updated `backend/src/app.js` to mount routes at /api/audit-trail
+- Endpoints: list, count, get by ID, get by record, get by table, recent, create, delete, search, stats, log-financial
 
 #### Milestone 10: Transactions - Phase 2 COMPLETE
 
@@ -580,7 +588,7 @@ Every future session must:
 - **Latest Commit**: [To be updated after commit]
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 11 (Audit Trail) Phase 4 - Backend Routes
+- **Current Focus**: Milestone 11 (Audit Trail) Phase 5 - Backend Testing
 
 ---
 

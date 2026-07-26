@@ -14,3 +14,4 @@ export { default as analyticsRoutes } from './analyticsRoutes.js';
 export { default as dailySummaryRoutes } from './dailySummaryRoutes.js';
 export { default as directorWithdrawalRoutes } from './directorWithdrawalRoutes.js';
 export { default as transactionRoutes } from './transactionRoutes.js';
+export { default as auditTrailRoutes } from './auditTrailRoutes.js';

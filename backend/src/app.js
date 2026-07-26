@@ -20,6 +20,7 @@ import analyticsRoutes from './routes/analyticsRoutes.js';
 import dailySummaryRoutes from './routes/dailySummaryRoutes.js';
 import directorWithdrawalRoutes from './routes/directorWithdrawalRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
+import auditTrailRoutes from './routes/auditTrailRoutes.js';
 
 // Initialize Express app
 const app = express();
@@ -66,6 +67,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/daily-summaries', dailySummaryRoutes);
 app.use('/api/withdrawals', directorWithdrawalRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/audit-trail', auditTrailRoutes);
 // Future routes will be mounted here:
 // app.use('/api/lunch', lunchRoutes);
 
