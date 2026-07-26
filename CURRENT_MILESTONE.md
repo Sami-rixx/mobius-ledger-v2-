@@ -1,9 +1,6 @@
 # Current Milestone - Mobius Ledger v2
 
 ## Current Milestone
-**Milestone 6: Income Management**
-
-## Current Milestone
 **Milestone 7: Expense Management**
 
 ## Current Phase
@@ -12,10 +9,10 @@
 Create backend models for Expense Management.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 6 - Phase 8 (Frontend Pages, Routing, Navigation, Verification)
-- **Commit Hash**: 0ad2d9e
-- **Date**: 2026-07-25
-- **Description**: "feat: add Income Management frontend pages, routes, navigation (Milestone 6 - Phase 8)"
+- **Phase**: Milestone 7 - Phase 1 (Backend Models)
+- **Commit Hash**: [To be updated after commit]
+- **Date**: 2026-07-26
+- **Description**: "feat: add Expense Management backend models (Milestone 7 - Phase 1)"
 
 ## Current Repository Status
 
@@ -47,17 +44,24 @@ Create backend models for Expense Management.
 - Income Management: **COMPLETE** (Phases 6-8)
 
 ## Next Task
-**Phase 1: Backend Models (Milestone 7 - Phase 1)**
+**Phase 2: Backend Services (Milestone 7 - Phase 2)**
 
-Create backend models for Expense Management:
-- `backend/src/models/Expense.js` - Expense record model
-- `backend/src/models/ExpenseCategory.js` - Expense category model
-- Update `database/schema.sql` with expense tables
-- Update `backend/src/models/index.js` with new exports
+Create backend services for Expense Management:
+- `backend/src/services/expenseService.js` - Expense service layer
+- `backend/src/services/expenseCategoryService.js` - Expense category service layer
+- Update `backend/src/services/index.js` with new exports
 
 See DEVELOPMENT_ROADMAP.md for detailed requirements.
 
 ## What Was Completed in Previous Session
+
+### Milestone 7: Expense Management - Phase 1 COMPLETE
+
+**Phase 1: Backend Models**
+- `backend/src/models/Expense.js` - Expense record model
+- `backend/src/models/ExpenseCategory.js` - Expense category model
+- Updated `database/schema.sql` with expenses table and is_kitchen column
+- Updated `backend/src/models/index.js` with new exports
 
 ### Milestone 6: Income Management - Phase 8 COMPLETE
 
@@ -215,7 +219,7 @@ Every future session must:
 - **Latest Commit**: 0ad2d9e
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 6 COMPLETE, Milestone 7 Phase 1 Ready
+- **Current Focus**: Milestone 6 COMPLETE, Milestone 7 Phase 1 COMPLETE, Phase 2 Ready
 
 ---
 

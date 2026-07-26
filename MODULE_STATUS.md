@@ -251,3 +251,48 @@ This file tracks the status of every major module in the system. Each module rep
 - DELETE /api/income-categories/:id - Delete category
 
 ---
+
+## Module 7: Expense Management
+
+**Purpose**: Track all expenses with hierarchical category organization and kitchen-specific features.
+
+| Aspect | Status |
+|--------|--------|
+| Current Status | \u2705 Phase 1 Complete |
+| Current Phase | Phase 2 (Backend Services) |
+| Completion % | 12.5% |
+| Backend Status | \u2705 Phase 1 Complete (Models) |
+| Frontend Status | \u23f3 Not Started |
+| Integration Status | \u23f3 Not Started |
+| Testing Status | \u23f3 Not Started |
+| Documentation Status | \u2705 Complete |
+| Latest Commit | [To be updated after commit] |
+| Next Planned Work | Phase 2: Backend Services |
+
+**Components**:
+- Backend: \u2705 Model (Expense.js, ExpenseCategory.js)
+- Database: \u2705 expense_categories table (enhanced with is_kitchen), \u2705 expenses table (new)
+
+**API Endpoints (Planned)**:
+- GET /api/expenses - List expenses (paginated)
+- GET /api/expenses/all - List all expenses
+- GET /api/expenses/:id - Get by ID
+- GET /api/expenses/category/:categoryId - Get by category
+- GET /api/expenses/date-range - Get by date range
+- GET /api/expenses/statistics - Get statistics
+- POST /api/expenses - Create expense
+- PUT /api/expenses/:id - Update expense
+- DELETE /api/expenses/:id - Delete expense
+
+- GET /api/expense-categories - List categories (paginated)
+- GET /api/expense-categories/all - List all categories
+- GET /api/expense-categories/active - List active
+- GET /api/expense-categories/:id - Get by ID
+- GET /api/expense-categories/kitchen - List kitchen categories
+- GET /api/expense-categories/tree - Get hierarchical tree
+- GET /api/expense-categories/name/:name - Get by name
+- POST /api/expense-categories - Create category
+- PUT /api/expense-categories/:id - Update category
+- DELETE /api/expense-categories/:id - Delete category
+
+---

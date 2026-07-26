@@ -7,3 +7,5 @@ export { default as StudentCharge } from './StudentCharge.js';
 export { default as StudentChargeAssignment } from './StudentChargeAssignment.js';
 export { default as Income } from './Income.js';
 export { default as IncomeCategory } from './IncomeCategory.js';
+export { default as Expense } from './Expense.js';
+export { default as ExpenseCategory } from './ExpenseCategory.js';

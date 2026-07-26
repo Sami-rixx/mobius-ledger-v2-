@@ -150,6 +150,7 @@ CREATE TABLE IF NOT EXISTS expense_categories (
   description TEXT,
   is_active BOOLEAN DEFAULT 1,
   is_system BOOLEAN DEFAULT 0,
+  is_kitchen BOOLEAN DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   created_by INTEGER,
@@ -158,6 +159,46 @@ CREATE TABLE IF NOT EXISTS expense_categories (
   FOREIGN KEY (created_by) REFERENCES users(id),
   FOREIGN KEY (updated_by) REFERENCES users(id)
 );
+
+-- Indexes for expense_categories table
+CREATE INDEX IF NOT EXISTS idx_expense_categories_name ON expense_categories(name);
+CREATE INDEX IF NOT EXISTS idx_expense_categories_parent ON expense_categories(parent_id);
+CREATE INDEX IF NOT EXISTS idx_expense_categories_active ON expense_categories(is_active);
+CREATE INDEX IF NOT EXISTS idx_expense_categories_kitchen ON expense_categories(is_kitchen);
+
+-- ============================================
+-- EXPENSES
+-- ============================================
+CREATE TABLE IF NOT EXISTS expenses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  amount DECIMAL(10, 2) NOT NULL,
+  expense_category_id INTEGER NOT NULL,
+  description TEXT,
+  vendor_name TEXT NOT NULL,
+  vendor_contact TEXT,
+  payment_method_id INTEGER,
+  transaction_id INTEGER,
+  expense_date DATE NOT NULL,
+  receipt_number TEXT,
+  notes TEXT,
+  is_verified BOOLEAN DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_by INTEGER,
+  updated_by INTEGER,
+  FOREIGN KEY (expense_category_id) REFERENCES expense_categories(id),
+  FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id),
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id),
+  FOREIGN KEY (created_by) REFERENCES users(id),
+  FOREIGN KEY (updated_by) REFERENCES users(id)
+);
+
+-- Indexes for expenses table
+CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(expense_category_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(expense_date);
+CREATE INDEX IF NOT EXISTS idx_expenses_vendor ON expenses(vendor_name);
+CREATE INDEX IF NOT EXISTS idx_expenses_receipt ON expenses(receipt_number);
+CREATE INDEX IF NOT EXISTS idx_expenses_amount ON expenses(amount);
 
 -- System expense categories (seed data)
 -- Kitchen
