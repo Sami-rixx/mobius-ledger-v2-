@@ -14,3 +14,4 @@ export { default as DailySummary } from './dailySummaryController.js';
 export { default as DirectorWithdrawal } from './directorWithdrawalController.js';
 export { default as Transaction } from './transactionController.js';
 export { default as AuditTrail } from './auditTrailController.js';
+export { default as Notification } from './notificationController.js';

@@ -4,19 +4,19 @@
 **Milestone 12: Notification System**
 
 ## Current Phase
-**Phase 3: Backend Controllers**
+**Phase 4: Backend Routes**
+
+## Last Successfully Completed Phase
+- **Phase**: Milestone 12 - Phase 3 (Backend Controllers)
+- **Commit Hash**: [To be updated after commit]
+- **Date**: 2026-07-26
+- **Description**: "feat: add Notification System backend controllers (Milestone 12 - Phase 3)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 12 - Phase 2 (Backend Services)
-- **Commit Hash**: [To be updated after commit]
+- **Commit Hash**: 4ba87bd
 - **Date**: 2026-07-26
 - **Description**: "feat: add Notification System backend services (Milestone 12 - Phase 2)"
-
-## Last Successfully Completed Phase
-- **Phase**: Milestone 12 - Phase 1 (Backend Models)
-- **Commit Hash**: 29d904f
-- **Date**: 2026-07-26
-- **Description**: "feat: add Notification System backend models (Milestone 12 - Phase 1)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 8 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -213,12 +213,13 @@ All 8 phases completed successfully:
 - Features: Full CRUD, approval workflow, status management, responsive design
 
 ## Next Task
-**Milestone 12: Notification System - Phase 3: Backend Controllers**
+**Milestone 12: Notification System - Phase 4: Backend Routes**
 
-Create notification controller layer with HTTP handlers.
+Create notification route definitions.
 Files to create:
-- `backend/src/controllers/notificationController.js` - Controller with route handlers
-- Update `backend/src/controllers/index.js` with new export
+- `backend/src/routes/notificationRoutes.js` - Route definitions
+- Update `backend/src/routes/index.js` with new export
+- Update `backend/src/app.js` to mount routes
 
 See ARCHITECTURE.md for implementation patterns.
 
@@ -330,6 +331,13 @@ Enhanced Transaction model for unified transaction management.
 - `backend/src/services/notificationService.js` - Service layer with 17 functions
 - Features: Validation, pagination, filtering, search, user-specific notifications, system notifications, statistics, mark as read/unread
 - Updated `backend/src/services/index.js` with new export
+
+### Milestone 12: Notification System - Phase 3 COMPLETE
+
+**Phase 3: Backend Controllers**
+- `backend/src/controllers/notificationController.js` - Controller with 16 route handlers
+- Features: Full CRUD, list with pagination, count, mark as read, mark all as read, unread count, active by user, search, system/user notifications, statistics, types, priorities
+- Updated `backend/src/controllers/index.js` with new export
 
 #### Milestone 10: Transactions - Phase 2 COMPLETE
 
