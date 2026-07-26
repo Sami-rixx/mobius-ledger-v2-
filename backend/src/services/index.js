@@ -14,3 +14,4 @@ export { default as dailySummaryService } from './dailySummaryService.js';
 export { default as directorWithdrawalService } from './directorWithdrawalService.js';
 export { default as transactionService } from './transactionService.js';
 export { default as auditTrailService } from './auditTrailService.js';
+export { default as notificationService } from './notificationService.js';

@@ -4,19 +4,19 @@
 **Milestone 12: Notification System**
 
 ## Current Phase
-**Phase 2: Backend Services**
+**Phase 3: Backend Controllers**
+
+## Last Successfully Completed Phase
+- **Phase**: Milestone 12 - Phase 2 (Backend Services)
+- **Commit Hash**: [To be updated after commit]
+- **Date**: 2026-07-26
+- **Description**: "feat: add Notification System backend services (Milestone 12 - Phase 2)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 12 - Phase 1 (Backend Models)
-- **Commit Hash**: [To be updated after commit]
+- **Commit Hash**: 29d904f
 - **Date**: 2026-07-26
 - **Description**: "feat: add Notification System backend models (Milestone 12 - Phase 1)"
-
-## Last Successfully Completed Phase
-- **Phase**: Milestone 11 - Phase 8 (Frontend Pages, Routing & Navigation)
-- **Commit Hash**: b8af4da
-- **Date**: 2026-07-26
-- **Description**: "feat: add Audit Trail frontend pages, routing, navigation (Milestone 11 - Phase 8)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 8 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -213,12 +213,12 @@ All 8 phases completed successfully:
 - Features: Full CRUD, approval workflow, status management, responsive design
 
 ## Next Task
-**Milestone 12: Notification System - Phase 2: Backend Services**
+**Milestone 12: Notification System - Phase 3: Backend Controllers**
 
-Create notification service layer with business logic.
+Create notification controller layer with HTTP handlers.
 Files to create:
-- `backend/src/services/notificationService.js` - Service layer with business logic
-- Update `backend/src/services/index.js` with new export
+- `backend/src/controllers/notificationController.js` - Controller with route handlers
+- Update `backend/src/controllers/index.js` with new export
 
 See ARCHITECTURE.md for implementation patterns.
 
@@ -323,6 +323,13 @@ Enhanced Transaction model for unified transaction management.
 - Features: Notification types (INFO, WARNING, ERROR, SUCCESS, REMINDER, ALERT), priorities (LOW, MEDIUM, HIGH, CRITICAL), user targeting, read/unread tracking, related record tracking, scheduled notifications
 - Updated `backend/src/models/index.js` with new export
 - Updated `database/schema.sql` with notifications table and indexes
+
+### Milestone 12: Notification System - Phase 2 COMPLETE
+
+**Phase 2: Backend Services**
+- `backend/src/services/notificationService.js` - Service layer with 17 functions
+- Features: Validation, pagination, filtering, search, user-specific notifications, system notifications, statistics, mark as read/unread
+- Updated `backend/src/services/index.js` with new export
 
 #### Milestone 10: Transactions - Phase 2 COMPLETE
 
