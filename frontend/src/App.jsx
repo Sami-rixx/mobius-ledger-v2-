@@ -37,6 +37,18 @@ import {
   IncomeCategoryEditPage,
   IncomeCategoryDetailPage
 } from '@pages/IncomeCategories';
+import {
+  ExpenseListPage,
+  ExpenseCreatePage,
+  ExpenseEditPage,
+  ExpenseDetailPage
+} from '@pages/Expenses';
+import {
+  ExpenseCategoryListPage,
+  ExpenseCategoryCreatePage,
+  ExpenseCategoryEditPage,
+  ExpenseCategoryDetailPage
+} from '@pages/ExpenseCategories';
 
 function App() {
   return (
@@ -69,6 +81,9 @@ function App() {
               </NavLink>
               <NavLink to="/income" className="nav-link" end>
                 Income
+              </NavLink>
+              <NavLink to="/expenses" className="nav-link" end>
+                Expenses
               </NavLink>
             </div>
           </div>
@@ -109,6 +124,16 @@ function App() {
             <Route path="/income-categories/create" element={<IncomeCategoryCreatePage />} />
             <Route path="/income-categories/:id" element={<IncomeCategoryDetailPage />} />
             <Route path="/income-categories/edit/:id" element={<IncomeCategoryEditPage />} />
+            {/* Expense Routes */}
+            <Route path="/expenses" element={<ExpenseListPage />} />
+            <Route path="/expenses/create" element={<ExpenseCreatePage />} />
+            <Route path="/expenses/:id" element={<ExpenseDetailPage />} />
+            <Route path="/expenses/edit/:id" element={<ExpenseEditPage />} />
+            {/* Expense Category Routes */}
+            <Route path="/expense-categories" element={<ExpenseCategoryListPage />} />
+            <Route path="/expense-categories/create" element={<ExpenseCategoryCreatePage />} />
+            <Route path="/expense-categories/:id" element={<ExpenseCategoryDetailPage />} />
+            <Route path="/expense-categories/edit/:id" element={<ExpenseCategoryEditPage />} />
           </Routes>
         </main>
 

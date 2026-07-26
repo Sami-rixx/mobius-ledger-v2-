@@ -92,14 +92,42 @@ function HomePage() {
                 onClick={() => navigate('/income-categories')}
                 className="quick-access-button"
               >
-                Manage Categories
+                Manage Income Categories
               </Button>
               <Button
                 variant="outline"
                 onClick={() => navigate('/income-categories/create')}
                 className="quick-access-button"
               >
-                Add New Category
+                Add Income Category
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/expenses')}
+                className="quick-access-button"
+              >
+                Manage Expenses
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/expenses/create')}
+                className="quick-access-button"
+              >
+                Record New Expense
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/expense-categories')}
+                className="quick-access-button"
+              >
+                Manage Expense Categories
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/expense-categories/create')}
+                className="quick-access-button"
+              >
+                Add Expense Category
               </Button>
             </div>
           </Card>
