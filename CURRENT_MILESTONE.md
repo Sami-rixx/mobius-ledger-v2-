@@ -4,15 +4,15 @@
 **Milestone 8: Reports & Analytics**
 
 ## Current Phase
-**Phase 1: Backend Models**
+**Phase 3: Backend Controllers**
 
-Create backend models for Reports & Analytics.
+Create backend controllers for Reports & Analytics.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 7 - Phase 8 (Frontend Pages, Routing, Navigation)
-- **Commit Hash**: 90c711e
+- **Phase**: Milestone 8 - Phase 2 (Backend Services)
+- **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add Expense Management frontend pages, routing, and navigation (Milestone 7 - Phase 8)"
+- **Description**: "feat: add Reports & Analytics backend services (Milestone 8 - Phase 2)"
 
 ## Milestone 7: Expense Management - COMPLETE
 
@@ -35,6 +35,14 @@ All 8 phases completed successfully:
 - Updated `backend/src/models/index.js` with new exports
 - Updated `database/schema.sql` with reports, daily_summaries tables, indexes, and views (vw_report_statistics, vw_financial_overview)
 - Fixed typo in Analytics.js (STIENT_CHARGES_TABLE -> STUDENT_CHARGES_TABLE)
+
+### Milestone 8: Reports & Analytics - Phase 2 COMPLETE
+
+**Phase 2: Backend Services**
+- `backend/src/services/reportService.js` - Service layer for Report model (13 functions)
+- `backend/src/services/analyticsService.js` - Service layer for Analytics model (12 functions)
+- `backend/src/services/dailySummaryService.js` - Service layer for DailySummary model (16 functions)
+- Updated `backend/src/services/index.js` with new exports
 
 ## Current Repository Status
 
@@ -67,13 +75,13 @@ All 8 phases completed successfully:
 - Income Management: **COMPLETE** (Phases 6-8)
 
 ## Next Task
-**Phase 2: Backend Services (Milestone 8 - Phase 2)**
+**Phase 3: Backend Controllers (Milestone 8 - Phase 3)**
 
-Create backend services for Reports & Analytics:
-- `backend/src/services/reportService.js` - Service for report generation and management
-- `backend/src/services/analyticsService.js` - Service for analytics data processing
-- `backend/src/services/dailySummaryService.js` - Service for daily summary generation
-- Update `backend/src/services/index.js` with new exports
+Create backend controllers for Reports & Analytics:
+- `backend/src/controllers/reportController.js` - Controller for report endpoints
+- `backend/src/controllers/analyticsController.js` - Controller for analytics endpoints
+- `backend/src/controllers/dailySummaryController.js` - Controller for daily summary endpoints
+- Update `backend/src/controllers/index.js` with new exports
 
 See DEVELOPMENT_ROADMAP.md for detailed requirements.
 

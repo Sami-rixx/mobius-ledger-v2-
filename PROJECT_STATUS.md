@@ -80,7 +80,7 @@ This project uses a comprehensive self-documenting system. For complete status i
 - **Details**: See MODULE_STATUS.md - Module 6
 
 ### Milestone 7: Expense Management
-- **Status**: ✅ COMPLETE
+  - **Status**: ✅ COMPLETE
 - **Backend**: Phases 1-5 Complete (Models, Services, Controllers, Routes, Tests)
 - **Frontend**: Phases 6-8 Complete (Services, Components, Pages)
 - **Commit**: [To be updated after commit]
@@ -104,7 +104,7 @@ This project uses a comprehensive self-documenting system. For complete status i
 ## Next Milestone
 
 **Milestone 8: Reports & Analytics - Phase 1: Backend Models**
-  **Milestone 8: Reports  Analytics - Phase 2: Backend Services**
+  **Milestone 8: Reports   **Milestone 8: Reports  Analytics - Phase 2: Backend Services** Analytics - Phase 3: Backend Controllers**
 See CURRENT_MILESTONE.md for the exact next task.
 
 ---
