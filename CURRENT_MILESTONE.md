@@ -4,15 +4,15 @@
 **Milestone 8: Reports & Analytics**
 
 ## Current Phase
-**Phase 3: Backend Controllers**
+**Phase 4: Backend Routes**
 
-Create backend controllers for Reports & Analytics.
+Create backend routes for Reports & Analytics.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 8 - Phase 2 (Backend Services)
+- **Phase**: Milestone 8 - Phase 3 (Backend Controllers)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add Reports & Analytics backend services (Milestone 8 - Phase 2)"
+- **Description**: "feat: add Reports & Analytics backend controllers (Milestone 8 - Phase 3)"
 
 ## Milestone 7: Expense Management - COMPLETE
 
@@ -43,6 +43,14 @@ All 8 phases completed successfully:
 - `backend/src/services/analyticsService.js` - Service layer for Analytics model (12 functions)
 - `backend/src/services/dailySummaryService.js` - Service layer for DailySummary model (16 functions)
 - Updated `backend/src/services/index.js` with new exports
+
+### Milestone 8: Reports & Analytics - Phase 3 COMPLETE
+
+**Phase 3: Backend Controllers**
+- `backend/src/controllers/reportController.js` - Controller for report endpoints (14 functions)
+- `backend/src/controllers/analyticsController.js` - Controller for analytics endpoints (12 functions)
+- `backend/src/controllers/dailySummaryController.js` - Controller for daily summary endpoints (17 functions)
+- Updated `backend/src/controllers/index.js` with new exports
 
 ## Current Repository Status
 
@@ -75,13 +83,14 @@ All 8 phases completed successfully:
 - Income Management: **COMPLETE** (Phases 6-8)
 
 ## Next Task
-**Phase 3: Backend Controllers (Milestone 8 - Phase 3)**
+**Phase 4: Backend Routes (Milestone 8 - Phase 4)**
 
-Create backend controllers for Reports & Analytics:
-- `backend/src/controllers/reportController.js` - Controller for report endpoints
-- `backend/src/controllers/analyticsController.js` - Controller for analytics endpoints
-- `backend/src/controllers/dailySummaryController.js` - Controller for daily summary endpoints
-- Update `backend/src/controllers/index.js` with new exports
+Create backend routes for Reports & Analytics:
+- `backend/src/routes/reportRoutes.js` - Routes for report endpoints
+- `backend/src/routes/analyticsRoutes.js` - Routes for analytics endpoints
+- `backend/src/routes/dailySummaryRoutes.js` - Routes for daily summary endpoints
+- Update `backend/src/routes/index.js` with new exports
+- Update `backend/src/app.js` to mount new routes
 
 See DEVELOPMENT_ROADMAP.md for detailed requirements.
 

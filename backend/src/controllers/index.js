@@ -8,3 +8,6 @@ export { default as Income } from './incomeController.js';
 export { default as IncomeCategory } from './incomeCategoryController.js';
 export { default as Expense } from './expenseController.js';
 export { default as ExpenseCategory } from './expenseCategoryController.js';
+export { default as Report } from './reportController.js';
+export { default as Analytics } from './analyticsController.js';
+export { default as DailySummary } from './dailySummaryController.js';

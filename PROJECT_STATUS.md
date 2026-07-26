@@ -104,7 +104,7 @@ This project uses a comprehensive self-documenting system. For complete status i
 ## Next Milestone
 
 **Milestone 8: Reports & Analytics - Phase 1: Backend Models**
-  **Milestone 8: Reports   **Milestone 8: Reports  Analytics - Phase 2: Backend Services** Analytics - Phase 3: Backend Controllers**
+  **Milestone 8: Reports   **Milestone 8: Reports   **Milestone 8: Reports  Analytics - Phase 2: Backend Services** Analytics - Phase 3: Backend Controllers** Analytics - Phase 4: Backend Routes**
 See CURRENT_MILESTONE.md for the exact next task.
 
 ---
