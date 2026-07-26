@@ -4,9 +4,15 @@
 **Milestone 9: Director Withdrawals**
 
 ## Current Phase
-**Phase 1: Backend Models**
+**Phase 2: Backend Services**
 
-Create Director Withdrawal model with database schema.
+Create Director Withdrawal service layer with business logic and validation.
+
+## Last Successfully Completed Phase
+- **Phase**: Milestone 9 - Phase 2 (Backend Services)
+- **Commit Hash**: [To be updated after commit]
+- **Date**: 2026-07-26
+- **Description**: "feat: add Director Withdrawals backend services (Milestone 9 - Phase 2)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 8 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -125,7 +131,7 @@ All 8 phases completed successfully:
 - Income Management: COMPLETE (Phases 1-5)
 - Expense Management: COMPLETE (Phases 1-5)
 - Reports & Analytics: COMPLETE (Phases 1-5)
-- Director Withdrawals: NOT STARTED
+- Director Withdrawals: Phases 1-2 Complete (Models, Services)
 
 ### Frontend Status
 - Foundation: Complete
@@ -138,6 +144,21 @@ All 8 phases completed successfully:
 - Expense Management: COMPLETE (Phases 6-8)
 - Reports & Analytics: COMPLETE (Phases 6-8)
 - Director Withdrawals: NOT STARTED
+
+### Milestone 9: Director Withdrawals - Phase 1 COMPLETE
+
+**Phase 1: Backend Models**
+- `backend/src/models/DirectorWithdrawal.js` - Director withdrawal model with 18+ functions
+- `database/schema.sql` - Added director_withdrawals table with indexes
+- Updated `backend/src/models/index.js` with new exports
+- Features: CRUD, status-based queries, approval workflow, statistics, labels
+
+### Milestone 9: Director Withdrawals - Phase 2 COMPLETE
+
+**Phase 2: Backend Services**
+- `backend/src/services/directorWithdrawalService.js` - Service layer with business logic (15+ functions)
+- Updated `backend/src/services/index.js` with new exports
+- Features: Validation, status transitions, pagination, approval workflow, search
 
 ## Next Task
 **Milestone 8: Reports & Analytics - COMPLETE**
@@ -154,10 +175,10 @@ All 8 phases of Milestone 8 are now complete:
 
 **Next Milestone: Milestone 9 (Director Withdrawals)**
 
-### Milestone 9: Director Withdrawals - Phase 1 IN PROGRESS
+### Milestone 9: Director Withdrawals - Phase 3 IN PROGRESS
 
-**Phase 1: Backend Models**
-Create Director Withdrawal model and database schema.
+**Phase 3: Backend Controllers**
+Create Director Withdrawal controller for API endpoints.
 
 ## What Was Completed in Previous Session
 

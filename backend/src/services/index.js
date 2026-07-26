@@ -11,3 +11,4 @@ export { default as expenseCategoryService } from './expenseCategoryService.js';
 export { default as reportService } from './reportService.js';
 export { default as analyticsService } from './analyticsService.js';
 export { default as dailySummaryService } from './dailySummaryService.js';
+export { default as directorWithdrawalService } from './directorWithdrawalService.js';
