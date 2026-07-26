@@ -7,3 +7,5 @@ export { default as studentChargeRoutes } from './studentChargeRoutes.js';
 export { default as studentChargeAssignmentRoutes } from './studentChargeAssignmentRoutes.js';
 export { default as incomeRoutes } from './incomeRoutes.js';
 export { default as incomeCategoryRoutes } from './incomeCategoryRoutes.js';
+export { default as expenseRoutes } from './expenseRoutes.js';
+export { default as expenseCategoryRoutes } from './expenseCategoryRoutes.js';

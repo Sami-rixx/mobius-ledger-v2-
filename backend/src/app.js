@@ -13,6 +13,8 @@ import studentChargeRoutes from './routes/studentChargeRoutes.js';
 import studentChargeAssignmentRoutes from './routes/studentChargeAssignmentRoutes.js';
 import incomeRoutes from './routes/incomeRoutes.js';
 import incomeCategoryRoutes from './routes/incomeCategoryRoutes.js';
+import expenseRoutes from './routes/expenseRoutes.js';
+import expenseCategoryRoutes from './routes/expenseCategoryRoutes.js';
 
 // Initialize Express app
 const app = express();
@@ -52,6 +54,8 @@ app.use('/api/charges', studentChargeRoutes);
 app.use('/api/charges/assignments', studentChargeAssignmentRoutes);
 app.use('/api/income', incomeRoutes);
 app.use('/api/income-categories', incomeCategoryRoutes);
+app.use('/api/expenses', expenseRoutes);
+app.use('/api/expense-categories', expenseCategoryRoutes);
 // Future routes will be mounted here:
 // app.use('/api/transactions', transactionRoutes);
 // app.use('/api/lunch', lunchRoutes);
