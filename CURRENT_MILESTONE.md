@@ -1,16 +1,16 @@
 # Current Milestone - Mobius Ledger v2
 
 ## Current Milestone
-**Milestone 8: Reports & Analytics**
+**Milestone 9: Director Withdrawals**
 
 ## Current Phase
-**Phase 5: Backend Testing**
+**Phase 1: Backend Models**
 
-Create backend tests for Reports & Analytics.
+Create Director Withdrawal model with database schema.
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 8 - Phase 8 (Frontend Pages, Routing, Navigation)
-- **Commit Hash**: [To be updated after commit]
+- **Commit Hash**: 1930baf
 - **Date**: 2026-07-26
 - **Description**: "feat: add Reports & Analytics frontend pages, routing, navigation (Milestone 8 - Phase 8)"
 
@@ -111,9 +111,9 @@ All 8 phases completed successfully:
 - **Milestone 3**: School Fees Management - COMPLETE (Backend + Frontend)
 - **Milestone 4**: Lunch Management - COMPLETE (Backend + Frontend)
 - **Milestone 5**: Student Charges Management - COMPLETE (All Phases 1-8)
-- **Milestone 6**: Income Management - **COMPLETE** (All Phases 1-8)
-- **Milestone 7**: Expense Management - **COMPLETE** (All Phases 1-8)
-- **Milestone 8**: Reports & Analytics - **COMPLETE** (All Phases 1-8)
+- **Milestone 6**: Income Management - COMPLETE (All Phases 1-8)
+- **Milestone 7**: Expense Management - COMPLETE (All Phases 1-8)
+- **Milestone 8**: Reports & Analytics - COMPLETE (All Phases 1-8)
 
 ### Backend Status
 - Foundation: Complete
@@ -122,9 +122,10 @@ All 8 phases completed successfully:
 - School Fees Management: Complete
 - Lunch Management: Complete
 - Student Charges Management: COMPLETE (Phases 1-4)
-- Income Management: **COMPLETE** (Phases 1-5)
+- Income Management: COMPLETE (Phases 1-5)
 - Expense Management: COMPLETE (Phases 1-5)
-- Reports & Analytics: **COMPLETE** (Phases 1-5)
+- Reports & Analytics: COMPLETE (Phases 1-5)
+- Director Withdrawals: NOT STARTED
 
 ### Frontend Status
 - Foundation: Complete
@@ -133,9 +134,10 @@ All 8 phases completed successfully:
 - School Fees Management: Complete
 - Lunch Management: Complete
 - Student Charges Management: COMPLETE (Phases 5-8)
-- Income Management: **COMPLETE** (Phases 6-8)
+- Income Management: COMPLETE (Phases 6-8)
 - Expense Management: COMPLETE (Phases 6-8)
-- Reports & Analytics: **COMPLETE** (Phases 6-8)
+- Reports & Analytics: COMPLETE (Phases 6-8)
+- Director Withdrawals: NOT STARTED
 
 ## Next Task
 **Milestone 8: Reports & Analytics - COMPLETE**
@@ -151,7 +153,11 @@ All 8 phases of Milestone 8 are now complete:
 - Phase 8: Frontend Pages, Routing, Navigation
 
 **Next Milestone: Milestone 9 (Director Withdrawals)**
-See CURRENT_MILESTONE.md for the exact next task.
+
+### Milestone 9: Director Withdrawals - Phase 1 IN PROGRESS
+
+**Phase 1: Backend Models**
+Create Director Withdrawal model and database schema.
 
 ## What Was Completed in Previous Session
 
@@ -379,10 +385,10 @@ Every future session must:
 
 ## Quick Reference
 
-- **Latest Commit**: b572342
+- **Latest Commit**: 1930baf
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 8 COMPLETE, Milestone 9 Ready
+- **Current Focus**: Milestone 9 (Director Withdrawals) Phase 1 IN PROGRESS
 
 ---
 

@@ -314,13 +314,37 @@ This file tracks the status of every major module in the system. Each module rep
 | Integration Status | ✅ Complete |
 | Testing Status | ✅ Backend tests created |
 | Documentation Status | ✅ Complete |
-| Latest Commit | [To be updated after commit] |
+| Latest Commit | 1930baf |
 | Next Planned Work | None |
 
 **Components**:
 - Backend: ✅ Phase 1 Complete (Report.js, DailySummary.js, Analytics.js models), ✅ Phase 2 Complete (reportService.js, dailySummaryService.js, analyticsService.js), ✅ Phase 3 Complete (reportController.js, dailySummaryController.js, analyticsController.js), ✅ Phase 4 Complete (reportRoutes.js, dailySummaryRoutes.js, analyticsRoutes.js), ✅ Phase 5 Complete (report.test.js, analytics.test.js, dailySummary.test.js)
 - Frontend: ✅ Phase 6 Complete (reportService.js, analyticsService.js, dailySummaryService.js), ✅ Phase 7 Complete (ReportCard, ReportList, DailySummaryCard, DailySummaryList, AnalyticsDashboard components), ✅ Phase 8 Complete (ReportListPage, ReportDetailPage, AnalyticsDashboardPage, DailySummaryListPage, DailySummaryDetailPage, App.jsx routes, HomePage.jsx buttons)
 - Database: ✅ Phase 1 Complete (reports, daily_summaries tables, indexes, views)
+
+---
+
+## Module 9: Director Withdrawals
+
+**Purpose**: Track director/management withdrawals with approval workflow and configurable labels.
+
+| Aspect | Status |
+|--------|--------|
+| Current Status | 🚧 Phase 1 In Progress |
+| Current Phase | Phase 1 (Backend Models) |
+| Completion % | 5% |
+| Backend Status | 🚧 Phase 1 In Progress |
+| Frontend Status | ⏳ Not Started |
+| Integration Status | ⏳ Not Started |
+| Testing Status | ⏳ Not Started |
+| Documentation Status | 🚧 In Progress |
+| Latest Commit | [To be updated after commit] |
+| Next Planned Work | Phase 2: Backend Services |
+
+**Components**:
+- Backend: 🚧 Phase 1 In Progress (DirectorWithdrawal.js model)
+- Frontend: ⏳ Not Started
+- Database: ⏳ Planned (director_withdrawals table)
 
 **API Endpoints (Planned)**:
 - GET /api/reports - List all reports

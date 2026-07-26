@@ -12,3 +12,4 @@ export { default as ExpenseCategory } from './ExpenseCategory.js';
 export { default as DailySummary } from './DailySummary.js';
 export { default as Report, REPORT_TYPES_CONSTANTS as REPORT_TYPES } from './Report.js';
 export { default as Analytics } from './Analytics.js';
+export { default as DirectorWithdrawal, WITHDRAWAL_STATUS } from './DirectorWithdrawal.js';

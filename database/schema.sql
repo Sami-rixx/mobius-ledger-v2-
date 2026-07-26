@@ -602,6 +602,48 @@ FROM daily_ledger dl
 ORDER BY dl.date DESC;
 
 -- ============================================
+-- DIRECTOR WITHDRAWALS TABLE (Milestone 9)
+-- ============================================
+
+-- Director withdrawals table: Tracks director/management withdrawals with approval workflow
+CREATE TABLE IF NOT EXISTS director_withdrawals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  amount DECIMAL(10, 2) NOT NULL,
+  label TEXT,
+  purpose TEXT NOT NULL,
+  description TEXT,
+  recipient_name TEXT NOT NULL,
+  recipient_contact TEXT,
+  payment_method_id INTEGER,
+  transaction_id INTEGER,
+  withdrawal_date DATE NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  approved_by INTEGER,
+  approved_at DATETIME,
+  rejected_by INTEGER,
+  rejected_at DATETIME,
+  rejection_reason TEXT,
+  notes TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_by INTEGER NOT NULL,
+  updated_by INTEGER NOT NULL,
+  FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id),
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id),
+  FOREIGN KEY (approved_by) REFERENCES users(id),
+  FOREIGN KEY (rejected_by) REFERENCES users(id),
+  FOREIGN KEY (created_by) REFERENCES users(id),
+  FOREIGN KEY (updated_by) REFERENCES users(id)
+);
+
+-- Indexes for director_withdrawals table
+CREATE INDEX IF NOT EXISTS idx_director_withdrawals_status ON director_withdrawals(status);
+CREATE INDEX IF NOT EXISTS idx_director_withdrawals_date ON director_withdrawals(withdrawal_date);
+CREATE INDEX IF NOT EXISTS idx_director_withdrawals_label ON director_withdrawals(label);
+CREATE INDEX IF NOT EXISTS idx_director_withdrawals_recipient ON director_withdrawals(recipient_name);
+CREATE INDEX IF NOT EXISTS idx_director_withdrawals_created_at ON director_withdrawals(created_at);
+
+-- ============================================
 -- REPORTS & ANALYTICS TABLES (Milestone 8)
 -- ============================================
 
