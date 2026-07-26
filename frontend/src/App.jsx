@@ -66,6 +66,12 @@ import {
   WithdrawalEditPage,
   WithdrawalDetailPage
 } from '@pages/Withdrawals';
+import {
+  TransactionListPage,
+  TransactionCreatePage,
+  TransactionEditPage,
+  TransactionDetailPage
+} from '@pages/Transactions';
 
 function App() {
   return (
@@ -113,6 +119,9 @@ function App() {
               </NavLink>
               <NavLink to="/withdrawals" className="nav-link" end>
                 Withdrawals
+              </NavLink>
+              <NavLink to="/transactions" className="nav-link" end>
+                Transactions
               </NavLink>
             </div>
           </div>
@@ -176,6 +185,11 @@ function App() {
             <Route path="/withdrawals/create" element={<WithdrawalCreatePage />} />
             <Route path="/withdrawals/:id" element={<WithdrawalDetailPage />} />
             <Route path="/withdrawals/edit/:id" element={<WithdrawalEditPage />} />
+            {/* Transaction Routes */}
+            <Route path="/transactions" element={<TransactionListPage />} />
+            <Route path="/transactions/create" element={<TransactionCreatePage />} />
+            <Route path="/transactions/:id" element={<TransactionDetailPage />} />
+            <Route path="/transactions/edit/:id" element={<TransactionEditPage />} />
           </Routes>
         </main>
 

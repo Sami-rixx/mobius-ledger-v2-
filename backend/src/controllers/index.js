@@ -12,3 +12,4 @@ export { default as Report } from './reportController.js';
 export { default as Analytics } from './analyticsController.js';
 export { default as DailySummary } from './dailySummaryController.js';
 export { default as DirectorWithdrawal } from './directorWithdrawalController.js';
+export { default as Transaction } from './transactionController.js';

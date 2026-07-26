@@ -171,6 +171,20 @@ function HomePage() {
               >
                 Create New Withdrawal
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/transactions')}
+                className="quick-access-button"
+              >
+                View All Transactions
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/transactions/create')}
+                className="quick-access-button"
+              >
+                Create New Transaction
+              </Button>
             </div>
           </Card>
 
@@ -190,6 +204,7 @@ function HomePage() {
                 <li>Lunch Management</li>
                 <li>Student Charges Management</li>
                 <li>Income & Expense Tracking</li>
+                <li>Transactions</li>
                 <li>Daily Ledger</li>
                 <li>Reports & Analytics</li>
                 <li>Director Withdrawals</li>
