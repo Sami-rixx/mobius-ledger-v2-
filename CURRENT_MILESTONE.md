@@ -4,15 +4,15 @@
 **Milestone 9: Director Withdrawals**
 
 ## Current Phase
-**Phase 2: Backend Services**
+**Phase 3: Backend Controllers**
 
-Create Director Withdrawal service layer with business logic and validation.
+Create Director Withdrawal controller for API endpoints.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 9 - Phase 2 (Backend Services)
+- **Phase**: Milestone 9 - Phase 3 (Backend Controllers)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add Director Withdrawals backend services (Milestone 9 - Phase 2)"
+- **Description**: "feat: add Director Withdrawals backend controllers (Milestone 9 - Phase 3)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 8 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -131,7 +131,7 @@ All 8 phases completed successfully:
 - Income Management: COMPLETE (Phases 1-5)
 - Expense Management: COMPLETE (Phases 1-5)
 - Reports & Analytics: COMPLETE (Phases 1-5)
-- Director Withdrawals: Phases 1-2 Complete (Models, Services)
+- Director Withdrawals: Phases 1-3 Complete (Models, Services, Controllers)
 
 ### Frontend Status
 - Foundation: Complete
@@ -160,6 +160,13 @@ All 8 phases completed successfully:
 - Updated `backend/src/services/index.js` with new exports
 - Features: Validation, status transitions, pagination, approval workflow, search
 
+### Milestone 9: Director Withdrawals - Phase 3 COMPLETE
+
+**Phase 3: Backend Controllers**
+- `backend/src/controllers/directorWithdrawalController.js` - Controller with 15+ route handlers
+- Updated `backend/src/controllers/index.js` with new exports
+- Features: CRUD endpoints, approval workflow endpoints, statistics, labels, search, count
+
 ## Next Task
 **Milestone 8: Reports & Analytics - COMPLETE**
 
@@ -175,10 +182,10 @@ All 8 phases of Milestone 8 are now complete:
 
 **Next Milestone: Milestone 9 (Director Withdrawals)**
 
-### Milestone 9: Director Withdrawals - Phase 3 IN PROGRESS
+### Milestone 9: Director Withdrawals - Phase 4 IN PROGRESS
 
-**Phase 3: Backend Controllers**
-Create Director Withdrawal controller for API endpoints.
+**Phase 4: Backend Routes**
+Create Director Withdrawal routes and mount in app.js.
 
 ## What Was Completed in Previous Session
 
