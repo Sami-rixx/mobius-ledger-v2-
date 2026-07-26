@@ -220,6 +220,34 @@ function HomePage() {
               >
                 Create New Session
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/permissions')}
+                className="quick-access-button"
+              >
+                Manage Permissions
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/permissions/create')}
+                className="quick-access-button"
+              >
+                Create Permission
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/roles')}
+                className="quick-access-button"
+              >
+                Manage Roles
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/roles/create')}
+                className="quick-access-button"
+              >
+                Create Role
+              </Button>
             </div>
           </Card>
 
@@ -246,6 +274,7 @@ function HomePage() {
                 <li>Audit Trail</li>
                 <li>Notification System</li>
                 <li>User Authentication & Session Management</li>
+              <li>Authorization & Permissions</li>
               </ul>
             </div>
           </Card>

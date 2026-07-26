@@ -87,6 +87,18 @@ import {
   UserSessionEditPage,
   UserSessionDetailPage
 } from '@pages/UserSessions';
+import {
+  PermissionListPage,
+  PermissionCreatePage,
+  PermissionEditPage,
+  PermissionDetailPage
+} from '@pages/Permissions';
+import {
+  RoleListPage,
+  RoleCreatePage,
+  RoleEditPage,
+  RoleDetailPage
+} from '@pages/Roles';
 
 function App() {
   return (
@@ -146,6 +158,12 @@ function App() {
               </NavLink>
               <NavLink to="/user-sessions" className="nav-link" end>
                 Sessions
+              </NavLink>
+              <NavLink to="/permissions" className="nav-link" end>
+                Permissions
+              </NavLink>
+              <NavLink to="/roles" className="nav-link" end>
+                Roles
               </NavLink>
             </div>
           </div>
@@ -226,6 +244,16 @@ function App() {
             <Route path="/user-sessions/create" element={<UserSessionCreatePage />} />
             <Route path="/user-sessions/:id" element={<UserSessionDetailPage />} />
             <Route path="/user-sessions/edit/:id" element={<UserSessionEditPage />} />
+            {/* Permission Routes */}
+            <Route path="/permissions" element={<PermissionListPage />} />
+            <Route path="/permissions/create" element={<PermissionCreatePage />} />
+            <Route path="/permissions/:id" element={<PermissionDetailPage />} />
+            <Route path="/permissions/edit/:id" element={<PermissionEditPage />} />
+            {/* Role Routes */}
+            <Route path="/roles" element={<RoleListPage />} />
+            <Route path="/roles/create" element={<RoleCreatePage />} />
+            <Route path="/roles/:id" element={<RoleDetailPage />} />
+            <Route path="/roles/edit/:id" element={<RoleEditPage />} />
           </Routes>
         </main>
 
