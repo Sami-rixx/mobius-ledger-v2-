@@ -76,6 +76,11 @@ import {
   AuditTrailListPage,
   AuditTrailDetailPage
 } from '@pages/AuditTrails';
+import {
+  NotificationListPage,
+  NotificationCreatePage,
+  NotificationDetailPage
+} from '@pages/Notifications';
 
 function App() {
   return (
@@ -129,6 +134,9 @@ function App() {
               </NavLink>
               <NavLink to="/audit-trail" className="nav-link" end>
                 Audit Trail
+              </NavLink>
+              <NavLink to="/notifications" className="nav-link" end>
+                Notifications
               </NavLink>
             </div>
           </div>
@@ -200,6 +208,10 @@ function App() {
             {/* Audit Trail Routes */}
             <Route path="/audit-trail" element={<AuditTrailListPage />} />
             <Route path="/audit-trail/:id" element={<AuditTrailDetailPage />} />
+            {/* Notification Routes */}
+            <Route path="/notifications" element={<NotificationListPage />} />
+            <Route path="/notifications/create" element={<NotificationCreatePage />} />
+            <Route path="/notifications/:id" element={<NotificationDetailPage />} />
           </Routes>
         </main>
 

@@ -192,6 +192,20 @@ function HomePage() {
               >
                 View Audit Trail
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/notifications')}
+                className="quick-access-button"
+              >
+                View Notifications
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/notifications/create')}
+                className="quick-access-button"
+              >
+                Create Notification
+              </Button>
             </div>
           </Card>
 
@@ -216,6 +230,7 @@ function HomePage() {
                 <li>Reports & Analytics</li>
                 <li>Director Withdrawals</li>
                 <li>Audit Trail</li>
+                <li>Notification System</li>
               </ul>
             </div>
           </Card>
