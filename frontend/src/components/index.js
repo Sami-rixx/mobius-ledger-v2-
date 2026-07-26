@@ -42,3 +42,7 @@ export { default as TransactionCard } from './TransactionCard.jsx';
 export { default as TransactionTable } from './TransactionTable.jsx';
 export { default as TransactionForm } from './TransactionForm.jsx';
 export { default as TransactionFilter } from './TransactionFilter.jsx';
+export { default as AuditTrailCard } from './AuditTrailCard.jsx';
+export { default as AuditTrailTable } from './AuditTrailTable.jsx';
+export { default as AuditTrailList } from './AuditTrailList.jsx';
+export { default as AuditTrailFilter } from './AuditTrailFilter.jsx';
