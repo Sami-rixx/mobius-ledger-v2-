@@ -157,6 +157,20 @@ function HomePage() {
               >
                 Daily Summaries
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/withdrawals')}
+                className="quick-access-button"
+              >
+                Manage Withdrawals
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/withdrawals/create')}
+                className="quick-access-button"
+              >
+                Create New Withdrawal
+              </Button>
             </div>
           </Card>
 
@@ -178,6 +192,7 @@ function HomePage() {
                 <li>Income & Expense Tracking</li>
                 <li>Daily Ledger</li>
                 <li>Reports & Analytics</li>
+                <li>Director Withdrawals</li>
               </ul>
             </div>
           </Card>

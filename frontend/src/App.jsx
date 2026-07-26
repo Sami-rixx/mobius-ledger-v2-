@@ -60,6 +60,12 @@ import {
   DailySummaryListPage,
   DailySummaryDetailPage
 } from '@pages/DailySummaries';
+import {
+  WithdrawalListPage,
+  WithdrawalCreatePage,
+  WithdrawalEditPage,
+  WithdrawalDetailPage
+} from '@pages/Withdrawals';
 
 function App() {
   return (
@@ -104,6 +110,9 @@ function App() {
               </NavLink>
               <NavLink to="/daily-summaries" className="nav-link" end>
                 Daily Summaries
+              </NavLink>
+              <NavLink to="/withdrawals" className="nav-link" end>
+                Withdrawals
               </NavLink>
             </div>
           </div>
@@ -162,6 +171,11 @@ function App() {
             {/* Daily Summaries Routes */}
             <Route path="/daily-summaries" element={<DailySummaryListPage />} />
             <Route path="/daily-summaries/:id" element={<DailySummaryDetailPage />} />
+            {/* Withdrawals Routes */}
+            <Route path="/withdrawals" element={<WithdrawalListPage />} />
+            <Route path="/withdrawals/create" element={<WithdrawalCreatePage />} />
+            <Route path="/withdrawals/:id" element={<WithdrawalDetailPage />} />
+            <Route path="/withdrawals/edit/:id" element={<WithdrawalEditPage />} />
           </Routes>
         </main>
 
