@@ -23,6 +23,10 @@ import transactionRoutes from './routes/transactionRoutes.js';
 import auditTrailRoutes from './routes/auditTrailRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import userSessionRoutes from './routes/userSessionRoutes.js';
+import permissionRoutes from './routes/permissionRoutes.js';
+import roleRoutes from './routes/roleRoutes.js';
+import userRoleRoutes from './routes/userRoleRoutes.js';
+import rolePermissionRoutes from './routes/rolePermissionRoutes.js';
 
 // Initialize Express app
 const app = express();
@@ -72,6 +76,10 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/audit-trail', auditTrailRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/user-sessions', userSessionRoutes);
+app.use('/api/permissions', permissionRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/user-roles', userRoleRoutes);
+app.use('/api/role-permissions', rolePermissionRoutes);
 // Future routes will be mounted here:
 // app.use('/api/lunch', lunchRoutes);
 

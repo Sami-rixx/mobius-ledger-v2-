@@ -17,3 +17,7 @@ export { default as transactionRoutes } from './transactionRoutes.js';
 export { default as auditTrailRoutes } from './auditTrailRoutes.js';
 export { default as notificationRoutes } from './notificationRoutes.js';
 export { default as userSessionRoutes } from './userSessionRoutes.js';
+export { default as permissionRoutes } from './permissionRoutes.js';
+export { default as roleRoutes } from './roleRoutes.js';
+export { default as userRoleRoutes } from './userRoleRoutes.js';
+export { default as rolePermissionRoutes } from './rolePermissionRoutes.js';

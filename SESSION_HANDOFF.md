@@ -363,5 +363,42 @@ Next: Proceeding to Milestone 12 Phase 3 (Notification System Backend Controller
 
 MILESTONES 0-11: 100% COMPLETE
 MILESTONE 12: 100% COMPLETE (ALL PHASES 1-8)
+MILESTONE 13: 100% COMPLETE (ALL PHASES 1-8)
+
+### Milestone 14: Authorization & Permissions - Phase 1 COMPLETE
+- Created `backend/src/models/Permission.js` - Permission model with 14 functions
+- Created `backend/src/models/Role.js` - Role model with 14 functions
+- Created `backend/src/models/UserRole.js` - User-Role mapping model with 15 functions
+- Created `backend/src/models/RolePermission.js` - Role-Permission mapping model with 15 functions
+- Updated `backend/src/models/index.js` with new exports
+- Updated `database/schema.sql` with permissions, roles, user_roles, role_permissions tables and 13 indexes
+
+### Milestone 14: Authorization & Permissions - Phase 2 COMPLETE
+- Created `backend/src/services/permissionService.js` - Service layer with 18 functions
+- Created `backend/src/services/roleService.js` - Service layer with 18 functions
+- Created `backend/src/services/userRoleService.js` - Service layer with 17 functions
+- Created `backend/src/services/rolePermissionService.js` - Service layer with 17 functions
+- Updated `backend/src/services/index.js` with new exports
+
+### Milestone 14: Authorization & Permissions - Phase 3 COMPLETE
+- Created `backend/src/controllers/permissionController.js` - Controller with 15 route handlers
+- Created `backend/src/controllers/roleController.js` - Controller with 16 route handlers
+- Created `backend/src/controllers/userRoleController.js` - Controller with 16 route handlers
+- Created `backend/src/controllers/rolePermissionController.js` - Controller with 16 route handlers
+- Updated `backend/src/controllers/index.js` with new exports
+
+### Milestone 14: Authorization & Permissions - Phase 4 COMPLETE
+- Created `backend/src/routes/permissionRoutes.js` - Routes for Permission endpoints (15 endpoints)
+- Created `backend/src/routes/roleRoutes.js` - Routes for Role endpoints (16 endpoints)
+- Created `backend/src/routes/userRoleRoutes.js` - Routes for UserRole endpoints (16 endpoints)
+- Created `backend/src/routes/rolePermissionRoutes.js` - Routes for RolePermission endpoints (16 endpoints)
+- Updated `backend/src/routes/index.js` with permissionRoutes, roleRoutes, userRoleRoutes, rolePermissionRoutes exports
+- Updated `backend/src/app.js` to mount new routes at /api/permissions, /api/roles, /api/user-roles, /api/role-permissions
+- Updated `CURRENT_MILESTONE.md`, `MODULE_STATUS.md`, `PROJECT_STATUS.md`
+
+MILESTONES 0-11: 100% COMPLETE
+MILESTONE 12: 100% COMPLETE (ALL PHASES 1-8)
+MILESTONE 13: 100% COMPLETE (ALL PHASES 1-8)
+MILESTONE 14: 50% COMPLETE (PHASES 1-4)
 
 *This file documents the work completed through 2026-07-26 session.*
