@@ -25,6 +25,18 @@ import {
   StudentChargeDetailPage,
   StudentChargeAssignmentListPage
 } from '@pages/StudentCharges';
+import {
+  IncomeListPage,
+  IncomeCreatePage,
+  IncomeEditPage,
+  IncomeDetailPage
+} from '@pages/Income';
+import {
+  IncomeCategoryListPage,
+  IncomeCategoryCreatePage,
+  IncomeCategoryEditPage,
+  IncomeCategoryDetailPage
+} from '@pages/IncomeCategories';
 
 function App() {
   return (
@@ -55,6 +67,9 @@ function App() {
               <NavLink to="/student-charges" className="nav-link" end>
                 Student Charges
               </NavLink>
+              <NavLink to="/income" className="nav-link" end>
+                Income
+              </NavLink>
             </div>
           </div>
         </nav>
@@ -84,6 +99,16 @@ function App() {
             <Route path="/student-charges/:id" element={<StudentChargeDetailPage />} />
             <Route path="/student-charges/edit/:id" element={<StudentChargeEditPage />} />
             <Route path="/student-charges/assignments" element={<StudentChargeAssignmentListPage />} />
+            {/* Income Routes */}
+            <Route path="/income" element={<IncomeListPage />} />
+            <Route path="/income/create" element={<IncomeCreatePage />} />
+            <Route path="/income/:id" element={<IncomeDetailPage />} />
+            <Route path="/income/edit/:id" element={<IncomeEditPage />} />
+            {/* Income Category Routes */}
+            <Route path="/income-categories" element={<IncomeCategoryListPage />} />
+            <Route path="/income-categories/create" element={<IncomeCategoryCreatePage />} />
+            <Route path="/income-categories/:id" element={<IncomeCategoryDetailPage />} />
+            <Route path="/income-categories/edit/:id" element={<IncomeCategoryEditPage />} />
           </Routes>
         </main>
 

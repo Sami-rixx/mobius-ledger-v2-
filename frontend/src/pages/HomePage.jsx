@@ -73,6 +73,34 @@ function HomePage() {
               >
                 Add New Charge
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/income')}
+                className="quick-access-button"
+              >
+                Manage Income
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/income/create')}
+                className="quick-access-button"
+              >
+                Record New Income
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/income-categories')}
+                className="quick-access-button"
+              >
+                Manage Categories
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/income-categories/create')}
+                className="quick-access-button"
+              >
+                Add New Category
+              </Button>
             </div>
           </Card>
 
