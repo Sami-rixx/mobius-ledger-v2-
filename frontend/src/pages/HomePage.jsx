@@ -129,6 +129,34 @@ function HomePage() {
               >
                 Add Expense Category
               </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/reports')}
+                className="quick-access-button"
+              >
+                View Reports
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/reports')}
+                className="quick-access-button"
+              >
+                Generate Report
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/analytics')}
+                className="quick-access-button"
+              >
+                Analytics Dashboard
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/daily-summaries')}
+                className="quick-access-button"
+              >
+                Daily Summaries
+              </Button>
             </div>
           </Card>
 

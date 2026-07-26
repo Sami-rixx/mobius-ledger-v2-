@@ -49,6 +49,17 @@ import {
   ExpenseCategoryEditPage,
   ExpenseCategoryDetailPage
 } from '@pages/ExpenseCategories';
+import {
+  ReportListPage,
+  ReportDetailPage
+} from '@pages/Reports';
+import {
+  AnalyticsDashboardPage
+} from '@pages/Analytics';
+import {
+  DailySummaryListPage,
+  DailySummaryDetailPage
+} from '@pages/DailySummaries';
 
 function App() {
   return (
@@ -84,6 +95,15 @@ function App() {
               </NavLink>
               <NavLink to="/expenses" className="nav-link" end>
                 Expenses
+              </NavLink>
+              <NavLink to="/reports" className="nav-link" end>
+                Reports
+              </NavLink>
+              <NavLink to="/analytics" className="nav-link" end>
+                Analytics
+              </NavLink>
+              <NavLink to="/daily-summaries" className="nav-link" end>
+                Daily Summaries
               </NavLink>
             </div>
           </div>
@@ -134,6 +154,14 @@ function App() {
             <Route path="/expense-categories/create" element={<ExpenseCategoryCreatePage />} />
             <Route path="/expense-categories/:id" element={<ExpenseCategoryDetailPage />} />
             <Route path="/expense-categories/edit/:id" element={<ExpenseCategoryEditPage />} />
+            {/* Reports Routes */}
+            <Route path="/reports" element={<ReportListPage />} />
+            <Route path="/reports/:id" element={<ReportDetailPage />} />
+            {/* Analytics Routes */}
+            <Route path="/analytics" element={<AnalyticsDashboardPage />} />
+            {/* Daily Summaries Routes */}
+            <Route path="/daily-summaries" element={<DailySummaryListPage />} />
+            <Route path="/daily-summaries/:id" element={<DailySummaryDetailPage />} />
           </Routes>
         </main>
 
