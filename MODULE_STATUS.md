@@ -258,19 +258,19 @@ This file tracks the status of every major module in the system. Each module rep
 
 | Aspect | Status |
 |--------|--------|
-| Current Status | \u2705 Phase 2 Complete |
-| Current Phase | Phase 3 (Backend Controllers) |
-| Completion % | 25% |
-| Backend Status | \u2705 Phases 1-2 Complete (Models, Services) |
+| Current Status | \u2705 Phase 3 Complete |
+| Current Phase | Phase 4 (Backend Routes) |
+| Completion % | 37.5% |
+| Backend Status | \u2705 Phases 1-3 Complete (Models, Services, Controllers) |
 | Frontend Status | \u23f3 Not Started |
 | Integration Status | \u23f3 Not Started |
 | Testing Status | \u23f3 Not Started |
 | Documentation Status | \u2705 Complete |
 | Latest Commit | [To be updated after commit] |
-| Next Planned Work | Phase 3: Backend Controllers |
+| Next Planned Work | Phase 4: Backend Routes |
 
 **Components**:
-- Backend: \u2705 Model (Expense.js, ExpenseCategory.js), \u2705 Service (expenseService.js, expenseCategoryService.js)
+- Backend: \u2705 Model (Expense.js, ExpenseCategory.js), \u2705 Service (expenseService.js, expenseCategoryService.js), \u2705 Controller (expenseController.js, expenseCategoryController.js)
 - Database: \u2705 expense_categories table (enhanced with is_kitchen), \u2705 expenses table (new)
 
 **API Endpoints (Planned)**:

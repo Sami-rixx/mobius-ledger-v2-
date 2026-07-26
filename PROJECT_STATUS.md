@@ -81,8 +81,8 @@ This project uses a comprehensive self-documenting system. For complete status i
 
 ### Milestone 7: Expense Management
 - **Status**: \ud83d\udea7 IN PROGRESS
-- **Phase 2 Completed**: Backend Services
-- **Backend**: Phases 1-2 Complete (Models, Services)
+- **Phase 3 Completed**: Backend Controllers
+- **Backend**: Phases 1-3 Complete (Models, Services, Controllers)
 - **Frontend**: Not Started
 - **Commit**: [To be updated after commit]
 - **Date**: 2026-07-26
@@ -98,13 +98,13 @@ This project uses a comprehensive self-documenting system. For complete status i
 | Completed Milestones | 6 |
 | In Progress Milestones | 1 |
 | Not Started Milestones | 12 |
-| Overall Completion | ~39% |
+| Overall Completion | ~41% |
 
 ---
 
 ## Next Milestone
 
-**Milestone 7: Expense Management - Phase 3: Backend Controllers**
+**Milestone 7: Expense Management - Phase 4: Backend Routes**
 
 See CURRENT_MILESTONE.md for the exact next task.
 

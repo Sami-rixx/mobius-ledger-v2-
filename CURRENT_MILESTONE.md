@@ -4,15 +4,15 @@
 **Milestone 7: Expense Management**
 
 ## Current Phase
-**Phase 3: Backend Controllers**
+**Phase 4: Backend Routes**
 
-Create backend controllers for Expense Management.
+Create backend routes for Expense Management.
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 7 - Phase 2 (Backend Services)
+- **Phase**: Milestone 7 - Phase 3 (Backend Controllers)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-26
-- **Description**: "feat: add Expense Management backend services (Milestone 7 - Phase 2)"
+- **Description**: "feat: add Expense Management backend controllers (Milestone 7 - Phase 3)"
 
 ## Current Repository Status
 
@@ -44,16 +44,24 @@ Create backend controllers for Expense Management.
 - Income Management: **COMPLETE** (Phases 6-8)
 
 ## Next Task
-**Phase 3: Backend Controllers (Milestone 7 - Phase 3)**
+**Phase 4: Backend Routes (Milestone 7 - Phase 4)**
 
-Create backend controllers for Expense Management:
-- `backend/src/controllers/expenseController.js` - Expense controller
-- `backend/src/controllers/expenseCategoryController.js` - Expense category controller
-- Update `backend/src/controllers/index.js` with new exports
+Create backend routes for Expense Management:
+- `backend/src/routes/expenseRoutes.js` - Expense routes
+- `backend/src/routes/expenseCategoryRoutes.js` - Expense category routes
+- Update `backend/src/routes/index.js` with new exports
+- Update `backend/src/app.js` to mount new routes
 
 See DEVELOPMENT_ROADMAP.md for detailed requirements.
 
 ## What Was Completed in Previous Session
+
+### Milestone 7: Expense Management - Phase 3 COMPLETE
+
+**Phase 3: Backend Controllers**
+- `backend/src/controllers/expenseController.js` - Expense controller (11 functions)
+- `backend/src/controllers/expenseCategoryController.js` - Expense category controller (15 functions)
+- Updated `backend/src/controllers/index.js` with new exports
 
 ### Milestone 7: Expense Management - Phase 2 COMPLETE
 
@@ -226,7 +234,7 @@ Every future session must:
 - **Latest Commit**: 0ad2d9e
 - **Main Branch**: main
 - **Repository**: https://github.com/Sami-rixx/mobius-ledger-v2-
-- **Current Focus**: Milestone 6 COMPLETE, Milestone 7 Phase 2 COMPLETE, Phase 3 Ready
+- **Current Focus**: Milestone 6 COMPLETE, Milestone 7 Phase 3 COMPLETE, Phase 4 Ready
 
 ---
 
