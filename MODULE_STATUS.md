@@ -471,4 +471,27 @@ This file tracks the status of every major module in the system. Each module rep
 
 ---
 
+## Module 14: Authorization & Permissions
+
+**Purpose**: Role-based access control with permissions, roles, and user-role assignments.
+
+| Aspect | Status |
+|--------|--------|
+| Current Status | \ud83d\udea7 In Progress |
+| Current Phase | Phase 1: Backend Models |
+| Completion % | 12.5% |
+| Backend Status | \u2705 Phase 1 Complete (Permission, Role, UserRole, RolePermission models) |
+| Frontend Status | \u23f3 Not Started |
+| Integration Status | \u23f3 Not Started |
+| Testing Status | \u23f3 Not Started |
+| Documentation Status | \u2705 In Progress |
+| Latest Commit | [To be updated after commit] |
+| Next Planned Work | Phase 2: Backend Services |
+
+**Components**:
+- Backend: \u2705 Phase 1 Complete (Permission.js with 14 functions, Role.js with 14 functions, UserRole.js with 15 functions, RolePermission.js with 15 functions)
+- Database: \u2705 permissions, roles, user_roles, role_permissions tables and indexes added to schema.sql
+
+---
+
 

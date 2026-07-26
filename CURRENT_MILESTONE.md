@@ -4,7 +4,7 @@
 **Milestone 14: Authorization & Permissions**
 
 ## Current Phase
-**Phase 1: Backend Models**
+**Phase 2: Backend Services**
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 13 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -214,15 +214,15 @@ All 8 phases completed successfully:
 - Features: Full CRUD, approval workflow, status management, responsive design
 
 ## Next Task
-**Milestone 14: Authorization & Permissions - Phase 1: Backend Models**
+**Milestone 14: Authorization & Permissions - Phase 2: Backend Services**
 
-Create backend models for authorization and permissions.
+Create backend services for authorization and permissions.
 Files to create:
-- `backend/src/models/Permission.js` - Permission model with CRUD operations
-- `backend/src/models/Role.js` - Role model with permission assignments
-- `backend/src/models/UserRole.js` - User-Role mapping model
-- Update `backend/src/models/index.js` with new exports
-- Update `database/schema.sql` with permissions, roles, user_roles tables and indexes
+- `backend/src/services/permissionService.js` - Service layer for Permission model
+- `backend/src/services/roleService.js` - Service layer for Role model
+- `backend/src/services/userRoleService.js` - Service layer for UserRole model
+- `backend/src/services/rolePermissionService.js` - Service layer for RolePermission model
+- Update `backend/src/services/index.js` with new exports
 
 See ARCHITECTURE.md and DEVELOPMENT_ROADMAP.md for implementation patterns.
 
@@ -504,6 +504,24 @@ Enhanced Transaction model for unified transaction management.
 - Updated `frontend/src/pages/HomePage.jsx`:
   - Added "Manage User Sessions" and "Create New Session" quick access buttons
   - Added "User Authentication & Session Management" to feature list
+
+### Milestone 14: Authorization & Permissions - Phase 1 COMPLETE
+
+**Phase 1: Backend Models**
+- `backend/src/models/Permission.js` - Permission model with 14 functions (CRUD, filtering, search, count)
+  - Constants: PERMISSIONS_TABLE, PERMISSION_FIELDS, PERMISSION_MODULES
+  - Features: Permission name uniqueness, module categorization, active status management
+- `backend/src/models/Role.js` - Role model with 14 functions (CRUD, search, default role management)
+  - Constants: ROLES_TABLE, ROLE_FIELDS, DEFAULT_ROLES
+  - Features: Role name uniqueness, default role flag, user-role count
+- `backend/src/models/UserRole.js` - User-Role mapping model with 15 functions
+  - Constants: USER_ROLES_TABLE, USER_ROLE_FIELDS
+  - Features: Many-to-many mapping, role assignment, user role checking
+- `backend/src/models/RolePermission.js` - Role-Permission mapping model with 15 functions
+  - Constants: ROLE_PERMISSIONS_TABLE, ROLE_PERMISSION_FIELDS
+  - Features: Many-to-many mapping, permission assignment, role permission checking
+- Updated `backend/src/models/index.js` with Permission, Role, UserRole, RolePermission exports
+- Updated `database/schema.sql` with permissions, roles, user_roles, role_permissions tables and 13 indexes
 
 ### Milestone 13: User Authentication - COMPLETE
 

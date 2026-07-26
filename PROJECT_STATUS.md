@@ -134,6 +134,14 @@ This project uses a comprehensive self-documenting system. For complete status i
 - **Date**: 2026-07-26
 - **Details**: See MODULE_STATUS.md - Module 13 (User Authentication)
 
+### Milestone 14: Authorization & Permissions
+- **Status**: 🚧 IN PROGRESS
+- **Backend**: Phase 1 Complete (Models)
+- **Frontend**: Not Started
+- **Commit**: [To be updated after commit]
+- **Date**: 2026-07-26
+- **Details**: See MODULE_STATUS.md - Module 14 (Authorization & Permissions)
+
 ---
 
 ## Overall Statistics
@@ -144,13 +152,13 @@ This project uses a comprehensive self-documenting system. For complete status i
 | Completed Milestones | 13 |
 | In Progress Milestones | 1 |
 | Not Started Milestones | 5 |
-| Overall Completion | ~89% |
+| Overall Completion | ~94% |
 
 ---
 
 ## Next Milestone
 
-**Milestone 14: Authorization & Permissions - Phase 1: Backend Models**
+**Milestone 14: Authorization & Permissions - Phase 2: Backend Services**
 See CURRENT_MILESTONE.md for the exact next task.
 
 ---

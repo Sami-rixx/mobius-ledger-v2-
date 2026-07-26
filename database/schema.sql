@@ -785,3 +785,83 @@ CREATE INDEX IF NOT EXISTS idx_notifications_related_table ON notifications(rela
 CREATE INDEX IF NOT EXISTS idx_notifications_related_id ON notifications(related_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_scheduled_at ON notifications(scheduled_at);
 CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
+
+-- ============================================
+-- AUTHORIZATION & PERMISSIONS (Milestone 14)
+-- ============================================
+
+-- Permissions table: System permissions for role-based access control
+CREATE TABLE IF NOT EXISTS permissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  display_name TEXT NOT NULL,
+  description TEXT,
+  module TEXT NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for permissions table
+CREATE INDEX IF NOT EXISTS idx_permissions_name ON permissions(name);
+CREATE INDEX IF NOT EXISTS idx_permissions_module ON permissions(module);
+CREATE INDEX IF NOT EXISTS idx_permissions_is_active ON permissions(is_active);
+CREATE INDEX IF NOT EXISTS idx_permissions_created_at ON permissions(created_at);
+
+-- Roles table: User roles for access control
+CREATE TABLE IF NOT EXISTS roles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  display_name TEXT NOT NULL,
+  description TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT 1,
+  is_default BOOLEAN NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for roles table
+CREATE INDEX IF NOT EXISTS idx_roles_name ON roles(name);
+CREATE INDEX IF NOT EXISTS idx_roles_is_active ON roles(is_active);
+CREATE INDEX IF NOT EXISTS idx_roles_is_default ON roles(is_default);
+CREATE INDEX IF NOT EXISTS idx_roles_created_at ON roles(created_at);
+
+-- User-Role mapping table (many-to-many)
+CREATE TABLE IF NOT EXISTS user_roles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  role_id INTEGER NOT NULL,
+  assigned_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  assigned_by INTEGER,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+  FOREIGN KEY (assigned_by) REFERENCES users(id),
+  UNIQUE(user_id, role_id)
+);
+
+-- Indexes for user_roles table
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON user_roles(role_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_assigned_at ON user_roles(assigned_at);
+CREATE INDEX IF NOT EXISTS idx_user_roles_assigned_by ON user_roles(assigned_by);
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_role_unique ON user_roles(user_id, role_id);
+
+-- Role-Permission mapping table (many-to-many)
+CREATE TABLE IF NOT EXISTS role_permissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  role_id INTEGER NOT NULL,
+  permission_id INTEGER NOT NULL,
+  assigned_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  assigned_by INTEGER,
+  FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+  FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
+  FOREIGN KEY (assigned_by) REFERENCES users(id),
+  UNIQUE(role_id, permission_id)
+);
+
+-- Indexes for role_permissions table
+CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions(role_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions(permission_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_assigned_at ON role_permissions(assigned_at);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_assigned_by ON role_permissions(assigned_by);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_role_permission_unique ON role_permissions(role_id, permission_id);
