@@ -21,3 +21,4 @@ export { default as Role, ROLES_TABLE, ROLE_FIELDS, DEFAULT_ROLES } from './Role
 export { default as UserRole, USER_ROLES_TABLE, USER_ROLE_FIELDS } from './UserRole.js';
 export { default as RolePermission, ROLE_PERMISSIONS_TABLE, ROLE_PERMISSION_FIELDS } from './RolePermission.js';
 export { default as Dashboard, DASHBOARD_CONSTANTS } from './Dashboard.js';
+export { default as DailyLedger, TABLE as DAILY_LEDGER_TABLE, FIELDS as DAILY_LEDGER_FIELDS, MODEL_NAME as DAILY_LEDGER_MODEL } from './DailyLedger.js';

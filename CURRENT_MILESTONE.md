@@ -1,22 +1,44 @@
 # Current Milestone - Mobius Ledger v2
 
 ## Current Milestone
-**Milestone 15: Dashboard**
+**Milestone 16: Daily Ledger**
+
+## Current Milestone
+**Milestone 16: Daily Ledger**
 
 ## Current Phase
-**Phase 8: Frontend Pages, Routing, Navigation - COMPLETED**
+**Phase 1: Backend Models - COMPLETED**
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 15 - Phase 8 (Frontend Pages, Routing, Navigation)
+- **Phase**: Milestone 16 - Phase 1 (Backend Models)
+- **Commit Hash**: [To be updated after commit]
+- **Date**: 2026-07-27
+- **Description**: "feat: add Daily Ledger backend models (Milestone 16 - Phase 1)"
+
+## Last Successfully Completed Milestone
+- **Milestone**: Milestone 15 - Dashboard
+- **Final Phase**: Phase 8 (Frontend Pages, Routing, Navigation)
 - **Commit Hash**: e1919a9
 - **Date**: 2026-07-27
 - **Description**: "feat: add Dashboard frontend pages, routing, navigation (Milestone 15 - Phase 8)"
 
-## Last Successfully Completed Phase
-- **Phase**: Milestone 15 - Phase 5 (Backend Testing)
-- **Commit Hash**: 11135a1
-- **Date**: 2026-07-27
-- **Description**: "feat: add Dashboard backend models, services, controllers, routes, tests (Milestone 15 - Phases 1-5)"
+## Milestone 15: Dashboard - 100% COMPLETE
+
+All 8 phases completed successfully. See MODULE_STATUS.md for details.
+
+### Milestone 16: Daily Ledger - Phase 1 COMPLETE
+
+**Phase 1: Backend Models**
+- `backend/src/models/DailyLedger.js` - Comprehensive Daily Ledger model with 15+ functions
+  - Functions: getById, getByDate, getAll, getByMonth, getRecent, getToday, getYesterday, count, create, update, deleteById, getStatistics, getMissingDates, generateForDate, generateForDateRange
+  - Features: Full CRUD operations, date-based filtering, statistics, automatic calculations (net movement, closing balance), gap detection, generation from transactions
+  - Table: Uses existing daily_ledger table with opening_balance, total_income, total_expenses, closing_balance, net_movement, transaction_count fields
+- Updated `backend/src/models/index.js` with DailyLedger export and constants
+
+## Next Task
+**Milestone 16: Daily Ledger - Phase 2 (Backend Services)**
+
+Next: Create Daily Ledger service layer (dailyLedgerService.js) with business logic, validation, pagination, and date range handling.
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 14 - Phase 8 (Frontend Pages, Routing, Navigation)
