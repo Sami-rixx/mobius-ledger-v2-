@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Card, Spinner } from '../../../components/index.js';
-import { getImportExportLogById, getImportExportStatistics } from '../../../services/index.js';
+import { Button, Card, Spinner } from '@/components';
+import { getImportExportLogById, getImportExportStatistics } from '@/services';
+import { formatDate, formatFileSize } from '@/services/importExportService';
 import { useNavigate, useParams } from 'react-router-dom';
-import { formatDate, formatFileSize } from '../../../services/importExportService.js';
 import './ImportExportDetailPage.scss';
 
 /**

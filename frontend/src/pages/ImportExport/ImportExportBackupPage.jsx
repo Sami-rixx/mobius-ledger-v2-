@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Card, BackupCard, Spinner } from '../../../components/index.js';
-import { listBackups, listExports, createBackup, deleteBackup, createTimestampedBackup, downloadFile, restoreBackup } from '../../../services/index.js';
+import { Button, Card, BackupCard, Spinner } from '@/components';
+import { listBackups, listExports, createBackup, deleteBackup, createTimestampedBackup, downloadFile, restoreBackup } from '@/services';
 import { useNavigate } from 'react-router-dom';
 import './ImportExportBackupPage.scss';
 

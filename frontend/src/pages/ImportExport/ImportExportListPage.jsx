@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Button, Card, ImportExportList } from '../../../components/index.js';
-import { getImportExportLogs, getImportExportStatistics, createBackup, exportDatabase } from '../../../services/index.js';
+import { Button, Card, ImportExportList } from '@/components';
+import { getImportExportLogs, getImportExportStatistics, createBackup, exportDatabase } from '@/services';
 import { useNavigate } from 'react-router-dom';
 import './ImportExportListPage.scss';
 
