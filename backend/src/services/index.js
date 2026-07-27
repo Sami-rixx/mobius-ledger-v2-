@@ -20,3 +20,4 @@ export { default as permissionService } from './permissionService.js';
 export { default as roleService } from './roleService.js';
 export { default as userRoleService } from './userRoleService.js';
 export { default as rolePermissionService } from './rolePermissionService.js';
+export { default as dashboardService } from './dashboardService.js';

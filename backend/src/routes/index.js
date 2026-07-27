@@ -21,3 +21,4 @@ export { default as permissionRoutes } from './permissionRoutes.js';
 export { default as roleRoutes } from './roleRoutes.js';
 export { default as userRoleRoutes } from './userRoleRoutes.js';
 export { default as rolePermissionRoutes } from './rolePermissionRoutes.js';
+export { default as dashboardRoutes } from './dashboardRoutes.js';

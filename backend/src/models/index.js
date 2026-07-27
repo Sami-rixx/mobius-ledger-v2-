@@ -20,3 +20,4 @@ export { default as Permission, PERMISSIONS_TABLE, PERMISSION_FIELDS, PERMISSION
 export { default as Role, ROLES_TABLE, ROLE_FIELDS, DEFAULT_ROLES } from './Role.js';
 export { default as UserRole, USER_ROLES_TABLE, USER_ROLE_FIELDS } from './UserRole.js';
 export { default as RolePermission, ROLE_PERMISSIONS_TABLE, ROLE_PERMISSION_FIELDS } from './RolePermission.js';
+export { default as Dashboard, DASHBOARD_CONSTANTS } from './Dashboard.js';
