@@ -865,3 +865,27 @@ CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permission
 CREATE INDEX IF NOT EXISTS idx_role_permissions_assigned_at ON role_permissions(assigned_at);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_assigned_by ON role_permissions(assigned_by);
 CREATE INDEX IF NOT EXISTS idx_role_permissions_role_permission_unique ON role_permissions(role_id, permission_id);
+
+-- Import/Export Log table
+CREATE TABLE IF NOT EXISTS import_export_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
+  action TEXT NOT NULL,
+  table_name TEXT,
+  file_name TEXT,
+  record_count INTEGER DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending',
+  error_message TEXT,
+  user_id INTEGER,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Indexes for import_export_log table
+CREATE INDEX IF NOT EXISTS idx_import_export_log_type ON import_export_log(type);
+CREATE INDEX IF NOT EXISTS idx_import_export_log_action ON import_export_log(action);
+CREATE INDEX IF NOT EXISTS idx_import_export_log_table_name ON import_export_log(table_name);
+CREATE INDEX IF NOT EXISTS idx_import_export_log_status ON import_export_log(status);
+CREATE INDEX IF NOT EXISTS idx_import_export_log_user_id ON import_export_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_import_export_log_created_at ON import_export_log(created_at);

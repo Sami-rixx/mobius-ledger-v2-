@@ -1,20 +1,23 @@
 # Current Milestone - Mobius Ledger v2
 
 ## Current Milestone
-**Milestone 16: Daily Ledger**
+**Milestone 17: Data Import/Export**
 
 ## Current Milestone
-**Milestone 16: Daily Ledger**
-
-## Current Milestone
-**Milestone 16: Daily Ledger**
+**Milestone 17: Data Import/Export**
 
 ## Current Phase
-**Phase 8: Frontend Pages, Routing & Navigation - COMPLETED**
+**Phase 1: Backend Models - COMPLETED**
+
+## Last Successfully Completed Phase
+- **Phase**: Milestone 17 - Phase 1 (Backend Models)
+- **Commit Hash**: [To be updated after commit]
+- **Date**: 2026-07-27
+- **Description**: "feat: add Data Import/Export backend models (Milestone 17 - Phase 1)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 16 - Phase 8 (Frontend Pages, Routing, Navigation)
-- **Commit Hash**: [To be updated after commit]
+- **Commit Hash**: bbfd944
 - **Date**: 2026-07-27
 - **Description**: "feat: add Daily Ledger frontend pages, routing, navigation (Milestone 16 - Phase 8)"
 
@@ -143,9 +146,9 @@ All 8 phases completed successfully. See MODULE_STATUS.md for details.
 - Updated `frontend/src/components/index.js` with all DailyLedger component exports
 
 ## Next Task
-**Milestone 17: Remittances - Phase 1 (Backend Models)**
+**Milestone 17: Data Import/Export - Phase 2 (Backend Services)**
 
-Next: Create Remittance.js model, update models/index.js, update database/schema.sql with remittances table.
+Next: Create importExportService.js service layer with validation and business logic.
 
 ### Milestone 16: Daily Ledger - Phase 8 COMPLETE
 
@@ -169,6 +172,16 @@ Next: Create Remittance.js model, update models/index.js, update database/schema
 **Milestone 16: Daily Ledger - 100% COMPLETE**
 
 All 8 phases of Milestone 16 (Daily Ledger) are now complete:
+
+### Milestone 17: Data Import/Export - Phase 1 COMPLETE
+
+**Phase 1: Backend Models**
+- `backend/src/models/ImportExport.js` - Import/Export model with 25+ functions
+  - Functions: createLog, getLogById, getAllLogs, updateLogStatus, countLogs, getStatistics, exportDatabase, importDatabase, exportToCSV, importFromCSV, createBackup, restoreBackup, listBackups, listExports, deleteBackup, deleteExport, parseCSVLine, formatFileSize, getSupportedTables
+  - Features: Database backup/restore, CSV export/import, logging, file management, directory auto-creation
+  - Uses built-in Node.js modules (fs, path) - no external dependencies required
+- Updated `backend/src/models/index.js` with ImportExport export and constants
+- Updated `database/schema.sql` with import_export_log table and 6 indexes
 - Phase 1: Backend Models
 - Phase 2: Backend Services  
 - Phase 3: Backend Controllers
