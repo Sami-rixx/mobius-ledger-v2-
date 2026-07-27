@@ -19,6 +19,13 @@ function HomePage() {
             <div className="quick-access-buttons">
               <Button
                 variant="primary"
+                onClick={() => navigate('/dashboard')}
+                className="quick-access-button"
+              >
+                <i className="fa fa-tachometer-alt" /> View Dashboard
+              </Button>
+              <Button
+                variant="primary"
                 onClick={() => navigate('/students')}
                 className="quick-access-button"
               >
@@ -261,6 +268,7 @@ function HomePage() {
             <div className="feature-list">
               <h3>Features:</h3>
               <ul>
+                <li>Dashboard & Financial Overview</li>
                 <li>Student Management</li>
                 <li>Class Management</li>
                 <li>School Fees Tracking</li>

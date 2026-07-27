@@ -99,6 +99,9 @@ import {
   RoleEditPage,
   RoleDetailPage
 } from '@pages/Roles';
+import {
+  DashboardPage
+} from '@pages/Dashboard';
 
 function App() {
   return (
@@ -116,6 +119,9 @@ function App() {
             <div className="nav-links">
               <NavLink to="/" className="nav-link" end>
                 Home
+              </NavLink>
+              <NavLink to="/dashboard" className="nav-link" end>
+                Dashboard
               </NavLink>
               <NavLink to="/students" className="nav-link" end>
                 Students
@@ -173,6 +179,8 @@ function App() {
         <main className="app-main">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            {/* Dashboard Routes */}
+            <Route path="/dashboard" element={<DashboardPage />} />
             {/* Student Routes */}
             <Route path="/students" element={<StudentListPage />} />
             <Route path="/students/create" element={<StudentCreatePage />} />
