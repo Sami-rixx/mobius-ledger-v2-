@@ -1,0 +1,248 @@
+// DailyLedgerCard Component Styles
+// Card component for displaying daily ledger information
+
+.daily-ledger-card {
+  // Base styles
+  background: var(--card-bg, #ffffff);
+  border-radius: var(--border-radius, 12px);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.08));
+  padding: 1rem;
+  margin: 0.5rem 0;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-color, #e5e7eb);
+
+  &:hover {
+    box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.12));
+    transform: translateY(-2px);
+  }
+
+  // Color variants
+  &--primary {
+    border-left: 4px solid var(--primary-color, #6366f1);
+  }
+
+  &--success {
+    border-left: 4px solid var(--success-color, #22c55e);
+  }
+
+  &--danger {
+    border-left: 4px solid var(--danger-color, #ef4444);
+  }
+
+  &--warning {
+    border-left: 4px solid var(--warning-color, #f59e0b);
+  }
+
+  &--loading {
+    border-left: 4px solid var(--muted-color, #9ca3af);
+  }
+
+  &--empty {
+    border-left: 4px solid var(--border-color, #e5e7eb);
+    background: var(--bg-light, #f8f9fa);
+  }
+
+  // Header
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+  }
+
+  // Date
+  &__date {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary, #6b7280);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  // Transactions
+  &__transactions {
+    font-size: 0.75rem;
+    color: var(--text-muted, #9ca3af);
+    background: var(--bg-light, #f8f9fa);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    i {
+      font-size: 0.75rem;
+    }
+  }
+
+  // Content
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  // Balance
+  &__balance {
+    &-label {
+      font-size: 0.75rem;
+      color: var(--text-muted, #9ca3af);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    &-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary, #111827);
+      display: block;
+    }
+
+    &--closing {
+      .daily-ledger-card__balance-value {
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  // Details
+  &__details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  &__detail {
+    display: flex;
+    flex-direction: column;
+    min-width: 80px;
+  }
+
+  &__detail-label {
+    font-size: 0.75rem;
+    color: var(--text-muted, #9ca3af);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__detail-value {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary, #6b7280);
+
+    &--income {
+      color: var(--success-color, #22c55e);
+    }
+
+    &--expense {
+      color: var(--danger-color, #ef4444);
+    }
+  }
+
+  // Movement indicator
+  &__movement {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    align-self: flex-start;
+
+    &--positive {
+      background: rgba(34, 197, 94, 0.1);
+      color: var(--success-color, #22c55e);
+    }
+
+    &--negative {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger-color, #ef4444);
+    }
+
+    &--neutral {
+      background: var(--bg-light, #f8f9fa);
+      color: var(--text-muted, #9ca3af);
+    }
+  }
+
+  // Empty state
+  &__empty-text {
+    color: var(--text-muted, #9ca3af);
+    font-size: 0.875rem;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  // Loading indicator
+  &__loading-indicator {
+    font-size: 0.875rem;
+    color: var(--primary-color, #6366f1);
+  }
+
+  // Loading state for values
+  .fa-spin {
+    font-size: 0.875rem;
+    color: var(--primary-color, #6366f1);
+  }
+}
+
+// Responsive styles
+@media (min-width: 768px) {
+  .daily-ledger-card {
+    padding: 1.25rem;
+    margin: 0.75rem 0;
+
+    &__header {
+      padding-bottom: 1rem;
+    }
+
+    &__date {
+      font-size: 1rem;
+    }
+
+    &__balance-value {
+      font-size: 1.5rem;
+    }
+
+    &__balance--closing .daily-ledger-card__balance-value {
+      font-size: 1.75rem;
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .daily-ledger-card {
+    background: var(--card-bg-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+
+    &__detail-value,
+    &__date {
+      color: var(--text-secondary-dark, #d1d5db);
+    }
+
+    &__detail-label {
+      color: var(--text-muted-dark, #6b7280);
+    }
+
+    &__balance-label {
+      color: var(--text-muted-dark, #6b7280);
+    }
+
+    &--empty {
+      background: var(--bg-light-dark, #374151);
+    }
+
+    &__movement--neutral {
+      background: var(--bg-light-dark, #374151);
+    }
+  }
+}

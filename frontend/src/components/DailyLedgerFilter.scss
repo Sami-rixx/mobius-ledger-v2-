@@ -1,0 +1,111 @@
+// Daily Ledger Filter Component Styles
+.daily-ledger-filter {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: var(--border-radius, 8px);
+  padding: var(--spacing-md, 16px);
+  margin-bottom: var(--spacing-md, 16px);
+  box-shadow: var(--shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.1));
+
+  @media (max-width: 768px) {
+    padding: var(--spacing-sm, 12px);
+  }
+}
+
+.daily-ledger-filter__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 12px);
+  margin-bottom: var(--spacing-sm, 12px);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: var(--spacing-sm, 12px);
+  }
+}
+
+.daily-ledger-filter__group {
+  flex: 1;
+  min-width: 200px;
+
+  @media (max-width: 768px) {
+    min-width: 100%;
+  }
+}
+
+.daily-ledger-filter__group label {
+  display: block;
+  margin-bottom: var(--spacing-xs, 4px);
+  font-weight: 500;
+  font-size: var(--font-size-sm, 14px);
+  color: var(--text-secondary, #666666);
+}
+
+.daily-ledger-filter__group input[type="date"] {
+  width: 100%;
+  padding: var(--spacing-sm, 8px);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: var(--border-radius-sm, 4px);
+  font-size: var(--font-size-base, 16px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: var(--input-bg, #ffffff);
+  color: var(--text-primary, #333333);
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color, #007bff);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  }
+
+  &:disabled {
+    background-color: var(--disabled-bg, #f8f9fa);
+    cursor: not-allowed;
+  }
+
+  &::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    color: var(--primary-color, #007bff);
+    padding: 4px;
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba(0, 123, 255, 0.1);
+    }
+  }
+}
+
+.daily-ledger-filter__actions {
+  display: flex;
+  gap: var(--spacing-sm, 8px);
+  justify-content: flex-end;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm, 8px);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .daily-ledger-filter {
+    padding: var(--spacing-sm, 12px);
+  }
+
+  .daily-ledger-filter__row {
+    flex-direction: column;
+    gap: var(--spacing-sm, 12px);
+  }
+
+  .daily-ledger-filter__group {
+    min-width: 100%;
+  }
+
+  .daily-ledger-filter__actions {
+    flex-direction: column;
+    gap: var(--spacing-sm, 8px);
+    
+    button {
+      width: 100%;
+    }
+  }
+}

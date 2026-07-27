@@ -1,0 +1,302 @@
+// DailyLedgerTable Component Styles
+// Table component for displaying daily ledger records
+
+.daily-ledger-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+// Table container
+.daily-ledger-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+// Mobile container
+.daily-ledger-table__mobile {
+  display: block;
+  width: 100%;
+}
+
+// Table header
+.daily-ledger-table .table__header {
+  background: var(--bg-light, #f8f9fa);
+}
+
+.daily-ledger-table .table__header-cell {
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 2px solid var(--border-color, #e5e7eb);
+}
+
+// Table body
+.daily-ledger-table .table__body-cell {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  color: var(--text-primary, #111827);
+}
+
+// Table row hover
+.daily-ledger-table .table__body-row:hover {
+  background: var(--bg-light, #f8f9fa);
+}
+
+// Value styles
+.daily-ledger-table__income {
+  color: var(--success-color, #22c55e);
+  font-weight: 500;
+}
+
+.daily-ledger-table__expense {
+  color: var(--danger-color, #ef4444);
+  font-weight: 500;
+}
+
+.daily-ledger-table__closing-balance {
+  color: var(--primary-color, #6366f1);
+  font-weight: 600;
+}
+
+// Movement colors
+.daily-ledger-table__movement {
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  &--positive {
+    color: var(--success-color, #22c55e);
+  }
+
+  &--negative {
+    color: var(--danger-color, #ef4444);
+  }
+
+  &--neutral {
+    color: var(--text-muted, #9ca3af);
+  }
+}
+
+// Transaction count
+.daily-ledger-table__transaction-count {
+  color: var(--text-muted, #9ca3af);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+
+  i {
+    font-size: 0.75rem;
+  }
+}
+
+// Actions
+.daily-ledger-table__actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.daily-ledger-table__action-btn {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+
+  i {
+    font-size: 0.75rem;
+  }
+}
+
+// Mobile card
+.daily-ledger-table__mobile-card {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: var(--border-radius, 8px);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+}
+
+.daily-ledger-table__mobile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.daily-ledger-table__mobile-date {
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  font-size: 0.9375rem;
+}
+
+.daily-ledger-table__mobile-transactions {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #9ca3af);
+  background: var(--bg-light, #f8f9fa);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  i {
+    font-size: 0.75rem;
+  }
+}
+
+.daily-ledger-table__mobile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.daily-ledger-table__mobile-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+
+  &--highlight {
+    background: var(--bg-light, #f8f9fa);
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+  }
+}
+
+.daily-ledger-table__mobile-label {
+  font-size: 0.75rem;
+  color: var(--text-muted, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.daily-ledger-table__mobile-value {
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.875rem;
+
+  &--income {
+    color: var(--success-color, #22c55e);
+  }
+
+  &--expense {
+    color: var(--danger-color, #ef4444);
+  }
+}
+
+.daily-ledger-table__mobile-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+.daily-ledger-table__mobile-actions .btn {
+  flex: 1;
+  font-size: 0.8125rem;
+  padding: 0.375rem 0.5rem;
+}
+
+// Responsive styles
+@media (min-width: 768px) {
+  .daily-ledger-table__mobile {
+    display: none;
+  }
+
+  .daily-ledger-table .table__header-cell,
+  .daily-ledger-table .table__body-cell {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .daily-ledger-table .table__body-row:hover {
+    background: var(--bg-light, #f8f9fa);
+  }
+
+  .daily-ledger-table .table__body-row:hover .daily-ledger-table__actions {
+    visibility: visible;
+  }
+
+  .daily-ledger-table__actions {
+    visibility: hidden;
+  }
+
+  .daily-ledger-table .table__body-row:hover .daily-ledger-table__actions {
+    visibility: visible;
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .daily-ledger-table {
+    .table__header {
+      background: var(--bg-light-dark, #374151);
+    }
+
+    .table__header-cell {
+      color: var(--text-secondary-dark, #d1d5db);
+    }
+
+    .table__body-cell {
+      color: var(--text-primary-dark, #f9fafb);
+      border-bottom-color: var(--border-color-dark, #4b5563);
+    }
+
+    .table__body-row:hover {
+      background: var(--bg-light-dark, #374151);
+    }
+
+    .daily-ledger-table__mobile-card {
+      background: var(--card-bg-dark, #1f2937);
+      border-color: var(--border-color-dark, #374151);
+    }
+
+    .daily-ledger-table__mobile-date {
+      color: var(--text-primary-dark, #f9fafb);
+    }
+
+    .daily-ledger-table__mobile-transactions {
+      color: var(--text-muted-dark, #9ca3af);
+      background: var(--bg-light-dark, #374151);
+    }
+
+    .daily-ledger-table__mobile-label {
+      color: var(--text-muted-dark, #9ca3af);
+    }
+
+    .daily-ledger-table__mobile-value {
+      color: var(--text-secondary-dark, #d1d5db);
+
+      &--income {
+        color: var(--success-color, #22c55e);
+      }
+
+      &--expense {
+        color: var(--danger-color, #ef4444);
+      }
+    }
+
+    .daily-ledger-table__mobile-row--highlight {
+      background: var(--bg-light-dark, #374151);
+    }
+
+    .daily-ledger-table__mobile-actions {
+      border-top-color: var(--border-color-dark, #374151);
+    }
+  }
+}
