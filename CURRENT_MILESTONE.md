@@ -7,13 +7,13 @@
 **Milestone 17: Data Import/Export**
 
 ## Current Phase
-**Phase 4: Backend Routes - COMPLETED**
+**Phase 5: Backend Testing - COMPLETED**
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 17 - Phase 4 (Backend Routes)
+- **Phase**: Milestone 17 - Phase 5 (Backend Testing)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-27
-- **Description**: "feat: add Data Import/Export backend routes (Milestone 17 - Phase 4)"
+- **Description**: "feat: add Data Import/Export backend tests (Milestone 17 - Phase 5)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 17 - Phase 1 (Backend Models)
@@ -152,9 +152,9 @@ All 8 phases completed successfully. See MODULE_STATUS.md for details.
 - Updated `frontend/src/components/index.js` with all DailyLedger component exports
 
 ## Next Task
-**Milestone 17: Data Import/Export - Phase 5 (Backend Testing)**
+**Milestone 17: Data Import/Export - Phase 6 (Frontend Services)**
 
-Next: Create importExport.test.js with comprehensive test suite for Import/Export module.
+Next: Create frontend/src/services/importExportService.js with API client functions for Import/Export endpoints.
 
 ### Milestone 16: Daily Ledger - Phase 8 COMPLETE
 
@@ -212,6 +212,14 @@ All 8 phases of Milestone 16 (Daily Ledger) are now complete:
   - Features: Full RESTful API with pagination, filtering, import/export operations, backup/restore management
 - Updated `backend/src/routes/index.js` with importExportRoutes export
 - Updated `backend/src/app.js` to mount routes at /api/import-export
+
+### Milestone 17: Data Import/Export - Phase 5 COMPLETE
+
+**Phase 5: Backend Testing**
+- `backend/src/__tests__/importExport.test.js` - Comprehensive test suite for Import/Export module
+  - Tests cover: Model constants, Model CRUD operations (createLog, getLogById, getAllLogs, countLogs, getStatistics, getSupportedTables, formatFileSize, parseCSVLine), Service functions (validateParams, createPaginationParams, getPaginatedLogs, getLogById, getStatistics, getSupportedTables, formatFileSize), Module exports verification
+  - Test categories: Constants validation, Model functions, Service functions, Pagination, Statistics, Module exports
+  - Uses in-memory SQLite database with test data for users, import_export_log, transactions, students, school_fees tables
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 14 - Phase 8 (Frontend Pages, Routing, Navigation)
