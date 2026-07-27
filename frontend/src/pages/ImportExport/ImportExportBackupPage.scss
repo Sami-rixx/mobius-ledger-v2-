@@ -1,0 +1,277 @@
+/**
+ * ImportExportBackupPage Styles
+ * Styles for the backup and export management page
+ */
+
+.import-export-backup-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+
+  &-left {
+    flex: 1;
+  }
+
+  &-right {
+    display: flex;
+    gap: 12px;
+  }
+
+  h1 {
+    margin: 0 0 8px 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .page-subtitle {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.9375rem;
+  }
+}
+
+.import-export-quick-actions {
+  &__header {
+    margin-bottom: 16px;
+
+    h2 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #111827;
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}
+
+.import-export-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .section-description {
+    margin: 0 0 16px 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+}
+
+.backup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.export-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.export-card {
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+  }
+
+  &__icon {
+    font-size: 1.25rem;
+    width: 28px;
+    text-align: center;
+  }
+
+  &__type {
+    padding: 4px 8px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #374151;
+  }
+
+  &__content {
+    flex: 1;
+    margin-bottom: 12px;
+  }
+
+  &__filename {
+    margin: 0 0 12px 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.8125rem;
+  }
+
+  &__details {
+    display: flex;
+    gap: 16px;
+    font-size: 0.8125rem;
+  }
+
+  &__detail {
+    display: flex;
+    gap: 4px;
+  }
+
+  &__detail-label {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__detail-value {
+    font-weight: 500;
+    color: #111827;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  &__action-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--download {
+      background: #10b981;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: #059669;
+      }
+    }
+  }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  color: #6b7280;
+  gap: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 24px;
+  color: #6b7280;
+  background: #f9fafb;
+
+  p {
+    margin: 0;
+  }
+}
+
+.page-error {
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+}
+
+.page-error-message {
+  margin: 0;
+  color: #991b1b;
+  font-size: 0.9375rem;
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .import-export-backup-page {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    &-right {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .import-export-quick-actions__buttons {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .export-card {
+    &__details {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    &__actions {
+      justify-content: stretch;
+    }
+
+    &__action-btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+}

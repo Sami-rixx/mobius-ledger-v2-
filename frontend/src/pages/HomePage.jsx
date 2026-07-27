@@ -40,6 +40,20 @@ function HomePage() {
               </Button>
               <Button
                 variant="primary"
+                onClick={() => navigate('/import-export')}
+                className="quick-access-button"
+              >
+                <i className="fa fa-database" /> Data Import/Export
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/import-export/backups')}
+                className="quick-access-button"
+              >
+                <i className="fa fa-hdd" /> Manage Backups
+              </Button>
+              <Button
+                variant="primary"
                 onClick={() => navigate('/students')}
                 className="quick-access-button"
               >
@@ -296,7 +310,8 @@ function HomePage() {
                 <li>Audit Trail</li>
                 <li>Notification System</li>
                 <li>User Authentication & Session Management</li>
-              <li>Authorization & Permissions</li>
+                <li>Authorization & Permissions</li>
+                <li>Data Import/Export</li>
               </ul>
             </div>
           </Card>

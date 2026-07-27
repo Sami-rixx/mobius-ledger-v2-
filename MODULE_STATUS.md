@@ -589,4 +589,51 @@ This file tracks the status of every major module in the system. Each module rep
 
 ---
 
+## Module 17: Data Import/Export
+
+**Purpose**: Backup, restore, import, and export functionality for database and CSV data.
+
+| Aspect | Status |
+|--------|--------|
+| Current Status | ✅ COMPLETE |
+| Current Phase | Phase 8 (Frontend Pages, Routing, Navigation) |
+| Completion % | 100% |
+| Backend Status | ✅ Phases 1-5 Complete (Models, Services, Controllers, Routes, Tests) |
+| Frontend Status | ✅ Phases 6-8 Complete (Services, Components, Pages) |
+| Integration Status | ✅ Complete |
+| Testing Status | ✅ Backend Tests Complete |
+| Documentation Status | ✅ Complete |
+| Latest Commit | [To be updated after commit] |
+| Next Planned Work | N/A (Milestone Complete) |
+
+**Components**:
+- Backend: ✅ Phase 1 Complete (ImportExport.js with 25+ functions for backup/restore, CSV export/import, logging)
+- Backend: ✅ Phase 2 Complete (importExportService.js with 20+ functions for validation, file handling, business logic)
+- Backend: ✅ Phase 3 Complete (importExportController.js with 15 route handlers)
+- Backend: ✅ Phase 4 Complete (importExportRoutes.js with 15 endpoints)
+- Backend: ✅ Phase 5 Complete (importExport.test.js with comprehensive test coverage)
+- Frontend: ✅ Phase 6 Complete (importExportService.js with 30+ API client functions)
+- Frontend: ✅ Phase 7 Complete (ImportExportCard, ImportExportList, ImportExportFilter, BackupCard components)
+- Frontend: ✅ Phase 8 Complete (ImportExportListPage, ImportExportBackupPage, ImportExportDetailPage pages)
+- Database: ✅ Uses import_export_log table from schema.sql
+
+**API Endpoints**:
+- GET /api/import-export/logs - List all import/export logs with pagination and filtering
+- GET /api/import-export/logs/count - Count import/export logs
+- GET /api/import-export/logs/:id - Get import/export log by ID
+- GET /api/import-export/statistics - Get import/export statistics
+- GET /api/import-export/database/export - Export entire database to SQL file
+- POST /api/import-export/database/import - Import database from SQL file
+- GET /api/import-export/csv/export - Export table to CSV
+- POST /api/import-export/csv/import - Import data from CSV
+- POST /api/import-export/backup - Create database backup
+- POST /api/import-export/restore - Restore database from backup
+- GET /api/import-export/backups - List all backup files
+- GET /api/import-export/exports - List all export files
+- DELETE /api/import-export/backups/:filename - Delete backup file
+- DELETE /api/import-export/exports/:filename - Delete export file
+- GET /api/import-export/tables - Get supported tables for export/import
+
+---
+
 

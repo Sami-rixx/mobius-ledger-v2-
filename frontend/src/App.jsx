@@ -108,6 +108,11 @@ import {
   DailyLedgerEditPage,
   DailyLedgerDetailPage
 } from '@pages/DailyLedgers';
+import {
+  ImportExportListPage,
+  ImportExportBackupPage,
+  ImportExportDetailPage
+} from '@pages/ImportExport';
 
 function App() {
   return (
@@ -131,6 +136,9 @@ function App() {
               </NavLink>
               <NavLink to="/daily-ledgers" className="nav-link" end>
                 Daily Ledger
+              </NavLink>
+              <NavLink to="/import-export" className="nav-link" end>
+                Import/Export
               </NavLink>
               <NavLink to="/students" className="nav-link" end>
                 Students
@@ -195,6 +203,10 @@ function App() {
             <Route path="/daily-ledgers/create" element={<DailyLedgerCreatePage />} />
             <Route path="/daily-ledgers/:id" element={<DailyLedgerDetailPage />} />
             <Route path="/daily-ledgers/edit/:id" element={<DailyLedgerEditPage />} />
+            {/* Import/Export Routes */}
+            <Route path="/import-export" element={<ImportExportListPage />} />
+            <Route path="/import-export/logs/:id" element={<ImportExportDetailPage />} />
+            <Route path="/import-export/backups" element={<ImportExportBackupPage />} />
             {/* Student Routes */}
             <Route path="/students" element={<StudentListPage />} />
             <Route path="/students/create" element={<StudentCreatePage />} />

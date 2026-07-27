@@ -1,0 +1,167 @@
+/**
+ * ImportExportListPage Styles
+ * Styles for the import/export operations list page
+ */
+
+.import-export-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+
+  &-left {
+    flex: 1;
+  }
+
+  &-right {
+    display: flex;
+    gap: 12px;
+  }
+
+  h1 {
+    margin: 0 0 8px 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .page-subtitle {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.9375rem;
+  }
+}
+
+.import-export-quick-actions {
+  &__header {
+    margin-bottom: 16px;
+
+    h2 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #111827;
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}
+
+.import-export-statistics {
+  margin: 16px 0;
+}
+
+.import-export-stat-card {
+  h3 {
+    margin: 0 0 16px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+  }
+}
+
+.import-export-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.import-export-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.import-export-stat-label {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.import-export-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+
+  &--success {
+    color: #10b981;
+  }
+
+  &--warning {
+    color: #f59e0b;
+  }
+
+  &--danger {
+    color: #ef4444;
+  }
+}
+
+.page-error {
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+}
+
+.page-error-message {
+  margin: 0;
+  color: #991b1b;
+  font-size: 0.9375rem;
+}
+
+.import-export-list-container {
+  flex: 1;
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .import-export-list-page {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    &-right {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .import-export-quick-actions__buttons {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .import-export-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
