@@ -7,13 +7,13 @@
 **Milestone 17: Data Import/Export**
 
 ## Current Phase
-**Phase 2: Backend Services - COMPLETED**
+**Phase 4: Backend Routes - COMPLETED**
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 17 - Phase 2 (Backend Services)
+- **Phase**: Milestone 17 - Phase 4 (Backend Routes)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-27
-- **Description**: "feat: add Data Import/Export backend services (Milestone 17 - Phase 2)"
+- **Description**: "feat: add Data Import/Export backend routes (Milestone 17 - Phase 4)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 17 - Phase 1 (Backend Models)
@@ -152,9 +152,9 @@ All 8 phases completed successfully. See MODULE_STATUS.md for details.
 - Updated `frontend/src/components/index.js` with all DailyLedger component exports
 
 ## Next Task
-**Milestone 17: Data Import/Export - Phase 3 (Backend Controllers)**
+**Milestone 17: Data Import/Export - Phase 5 (Backend Testing)**
 
-Next: Create importExportController.js controller with route handlers.
+Next: Create importExport.test.js with comprehensive test suite for Import/Export module.
 
 ### Milestone 16: Daily Ledger - Phase 8 COMPLETE
 
@@ -195,7 +195,23 @@ All 8 phases of Milestone 16 (Daily Ledger) are now complete:
   - Features: Comprehensive validation, file validation, logging for all operations, error handling, business logic
   - Constants: IMPORT_EXPORT_VALIDATION, ERROR_MESSAGES for consistent error handling
 - Updated `backend/src/services/index.js` with importExportService export
-- Phase 8: Frontend Pages, Routing, Navigation
+
+### Milestone 17: Data Import/Export - Phase 3 COMPLETE
+
+**Phase 3: Backend Controllers**
+- `backend/src/controllers/importExportController.js` - Controller with 15 route handlers
+  - Functions: listLogs, countLogs, getLogById, getStatistics, exportDatabase, importDatabase, exportToCSV, importFromCSV, createBackup, restoreBackup, listBackups, listExports, deleteBackup, deleteExport, getSupportedTables
+  - Features: RESTful CRUD operations, request validation, error handling, response formatting, pagination support
+- Updated `backend/src/controllers/index.js` with ImportExport export
+
+### Milestone 17: Data Import/Export - Phase 4 COMPLETE
+
+**Phase 4: Backend Routes**
+- `backend/src/routes/importExportRoutes.js` - Route definitions with 15 endpoints
+  - Endpoints: GET /logs, GET /logs/count, GET /logs/:id, GET /statistics, GET /database/export, POST /database/import, GET /csv/export, POST /csv/import, POST /backup, POST /restore, GET /backups, GET /exports, DELETE /backups/:filename, DELETE /exports/:filename, GET /tables
+  - Features: Full RESTful API with pagination, filtering, import/export operations, backup/restore management
+- Updated `backend/src/routes/index.js` with importExportRoutes export
+- Updated `backend/src/app.js` to mount routes at /api/import-export
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 14 - Phase 8 (Frontend Pages, Routing, Navigation)
