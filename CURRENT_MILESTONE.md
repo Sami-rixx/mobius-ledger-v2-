@@ -6,12 +6,21 @@
 ## Current Milestone
 **Milestone 16: Daily Ledger**
 
+## Current Milestone
+**Milestone 16: Daily Ledger**
+
 ## Current Phase
-**Phase 1: Backend Models - COMPLETED**
+**Phase 2: Backend Services - COMPLETED**
+
+## Last Successfully Completed Phase
+- **Phase**: Milestone 16 - Phase 2 (Backend Services)
+- **Commit Hash**: [To be updated after commit]
+- **Date**: 2026-07-27
+- **Description**: "feat: add Daily Ledger backend services (Milestone 16 - Phase 2)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 16 - Phase 1 (Backend Models)
-- **Commit Hash**: [To be updated after commit]
+- **Commit Hash**: c24ca40
 - **Date**: 2026-07-27
 - **Description**: "feat: add Daily Ledger backend models (Milestone 16 - Phase 1)"
 
@@ -35,10 +44,20 @@ All 8 phases completed successfully. See MODULE_STATUS.md for details.
   - Table: Uses existing daily_ledger table with opening_balance, total_income, total_expenses, closing_balance, net_movement, transaction_count fields
 - Updated `backend/src/models/index.js` with DailyLedger export and constants
 
-## Next Task
-**Milestone 16: Daily Ledger - Phase 2 (Backend Services)**
+### Milestone 16: Daily Ledger - Phase 2 COMPLETE
 
-Next: Create Daily Ledger service layer (dailyLedgerService.js) with business logic, validation, pagination, and date range handling.
+**Phase 2: Backend Services**
+- `backend/src/services/dailyLedgerService.js` - Service layer with 20+ functions
+  - Functions: validateDailyLedgerData, createPaginationParams, getPaginatedDailyLedgers, getDailyLedgerById, getDailyLedgerByDate, getTodayLedger, getYesterdayLedger, getRecentLedgers, getMonthlyLedgers, getDailyLedgerStatistics, createDailyLedger, updateDailyLedger, deleteDailyLedger, getMissingLedgerDates, generateLedgerForDate, generateLedgerForDateRange, fillMissingLedgerDates, getLedgerSummary
+  - Features: Comprehensive validation, pagination, date range processing, business rule enforcement (prevent duplicate dates), gap detection and filling, ledger generation from transactions, summary calculations
+  - Validation: Date format/range validation, numeric value validation, transaction count validation, duplicate prevention
+  - Constants: DAILY_LEDGER_VALIDATION with regex patterns, min/max values, default pagination settings
+- Updated `backend/src/services/index.js` with dailyLedgerService export
+
+## Next Task
+**Milestone 16: Daily Ledger - Phase 3 (Backend Controllers)**
+
+Next: Create Daily Ledger controller (dailyLedgerController.js) with RESTful endpoint handlers, request validation, and error handling.
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 14 - Phase 8 (Frontend Pages, Routing, Navigation)
