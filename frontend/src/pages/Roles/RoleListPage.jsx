@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { RoleList, Button, Alert, Spinner } from '../../../components/index.js';
-import { getRoles, getRoleStats } from '../../../services/roleService.js';
+import { RoleList, Button, Alert, Spinner } from '@/components';
+import { getRoles, getRoleStats } from '@/services/roleService';
 import { useNavigate } from 'react-router-dom';
 
 /**

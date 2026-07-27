@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, ExpenseCategoryCard, ExpenseTable } from '../../components/index.js';
+import { Card, Button, ExpenseCategoryCard, ExpenseTable } from '@/components';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   getExpenseCategoryById, 
-  deleteExpenseCategory,
-  getExpensesByCategory
-} from '../../services/index.js';
+  deleteExpenseCategory
+} from '@/services/expenseCategoryService';
+import { getExpensesByCategory } from '@/services/expenseService';
 
 /**
  * ExpenseCategoryDetailPage Component

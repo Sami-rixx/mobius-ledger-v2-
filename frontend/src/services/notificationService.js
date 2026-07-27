@@ -18,7 +18,7 @@ import { api } from './api.js';
 const BASE_URL = '/api/notifications';
 
 // Notification types
-const NOTIFICATION_TYPES = {
+export const NOTIFICATION_TYPES = {
   INFO: 'INFO',
   WARNING: 'WARNING',
   ERROR: 'ERROR',
@@ -28,7 +28,7 @@ const NOTIFICATION_TYPES = {
 };
 
 // Notification priorities
-const NOTIFICATION_PRIORITIES = {
+export const NOTIFICATION_PRIORITIES = {
   LOW: 'LOW',
   MEDIUM: 'MEDIUM',
   HIGH: 'HIGH',

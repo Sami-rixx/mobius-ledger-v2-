@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, Alert, Spinner, UserSessionCard } from '../../../components/index.js';
-import { getSessionById, deactivateSession, deleteSession, extendSession } from '../../../services/index.js';
+import { Card, Button, Alert, Spinner, UserSessionCard } from '@/components';
+import { getSessionById, deactivateSession, deleteSession, extendSession } from '@/services';
 import { useNavigate, useParams } from 'react-router-dom';
 
 /**

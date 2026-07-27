@@ -1,0 +1,204 @@
+// DailyLedgerList Component Styles
+// Part of Mobius Ledger v2 Design System
+
+.daily-ledger-list {
+  width: 100%;
+  max-width: 100%;
+  padding: var(--spacing-md);
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-gray-200);
+
+    &-left {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    &-right {
+      display: flex;
+      gap: var(--spacing-sm);
+    }
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    margin: 0;
+  }
+
+  &__statistics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background-color: var(--color-gray-100);
+    border-radius: var(--border-radius-md);
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+
+    &-label {
+      font-size: var(--font-size-sm);
+      color: var(--color-gray-500);
+      font-weight: var(--font-weight-medium);
+    }
+
+    &-value {
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-black);
+
+      &--income {
+        color: var(--color-success);
+      }
+
+      &--expense {
+        color: var(--color-error);
+      }
+    }
+
+    &--highlight {
+      background-color: var(--color-white);
+      padding: var(--spacing-sm);
+      border-radius: var(--border-radius-sm);
+      border-left: 3px solid var(--color-primary);
+    }
+  }
+
+  &__filter-section {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background-color: var(--color-gray-100);
+    border-radius: var(--border-radius-md);
+  }
+
+  &__grid {
+    display: grid;
+    gap: var(--spacing-md);
+  }
+
+  &__loading,
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--color-gray-500);
+    grid-column: 1 / -1;
+
+    i {
+      font-size: var(--font-size-2xl);
+      margin-bottom: var(--spacing-md);
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+      font-size: var(--font-size-md);
+    }
+  }
+
+  &__empty-hint {
+    font-size: var(--font-size-sm);
+    color: var(--color-gray-400);
+    margin-top: var(--spacing-xs);
+  }
+
+  &__loading-more {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    grid-column: 1 / -1;
+  }
+
+  &__pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-gray-200);
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--color-error);
+
+    i {
+      font-size: var(--font-size-2xl);
+    }
+
+    p {
+      margin: 0;
+      font-size: var(--font-size-md);
+    }
+
+    button {
+      margin-top: var(--spacing-sm);
+    }
+  }
+
+  &--error {
+    background-color: rgba(255, 0, 0, 0.05);
+    border: 1px solid rgba(255, 0, 0, 0.2);
+  }
+
+  // Mobile responsiveness
+  @media (max-width: 768px) {
+    padding: var(--spacing-sm);
+
+    &__header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    &__header-right {
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    &__statistics {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__statistics {
+      grid-template-columns: 1fr;
+    }
+
+    &__stat {
+      text-align: center;
+    }
+  }
+}

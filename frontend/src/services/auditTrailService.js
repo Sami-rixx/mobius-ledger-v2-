@@ -16,7 +16,7 @@ import { api } from './api.js';
 const BASE_URL = '/api/audit-trail';
 
 // Valid action types
-const AUDIT_ACTIONS = ['CREATE', 'UPDATE', 'DELETE'];
+export const AUDIT_ACTIONS = ['CREATE', 'UPDATE', 'DELETE'];
 
 // Default pagination
 const DEFAULT_PAGE = 1;

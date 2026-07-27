@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, Alert, Input, Spinner } from '../../../components/index.js';
-import { getRoleById, updateRole } from '../../../services/roleService.js';
+import { Card, Button, Alert, Input, Spinner } from '@/components';
+import { getRoleById, updateRole } from '@/services/roleService';
 import { useNavigate, useParams } from 'react-router-dom';
 
 /**

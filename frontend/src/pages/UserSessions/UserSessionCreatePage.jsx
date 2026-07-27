@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Card, Button, Alert, UserSessionForm, Spinner } from '../../../components/index.js';
-import { createSession } from '../../../services/index.js';
+import { Card, Button, Alert, UserSessionForm, Spinner } from '@/components';
+import { createSession } from '@/services';
 import { useNavigate } from 'react-router-dom';
 
 /**

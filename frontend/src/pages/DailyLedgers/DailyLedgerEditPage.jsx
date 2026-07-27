@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { DailyLedgerForm, Card, LoadingSpinner } from '../../../components/index.js';
-import { getDailyLedgerById, updateDailyLedger } from '../../../services/index.js';
+import { DailyLedgerForm, Card, LoadingSpinner } from '@/components';
+import { getDailyLedgerById, updateDailyLedger } from '@/services';
 
 /**
  * DailyLedgerEditPage Component

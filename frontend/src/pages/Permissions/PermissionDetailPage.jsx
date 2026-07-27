@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { PermissionCard, Button, Alert, Spinner } from '../../../components/index.js';
-import { getPermissionById, deletePermission, getRolesWithPermissionCount } from '../../../services/permissionService.js';
+import { PermissionCard, Button, Alert, Spinner } from '@/components';
+import { getPermissionById, deletePermission } from '@/services/permissionService';
+import { getRolesWithPermissionCount } from '@/services/roleService';
 import { useNavigate, useParams } from 'react-router-dom';
 
 /**

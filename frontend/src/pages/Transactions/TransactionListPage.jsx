@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, TransactionTable, TransactionFilter } from '../../../components/index.js';
-import { useApi } from '../../../hooks/index.js';
-import { getTransactions, deleteTransaction } from '../../../services/index.js';
+import { Card, Button, TransactionTable, TransactionFilter } from '@/components';
+import { useApi } from '@/hooks';
+import { getTransactions, deleteTransaction } from '@/services';
 import { useNavigate } from 'react-router-dom';
 
 /**

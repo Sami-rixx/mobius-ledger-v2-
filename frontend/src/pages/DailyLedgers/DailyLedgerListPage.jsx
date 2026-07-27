@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, DailyLedgerList } from '../../../components/index.js';
-import { getDailyLedgers, deleteDailyLedger } from '../../../services/index.js';
+import { Card, Button, DailyLedgerList } from '@/components';
+import { getDailyLedgers, deleteDailyLedger } from '@/services';
 import { useNavigate } from 'react-router-dom';
 
 /**

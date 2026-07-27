@@ -12,7 +12,7 @@ import {
   DashboardRecentActivity,
   Spinner,
   Alert
-} from '../../components/index.js';
+} from '@/components';
 import {
   getDashboardSummary,
   getQuickStats,
@@ -20,7 +20,7 @@ import {
   getIncomeByCategory,
   getExpensesByCategory,
   getRecentActivity
-} from '../../services/index.js';
+} from '@/services/dashboardService';
 import './DashboardPage.scss';
 
 /**

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, Alert, Input, Spinner } from '../../../components/index.js';
-import { getPermissionById, updatePermission } from '../../../services/permissionService.js';
+import { Card, Button, Alert, Input, Spinner } from '@/components';
+import { getPermissionById, updatePermission } from '@/services/permissionService';
 import { useNavigate, useParams } from 'react-router-dom';
 
 /**

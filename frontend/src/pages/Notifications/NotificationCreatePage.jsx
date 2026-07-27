@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Alert, LoadingSpinner } from '../../../components/index.js';
-import { createNotification, getNotificationTypes, getNotificationPriorities, NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '../../../services/index.js';
+import { Card, Button, Alert, LoadingSpinner } from '@/components';
+import { createNotification, getNotificationTypes, getNotificationPriorities, NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '@/services';
 import { useNavigate } from 'react-router-dom';
 
 /**

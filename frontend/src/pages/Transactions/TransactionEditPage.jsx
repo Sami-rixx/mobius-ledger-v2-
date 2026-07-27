@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button, TransactionForm } from '../../../components/index.js';
-import { getTransactionById, updateTransaction } from '../../../services/index.js';
+import { Button, TransactionForm } from '@/components';
+import { getTransactionById, updateTransaction } from '@/services';
 import { useNavigate, useParams } from 'react-router-dom';
 
 /**

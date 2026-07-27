@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, TransactionCard } from '../../../components/index.js';
-import { getTransactionById, deleteTransaction } from '../../../services/index.js';
+import { Button, TransactionCard } from '@/components';
+import { getTransactionById, deleteTransaction } from '@/services';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getTransactionTypeLabel, formatTransaction } from '../../../services/transactionService.js';
+import { getTransactionTypeLabel, formatTransaction } from '@/services/transactionService';
 
 /**
  * TransactionDetailPage Component

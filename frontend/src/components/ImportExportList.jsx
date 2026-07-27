@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import ImportExportCard from './ImportExportCard.jsx';
 import ImportExportFilter from './ImportExportFilter.jsx';
-import { Spinner } from './Spinner.jsx';
+import Spinner from './Spinner.jsx';
 import { getImportExportLogs, getImportExportLogCount } from '../services/importExportService.js';
 import './ImportExportList.scss';
 

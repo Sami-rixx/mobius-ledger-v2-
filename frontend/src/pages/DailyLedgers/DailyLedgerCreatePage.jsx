@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DailyLedgerForm, Card } from '../../../components/index.js';
-import { createDailyLedger } from '../../../services/index.js';
+import { DailyLedgerForm, Card } from '@/components';
+import { createDailyLedger } from '@/services';
 
 /**
  * DailyLedgerCreatePage Component

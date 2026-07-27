@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button, TransactionForm } from '../../../components/index.js';
-import { createTransaction } from '../../../services/index.js';
+import { Button, TransactionForm } from '@/components';
+import { createTransaction } from '@/services';
 import { useNavigate } from 'react-router-dom';
 
 /**

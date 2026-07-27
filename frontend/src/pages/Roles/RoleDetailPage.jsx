@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { RoleCard, Button, Alert, Spinner } from '../../../components/index.js';
-import { getRoleById, deleteRole } from '../../../services/roleService.js';
-import { getUserCountForRole } from '../../../services/userRoleService.js';
+import { RoleCard, Button, Alert, Spinner } from '@/components';
+import { getRoleById, deleteRole } from '@/services/roleService';
+import { getUserCountForRole } from '@/services/userRoleService';
 import { useNavigate, useParams } from 'react-router-dom';
 
 /**

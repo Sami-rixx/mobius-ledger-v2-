@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Card, Button, AuditTrailCard, LoadingSpinner } from '../../../components/index.js';
-import { getAuditTrailById, getAuditTrailsByRecord, deleteAuditTrail, getAuditActionLabel } from '../../../services/index.js';
+import { Card, Button, AuditTrailCard, LoadingSpinner } from '@/components';
+import { getAuditTrailById, getAuditTrailsByRecord, deleteAuditTrail, getAuditActionLabel } from '@/services';
 
 /**
  * AuditTrailDetailPage Component

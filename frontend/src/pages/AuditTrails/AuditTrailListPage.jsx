@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, AuditTrailTable, AuditTrailFilter, AuditTrailCard } from '../../../components/index.js';
-import { getAuditTrails, deleteAuditTrail } from '../../../services/index.js';
+import { Card, Button, AuditTrailTable, AuditTrailFilter, AuditTrailCard } from '@/components';
+import { getAuditTrails, deleteAuditTrail } from '@/services';
 import { useNavigate } from 'react-router-dom';
 
 /**

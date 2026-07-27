@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, NotificationList, Alert, LoadingSpinner } from '../../../components/index.js';
-import { getNotifications, deleteNotification, markAsRead, getNotificationStatistics } from '../../../services/index.js';
+import { Card, Button, NotificationList, Alert, LoadingSpinner } from '@/components';
+import { getNotifications, deleteNotification, markAsRead, getNotificationStatistics } from '@/services';
 import { useNavigate } from 'react-router-dom';
 
 /**
