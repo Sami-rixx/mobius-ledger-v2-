@@ -7,13 +7,13 @@
 **Milestone 17: Data Import/Export**
 
 ## Current Phase
-**Phase 5: Backend Testing - COMPLETED**
+**Phase 6: Frontend Services - COMPLETED**
 
 ## Last Successfully Completed Phase
-- **Phase**: Milestone 17 - Phase 5 (Backend Testing)
+- **Phase**: Milestone 17 - Phase 6 (Frontend Services)
 - **Commit Hash**: [To be updated after commit]
 - **Date**: 2026-07-27
-- **Description**: "feat: add Data Import/Export backend tests (Milestone 17 - Phase 5)"
+- **Description**: "feat: add Data Import/Export frontend services (Milestone 17 - Phase 6)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 17 - Phase 1 (Backend Models)
@@ -152,9 +152,9 @@ All 8 phases completed successfully. See MODULE_STATUS.md for details.
 - Updated `frontend/src/components/index.js` with all DailyLedger component exports
 
 ## Next Task
-**Milestone 17: Data Import/Export - Phase 6 (Frontend Services)**
+**Milestone 17: Data Import/Export - Phase 7 (Frontend Components)**
 
-Next: Create frontend/src/services/importExportService.js with API client functions for Import/Export endpoints.
+Next: Create frontend/src/components/ImportExportCard.jsx, ImportExportList.jsx, ImportExportFilter.jsx, BackupCard.jsx components.
 
 ### Milestone 16: Daily Ledger - Phase 8 COMPLETE
 
@@ -220,6 +220,15 @@ All 8 phases of Milestone 16 (Daily Ledger) are now complete:
   - Tests cover: Model constants, Model CRUD operations (createLog, getLogById, getAllLogs, countLogs, getStatistics, getSupportedTables, formatFileSize, parseCSVLine), Service functions (validateParams, createPaginationParams, getPaginatedLogs, getLogById, getStatistics, getSupportedTables, formatFileSize), Module exports verification
   - Test categories: Constants validation, Model functions, Service functions, Pagination, Statistics, Module exports
   - Uses in-memory SQLite database with test data for users, import_export_log, transactions, students, school_fees tables
+
+### Milestone 17: Data Import/Export - Phase 6 COMPLETE
+
+**Phase 6: Frontend Services**
+- `frontend/src/services/importExportService.js` - API client with 30+ functions for Import/Export endpoints
+  - Functions: getImportExportLogs, getImportExportLogCount, getImportExportLogById, getImportExportStatistics, exportDatabase, importDatabase, exportToCSV, importFromCSV, createBackup, restoreBackup, listBackups, listExports, deleteBackup, deleteExport, getSupportedTables, exportForPeriod, createTimestampedBackup, downloadFile, getRecentActivity, exportFinancialData
+  - Constants: DEFAULT_PAGINATION, IMPORT_EXPORT_PARAMS (with TABLE_NAME_REGEX, FILE_NAME_REGEX, DATE_REGEX, ACTION_TYPES, EXPORT_FORMATS)
+  - Utility functions: formatDate, formatCurrency, formatNumber, formatFileSize, validateImportExportParams
+- Updated `frontend/src/services/index.js` with importExportService export
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 14 - Phase 8 (Frontend Pages, Routing, Navigation)
