@@ -10,11 +10,17 @@
 **Milestone 16: Daily Ledger**
 
 ## Current Phase
-**Phase 2: Backend Services - COMPLETED**
+**Phase 3: Backend Controllers - COMPLETED**
+
+## Last Successfully Completed Phase
+- **Phase**: Milestone 16 - Phase 3 (Backend Controllers)
+- **Commit Hash**: [To be updated after commit]
+- **Date**: 2026-07-27
+- **Description**: "feat: add Daily Ledger backend controllers (Milestone 16 - Phase 3)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 16 - Phase 2 (Backend Services)
-- **Commit Hash**: [To be updated after commit]
+- **Commit Hash**: 6c8a0b5
 - **Date**: 2026-07-27
 - **Description**: "feat: add Daily Ledger backend services (Milestone 16 - Phase 2)"
 
@@ -54,10 +60,19 @@ All 8 phases completed successfully. See MODULE_STATUS.md for details.
   - Constants: DAILY_LEDGER_VALIDATION with regex patterns, min/max values, default pagination settings
 - Updated `backend/src/services/index.js` with dailyLedgerService export
 
-## Next Task
-**Milestone 16: Daily Ledger - Phase 3 (Backend Controllers)**
+### Milestone 16: Daily Ledger - Phase 3 COMPLETE
 
-Next: Create Daily Ledger controller (dailyLedgerController.js) with RESTful endpoint handlers, request validation, and error handling.
+**Phase 3: Backend Controllers**
+- `backend/src/controllers/dailyLedgerController.js` - Controller with 16 route handlers
+  - Functions: listDailyLedgers, countDailyLedgers, getDailyLedgerByIdHandler, getDailyLedgerByDateHandler, getTodayLedgerHandler, getYesterdayLedgerHandler, getRecentLedgersHandler, getMonthlyLedgersHandler, getDailyLedgerStatisticsHandler, createDailyLedgerHandler, updateDailyLedgerHandler, deleteDailyLedgerHandler, getMissingLedgerDatesHandler, generateLedgerForDateHandler, generateLedgerForDateRangeHandler, fillMissingLedgerDatesHandler, getLedgerSummaryHandler
+  - Features: RESTful CRUD operations, request validation, error handling, response formatting, pagination support, date-based queries, statistics, ledger generation
+  - Endpoint handlers for: list, count, get by ID, get by date, today, yesterday, recent, monthly, statistics, create, update, delete, missing dates, generate for date, generate for date range, fill missing, summary
+- Updated `backend/src/controllers/index.js` with DailyLedger export
+
+## Next Task
+**Milestone 16: Daily Ledger - Phase 4 (Backend Routes)**
+
+Next: Create Daily Ledger routes (dailyLedgerRoutes.js) with RESTful endpoint definitions and mount in app.js.
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 14 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -382,9 +397,9 @@ All 8 phases completed successfully:
   - Added "Dashboard & Financial Overview" to feature list
 
 ## Next Task
-**Milestone 16: Daily Ledger - Phase 1 (Backend Models)**
+**Milestone 16: Daily Ledger - Phase 4 (Backend Routes)**
 
-Next: Create Daily Ledger backend models for Milestone 16
+Next: Create Daily Ledger routes (dailyLedgerRoutes.js) with RESTful endpoint definitions and mount in app.js.
 
 ## Milestone 14: Authorization & Permissions - Phase 8 COMPLETE
 

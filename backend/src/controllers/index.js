@@ -21,3 +21,4 @@ export { default as Role } from './roleController.js';
 export { default as UserRole } from './userRoleController.js';
 export { default as RolePermission } from './rolePermissionController.js';
 export { default as Dashboard } from './dashboardController.js';
+export { default as DailyLedger } from './dailyLedgerController.js';

@@ -541,4 +541,51 @@ This file tracks the status of every major module in the system. Each module rep
 
 ---
 
+## Module 16: Daily Ledger
+
+**Purpose**: Complete daily financial tracking with automatic calculation from transactions, manual entry support, and opening/closing balance tracking.
+
+| Aspect | Status |
+|--------|--------|
+| Current Status | \ud83d\udea7 In Progress |
+| Current Phase | Phase 3 (Backend Controllers) |
+| Completion % | 37.5% |
+| Backend Status | \u2705 Phases 1-3 Complete (Models, Services, Controllers) |
+| Frontend Status | \u23f3 Not Started |
+| Integration Status | \u23f3 Not Started |
+| Testing Status | \u23f3 Not Started |
+| Documentation Status | \u2705 Complete |
+| Latest Commit | 6c8a0b5 |
+| Next Planned Work | Phase 4 (Backend Routes) |
+
+**Components**:
+- Backend: \u2705 Phase 1 Complete (DailyLedger.js with 15+ functions for CRUD, date filtering, statistics, calculations)
+- Backend: \u2705 Phase 2 Complete (dailyLedgerService.js with 20+ functions for validation, pagination, business logic)
+- Backend: \u2705 Phase 3 Complete (dailyLedgerController.js with 16 route handlers)
+- Backend: \u23f3 Phase 4 Pending (dailyLedgerRoutes.js)
+- Backend: \u23f3 Phase 5 Pending (dailyLedger.test.js)
+- Frontend: \u23f3 Phase 6-8 Not Started
+- Database: \u2705 Uses existing daily_ledger table with opening_balance, total_income, total_expenses, closing_balance, net_movement, transaction_count fields
+
+**API Endpoints (Planned)**:
+- GET /api/daily-ledger - List ledger records with pagination
+- GET /api/daily-ledger/count - Count ledger records
+- GET /api/daily-ledger/:id - Get ledger by ID
+- GET /api/daily-ledger/date/:date - Get ledger by date
+- GET /api/daily-ledger/today - Get today's ledger
+- GET /api/daily-ledger/yesterday - Get yesterday's ledger
+- GET /api/daily-ledger/recent - Get recent ledger records
+- GET /api/daily-ledger/month/:year/:month - Get monthly ledgers
+- GET /api/daily-ledger/statistics - Get ledger statistics
+- POST /api/daily-ledger - Create ledger record
+- PUT /api/daily-ledger/:id - Update ledger record
+- DELETE /api/daily-ledger/:id - Delete ledger record
+- GET /api/daily-ledger/missing-dates - Get missing dates in sequence
+- POST /api/daily-ledger/generate/:date - Generate ledger for date
+- POST /api/daily-ledger/generate - Generate ledger for date range
+- POST /api/daily-ledger/fill-missing - Fill missing ledger dates
+- GET /api/daily-ledger/summary - Get ledger summary
+
+---
+
 
