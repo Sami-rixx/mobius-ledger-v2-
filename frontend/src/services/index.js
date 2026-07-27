@@ -20,3 +20,4 @@ export * from './permissionService.js';
 export * from './roleService.js';
 export * from './userRoleService.js';
 export * from './rolePermissionService.js';
+export * from './dashboardService.js';
