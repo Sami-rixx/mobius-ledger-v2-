@@ -68,3 +68,8 @@ export { default as UserRoleCard } from './UserRoleCard.jsx';
 export { default as UserRoleList } from './UserRoleList.jsx';
 export { default as RolePermissionCard } from './RolePermissionCard.jsx';
 export { default as RolePermissionList } from './RolePermissionList.jsx';
+export { default as DashboardCard } from './DashboardCard.jsx';
+export { default as DashboardChart } from './DashboardChart.jsx';
+export { default as DashboardSummaryCards } from './DashboardSummaryCards.jsx';
+export { default as DashboardQuickActions } from './DashboardQuickActions.jsx';
+export { default as DashboardRecentActivity } from './DashboardRecentActivity.jsx';

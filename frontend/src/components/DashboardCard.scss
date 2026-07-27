@@ -1,0 +1,137 @@
+/**
+ * DashboardCard Component Styles
+ */
+
+.dashboard-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  border: 1px solid #e0e0e0;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  &__icon {
+    font-size: 1.25rem;
+    color: #666;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__content {
+    text-align: center;
+  }
+
+  &__value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: #333;
+  }
+
+  &__label {
+    font-size: 0.875rem;
+    color: #888;
+  }
+
+  &__trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+
+    &--up {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    &--down {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    &--neutral {
+      background: #e2e3e5;
+      color: #383d41;
+    }
+  }
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    color: #666;
+  }
+
+  // Color themes
+  &--primary {
+    border-left: 4px solid #007bff;
+    
+    .dashboard-card__icon {
+      color: #007bff;
+    }
+  }
+
+  &--success {
+    border-left: 4px solid #28a745;
+    
+    .dashboard-card__icon {
+      color: #28a745;
+    }
+  }
+
+  &--warning {
+    border-left: 4px solid #ffc107;
+    
+    .dashboard-card__icon {
+      color: #ffc107;
+    }
+  }
+
+  &--danger {
+    border-left: 4px solid #dc3545;
+    
+    .dashboard-card__icon {
+      color: #dc3545;
+    }
+  }
+
+  &--info {
+    border-left: 4px solid #17a2b8;
+    
+    .dashboard-card__icon {
+      color: #17a2b8;
+    }
+  }
+
+  &--secondary {
+    border-left: 4px solid #6c757d;
+    
+    .dashboard-card__icon {
+      color: #6c757d;
+    }
+  }
+}
