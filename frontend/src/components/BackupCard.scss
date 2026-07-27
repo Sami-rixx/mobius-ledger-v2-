@@ -1,0 +1,194 @@
+/**
+ * BackupCard Component Styles
+ * Styles for the backup file card component
+ */
+
+.backup-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border: 1px solid #e5e7eb;
+  background: white;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  &--empty {
+    border: 1px dashed #9ca3af;
+    background: #f9fafb;
+    
+    .backup-card__content {
+      text-align: center;
+      padding: 24px;
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+  }
+
+  &__icon {
+    font-size: 1.25rem;
+    width: 28px;
+    text-align: center;
+  }
+
+  &__type {
+    padding: 4px 8px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #374151;
+  }
+
+  &__content {
+    flex: 1;
+    margin-bottom: 12px;
+  }
+
+  &__filename {
+    margin: 0 0 12px 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.8125rem;
+  }
+
+  &__details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  &__detail {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.8125rem;
+  }
+
+  &__detail-label {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__detail-value {
+    font-weight: 500;
+    color: #111827;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  &__action-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--download {
+      background: #10b981;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: #059669;
+      }
+    }
+
+    &--restore {
+      background: #2563eb;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: #1d4ed8;
+      }
+    }
+
+    &--delete {
+      background: #ef4444;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: #dc2626;
+      }
+    }
+  }
+
+  &__empty-text {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 0.875rem;
+  }
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .backup-card {
+    padding: 12px;
+
+    &__details {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    &__actions {
+      justify-content: stretch;
+    }
+
+    &__action-btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .backup-card {
+    &__details {
+      grid-template-columns: 1fr;
+    }
+
+    &__actions {
+      flex-direction: column;
+    }
+
+    &__action-btn {
+      width: 100%;
+    }
+  }
+}
