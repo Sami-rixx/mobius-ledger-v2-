@@ -276,6 +276,14 @@ a {
       background-color: #9e1f1f;
     }
   }
+
+  // Mobile touch target enhancement
+  @media (max-width: 639px) {
+    & {
+      min-height: 48px;
+      padding: var(--spacing-md) var(--spacing-xl);
+    }
+  }
 }
 
 // Form elements
@@ -314,7 +322,19 @@ a {
     resize: vertical;
     min-height: 100px;
   }
-  
+
+  // Mobile touch targets for form elements
+  @media (max-width: 639px) {
+    input, select, textarea {
+      min-height: 48px;
+      padding: var(--spacing-md);
+    }
+    
+    select {
+      padding-right: var(--spacing-xl);
+    }
+  }
+
   // Input error state
   input.input-error,
   select.input-error,
