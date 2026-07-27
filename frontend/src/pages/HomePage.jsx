@@ -26,6 +26,20 @@ function HomePage() {
               </Button>
               <Button
                 variant="primary"
+                onClick={() => navigate('/daily-ledgers')}
+                className="quick-access-button"
+              >
+                <i className="fa fa-book" /> View Daily Ledger
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/daily-ledgers/create')}
+                className="quick-access-button"
+              >
+                <i className="fa fa-plus" /> Create Ledger Entry
+              </Button>
+              <Button
+                variant="primary"
                 onClick={() => navigate('/students')}
                 className="quick-access-button"
               >

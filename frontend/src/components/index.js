@@ -72,3 +72,4 @@ export { default as DailyLedgerCard } from './DailyLedgerCard.jsx';
 export { default as DailyLedgerTable } from './DailyLedgerTable.jsx';
 export { default as DailyLedgerList } from './DailyLedgerList.jsx';
 export { default as DailyLedgerFilter } from './DailyLedgerFilter.jsx';
+export { default as DailyLedgerForm } from './DailyLedgerForm.jsx';

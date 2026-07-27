@@ -102,6 +102,12 @@ import {
 import {
   DashboardPage
 } from '@pages/Dashboard';
+import {
+  DailyLedgerListPage,
+  DailyLedgerCreatePage,
+  DailyLedgerEditPage,
+  DailyLedgerDetailPage
+} from '@pages/DailyLedgers';
 
 function App() {
   return (
@@ -122,6 +128,9 @@ function App() {
               </NavLink>
               <NavLink to="/dashboard" className="nav-link" end>
                 Dashboard
+              </NavLink>
+              <NavLink to="/daily-ledgers" className="nav-link" end>
+                Daily Ledger
               </NavLink>
               <NavLink to="/students" className="nav-link" end>
                 Students
@@ -181,6 +190,11 @@ function App() {
             <Route path="/" element={<HomePage />} />
             {/* Dashboard Routes */}
             <Route path="/dashboard" element={<DashboardPage />} />
+            {/* Daily Ledger Routes */}
+            <Route path="/daily-ledgers" element={<DailyLedgerListPage />} />
+            <Route path="/daily-ledgers/create" element={<DailyLedgerCreatePage />} />
+            <Route path="/daily-ledgers/:id" element={<DailyLedgerDetailPage />} />
+            <Route path="/daily-ledgers/edit/:id" element={<DailyLedgerEditPage />} />
             {/* Student Routes */}
             <Route path="/students" element={<StudentListPage />} />
             <Route path="/students/create" element={<StudentCreatePage />} />
