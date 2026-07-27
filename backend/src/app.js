@@ -28,6 +28,7 @@ import roleRoutes from './routes/roleRoutes.js';
 import userRoleRoutes from './routes/userRoleRoutes.js';
 import rolePermissionRoutes from './routes/rolePermissionRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import dailyLedgerRoutes from './routes/dailyLedgerRoutes.js';
 
 // Initialize Express app
 const app = express();
@@ -82,6 +83,7 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/user-roles', userRoleRoutes);
 app.use('/api/role-permissions', rolePermissionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/daily-ledger', dailyLedgerRoutes);
 // Future routes will be mounted here:
 // app.use('/api/lunch', lunchRoutes);
 

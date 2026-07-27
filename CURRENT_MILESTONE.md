@@ -10,11 +10,17 @@
 **Milestone 16: Daily Ledger**
 
 ## Current Phase
-**Phase 3: Backend Controllers - COMPLETED**
+**Phase 4: Backend Routes - COMPLETED**
+
+## Last Successfully Completed Phase
+- **Phase**: Milestone 16 - Phase 4 (Backend Routes)
+- **Commit Hash**: [To be updated after commit]
+- **Date**: 2026-07-27
+- **Description**: "feat: add Daily Ledger backend routes (Milestone 16 - Phase 4)"
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 16 - Phase 3 (Backend Controllers)
-- **Commit Hash**: [To be updated after commit]
+- **Commit Hash**: 56511de
 - **Date**: 2026-07-27
 - **Description**: "feat: add Daily Ledger backend controllers (Milestone 16 - Phase 3)"
 
@@ -69,10 +75,19 @@ All 8 phases completed successfully. See MODULE_STATUS.md for details.
   - Endpoint handlers for: list, count, get by ID, get by date, today, yesterday, recent, monthly, statistics, create, update, delete, missing dates, generate for date, generate for date range, fill missing, summary
 - Updated `backend/src/controllers/index.js` with DailyLedger export
 
-## Next Task
-**Milestone 16: Daily Ledger - Phase 4 (Backend Routes)**
+### Milestone 16: Daily Ledger - Phase 4 COMPLETE
 
-Next: Create Daily Ledger routes (dailyLedgerRoutes.js) with RESTful endpoint definitions and mount in app.js.
+**Phase 4: Backend Routes**
+- `backend/src/routes/dailyLedgerRoutes.js` - Route definitions with 16 endpoints
+  - Endpoints: GET /, GET /count, GET /:id, GET /date/:date, GET /today, GET /yesterday, GET /recent, GET /month/:year/:month, GET /statistics, POST /, PUT /:id, DELETE /:id, GET /missing-dates, POST /generate/:date, POST /generate, POST /fill-missing, GET /summary
+  - Features: Full RESTful API with pagination, filtering, date-based queries, statistics, ledger generation and management
+- Updated `backend/src/routes/index.js` with dailyLedgerRoutes export
+- Updated `backend/src/app.js` to mount routes at /api/daily-ledger
+
+## Next Task
+**Milestone 16: Daily Ledger - Phase 5 (Backend Testing)**
+
+Next: Create Daily Ledger tests (dailyLedger.test.js) with comprehensive test coverage.
 
 ## Last Successfully Completed Phase
 - **Phase**: Milestone 14 - Phase 8 (Frontend Pages, Routing, Navigation)
@@ -211,6 +226,7 @@ All 8 phases completed successfully:
 - Director Withdrawals: COMPLETE (Phases 1-5)
 - Transactions: COMPLETE (Phases 1-5)
 - Audit Trail: COMPLETE (All Phases 1-5)
+- Daily Ledger: COMPLETE (Phases 1-4)
 
 ### Frontend Status
 - Foundation: Complete
@@ -397,9 +413,9 @@ All 8 phases completed successfully:
   - Added "Dashboard & Financial Overview" to feature list
 
 ## Next Task
-**Milestone 16: Daily Ledger - Phase 4 (Backend Routes)**
+**Milestone 16: Daily Ledger - Phase 5 (Backend Testing)**
 
-Next: Create Daily Ledger routes (dailyLedgerRoutes.js) with RESTful endpoint definitions and mount in app.js.
+Next: Create Daily Ledger tests (dailyLedger.test.js) with comprehensive test coverage.
 
 ## Milestone 14: Authorization & Permissions - Phase 8 COMPLETE
 
