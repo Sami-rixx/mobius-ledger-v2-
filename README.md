@@ -196,6 +196,91 @@ A successful build indicates the frontend is working correctly.
 
 ---
 
+## Environment Requirements
+
+### Node.js Version
+- **Minimum**: Node.js v22+
+- **Recommended**: Node.js v24+ (LTS)
+- **Check version**: `node --version`
+
+### Termux-Specific Requirements (Android)
+- Node.js v22+ (ARM64 build)
+- Python 3.10+
+- GCC/Clang
+- Make
+- sqlite3 CLI tools
+- **Note**: Native module compilation (better-sqlite3) is not supported in Termux due to missing Android NDK configuration. Use a Linux/macOS/Windows environment for full testing.
+
+### Memory Requirements
+- **Development**: 2GB RAM minimum, 4GB recommended
+- **Production**: 1GB RAM minimum for backend, additional for frontend build
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**1. Native module compilation fails (better-sqlite3)**
+- **Error**: `gyp: Undefined variable android_ndk_path`
+- **Cause**: Termux/Android lacks Android NDK configuration for node-gyp
+- **Solution**: Run backend in an environment with native module support (Linux/macOS/Windows), or use `--ignore-scripts` for development (limited functionality)
+
+**2. Frontend build fails with import errors**
+- **Error**: `Failed to resolve import` or `Cannot find module`
+- **Cause**: Imports traversing above `src/` directory
+- **Solution**: Use `@` alias imports (e.g., `@/components/Button` instead of `../../../components/Button`)
+
+**3. Database connection errors**
+- **Error**: `SQLITE_CANTOPEN` or database not found
+- **Cause**: Database file not created or in wrong location
+- **Solution**: Run `node setup.js` in the `database/` directory, then copy the database file to `backend/src/__tests__/` for tests
+
+**4. Missing exports in barrel files**
+- **Error**: `Export not found` or `is not a function`
+- **Cause**: Component or service not exported from index file
+- **Solution**: Add missing exports to `frontend/src/components/index.js` or `frontend/src/services/index.js`
+
+### Debug Mode
+Enable debug logging for detailed error information:
+```bash
+# Backend
+NODE_ENV=development node src/app.js
+
+# Frontend
+npm run dev
+```
+
+---
+
+## Deployment
+
+### Production Build
+
+1. **Backend**: No build required (Node.js)
+2. **Frontend**: Create production build:
+   ```bash
+   cd frontend
+   npm run build
+   ```
+   
+3. **Serve Production Build**:
+   - Use Vite preview: `npm run preview`
+   - Or serve with any static file server (nginx, Apache, etc.)
+
+### Docker (Future)
+Docker configuration is planned for future milestones to simplify deployment.
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | Backend server port | 3000 |
+| `NODE_ENV` | Environment mode | development |
+| `DATABASE_PATH` | Database file path | ../database/mobius_ledger.db |
+
+---
+
 ## Documentation System
 
 This project uses a comprehensive self-documenting system. **Every developer and AI session must read these files before writing code:**
