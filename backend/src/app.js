@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 import { errorHandler } from './middleware/errorHandler.js';
 import { setupDatabase } from './config/database.js';
 import healthRoutes from './routes/healthRoutes.js';
@@ -54,8 +55,20 @@ app.use(limiter);
 app.use(morgan('dev'));
 
 // Body parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Performance middleware
+// Enable gzip compression for all responses
+app.use(compression({
+  threshold: 0,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
 
 // Database setup
 setupDatabase();

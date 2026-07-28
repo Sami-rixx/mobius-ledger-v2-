@@ -11,11 +11,24 @@ const DB_PATH = path.resolve(__dirname, '../../../database/mobius_ledger.db');
 // Initialize SQLite database
 const db = new Database(DB_PATH);
 
-// Enable WAL mode for better performance
+// Performance optimizations
+// Enable WAL mode for better concurrent read/write performance
 db.pragma('journal_mode = WAL');
 
 // Enable foreign keys
 db.pragma('foreign_keys = ON');
+
+// Increase cache size for better query performance (default is 2MB)
+db.pragma('cache_size = -10000'); // 10MB cache
+
+// Enable synchronous NORMAL for better performance (default is FULL)
+db.pragma('synchronous = NORMAL');
+
+// Increase temp store limit
+db.pragma('temp_store = MEMORY');
+
+// Enable memory mapping for better performance
+db.pragma('mmap_size = 30000000000'); // 30GB mmap size limit
 
 // Ensure system settings exist for receipt generation
 export const setupDatabase = () => {
