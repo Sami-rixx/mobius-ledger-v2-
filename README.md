@@ -18,21 +18,33 @@ Every feature feels intentional, clean, and effortless to use. The system priori
 
 ## Features
 
-- **Dashboard**: Real-time financial overview
+### Core Features
+- **Dashboard**: Real-time financial overview with charts and statistics
 - **Student Management**: Complete student records with class assignments
 - **Class Management**: School classes/grades management
 - **School Fees**: Individual ledgers, partial payments, arrears tracking
 - **Lunch Management**: Daily/weekly/monthly payments with attendance tracking
 - **Student Charges**: Custom charges (swimming, trips, sports, etc.)
-- **Income Management**: Category-based income tracking
-- **Expense Management**: Hierarchical expense categories
-- **Director Withdrawals**: Track management withdrawals
-- **Daily Ledger**: Complete daily financial records
-- **Transactions**: Unified transaction management
-- **Reports**: Daily, weekly, monthly, annual reports
-- **Audit Trail**: Complete history of all changes
-- **Receipts**: Unique, sequential receipt numbers
-- **Data Import/Export**: Backup and restore functionality
+
+### Financial Management
+- **Income Management**: Category-based income tracking with sources
+- **Expense Management**: Hierarchical expense categories with types
+- **Director Withdrawals**: Track management withdrawals with approval workflow
+- **Daily Ledger**: Complete daily financial records with auto-calculation
+- **Transactions**: Unified transaction management across all modules
+
+### Reporting & Analytics
+- **Reports**: Daily, weekly, monthly, annual financial reports
+- **Analytics**: Trend analysis, financial insights, and visualizations
+- **Daily Summaries**: Automated daily financial summaries
+
+### System Features
+- **Audit Trail**: Complete history of all changes with timestamps
+- **Receipts**: Unique, sequential receipt numbers with prefixes
+- **Data Import/Export**: Database backup/restore, CSV import/export
+- **Notifications**: System notifications for users with priorities
+- **User Authentication**: Secure user sessions and authentication
+- **Authorization & Permissions**: Role-based access control (RBAC)
 
 ---
 
