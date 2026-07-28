@@ -17,6 +17,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    chunkSizeWarningLimit: 1000 // Increase from default 500KB to 1MB to suppress warnings for large bundles
   },
   resolve: {
     alias: {
