@@ -6,7 +6,7 @@
 **Current Milestone**: Milestone 18 - Final Polish  
 **Session Duration**: Continuous autonomous execution  
 **Status**: IN PROGRESS  
-**Current Phase**: Phase 7 (README.md updates)
+**Current Phase**: Phase 8 (Deployment preparation)
 
 **Note**: This session completed Milestones 0-17 autonomously. Currently working on Milestone 18 (Final Polish) per user instruction to complete milestones 15-19 consecutively. Phase 5 (Final Testing) is BLOCKED due to Termux environment limitations - see CURRENT_MILESTONE.md for details.
 
@@ -115,6 +115,25 @@ export ANDROID_NDK_PATH=/path/to/ndk
 - **SESSION_HANDOFF.md**: Added Phase 6 work details
 
 **Result**: All documentation files are now consistent and up to date. Phase 6 successfully completed and pushed to GitHub.
+
+### Phase 7: README.md updates (COMPLETE)
+
+**Status**: ✅ COMPLETE
+**Date**: 2026-07-28
+**Commit**: 285b6a3
+**Objective**: Update README.md with comprehensive setup instructions, environment requirements, troubleshooting guide, and deployment documentation.
+
+**Work Completed:**
+- **Environment Requirements section**: Added Node.js version requirements (v22+ minimum, v24+ recommended), Termux-specific requirements and limitations, memory requirements for development and production
+- **Troubleshooting section**: Documented 4 common issues with solutions:
+  1. Native module compilation fails (better-sqlite3) - Termux limitation documented
+  2. Frontend build fails with import errors - Use @ alias imports
+  3. Database connection errors - Run setup.js and copy database
+  4. Missing exports in barrel files - Add exports to index files
+- **Deployment section**: Added production build instructions, serving options (Vite preview, static file server), Docker note, environment variables table (PORT, NODE_ENV, DATABASE_PATH)
+- **Debug Mode**: Added backend and frontend debug instructions
+
+**Result**: README.md now has comprehensive setup, troubleshooting, and deployment documentation for production use.
 
 ### Phase 3 Completion Summary (Performance Optimization)
 **Status**: COMPLETE
