@@ -450,27 +450,6 @@ CREATE TABLE IF NOT EXISTS lunch_attendance (
   UNIQUE(student_id, date)
 );
 
--- ============================================
--- DIRECTOR WITHDRAWALS
--- ============================================
-CREATE TABLE IF NOT EXISTS director_withdrawals (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  transaction_id INTEGER NOT NULL,
-  amount DECIMAL(10, 2) NOT NULL,
-  withdrawal_date DATE NOT NULL,
-  description TEXT,
-  approved_by INTEGER,
-  approved_at DATETIME,
-  notes TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  created_by INTEGER,
-  updated_by INTEGER,
-  FOREIGN KEY (transaction_id) REFERENCES transactions(id),
-  FOREIGN KEY (approved_by) REFERENCES users(id),
-  FOREIGN KEY (created_by) REFERENCES users(id),
-  FOREIGN KEY (updated_by) REFERENCES users(id)
-);
 
 -- ============================================
 -- DAILY LEDGER
