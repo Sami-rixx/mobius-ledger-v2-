@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { toCents, fromCents, getAmount } from '../utils/money.js';
 
 /**
  * DailyLedger Model
@@ -29,10 +30,15 @@ const FIELDS = {
   ID: 'id',
   DATE: 'date',
   OPENING_BALANCE: 'opening_balance',
+  OPENING_BALANCE_CENTS: 'opening_balance_cents',
   TOTAL_INCOME: 'total_income',
+  TOTAL_INCOME_CENTS: 'total_income_cents',
   TOTAL_EXPENSES: 'total_expenses',
+  TOTAL_EXPENSES_CENTS: 'total_expenses_cents',
   CLOSING_BALANCE: 'closing_balance',
+  CLOSING_BALANCE_CENTS: 'closing_balance_cents',
   NET_MOVEMENT: 'net_movement',
+  NET_MOVEMENT_CENTS: 'net_movement_cents',
   TRANSACTION_COUNT: 'transaction_count',
   CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at'
@@ -48,7 +54,15 @@ export async function getById(id) {
     `SELECT * FROM ${TABLE} WHERE ${FIELDS.ID} = ?`,
     [id]
   );
-  return row || null;
+  if (!row) return null;
+  return {
+    ...row,
+    opening_balance: getAmount(row, FIELDS.OPENING_BALANCE, FIELDS.OPENING_BALANCE_CENTS),
+    total_income: getAmount(row, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
+    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
+    closing_balance: getAmount(row, FIELDS.CLOSING_BALANCE, FIELDS.CLOSING_BALANCE_CENTS),
+    net_movement: getAmount(row, FIELDS.NET_MOVEMENT, FIELDS.NET_MOVEMENT_CENTS)
+  };
 }
 
 /**
@@ -61,7 +75,15 @@ export async function getByDate(date) {
     `SELECT * FROM ${TABLE} WHERE ${FIELDS.DATE} = ?`,
     [date]
   );
-  return row || null;
+  if (!row) return null;
+  return {
+    ...row,
+    opening_balance: getAmount(row, FIELDS.OPENING_BALANCE, FIELDS.OPENING_BALANCE_CENTS),
+    total_income: getAmount(row, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
+    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
+    closing_balance: getAmount(row, FIELDS.CLOSING_BALANCE, FIELDS.CLOSING_BALANCE_CENTS),
+    net_movement: getAmount(row, FIELDS.NET_MOVEMENT, FIELDS.NET_MOVEMENT_CENTS)
+  };
 }
 
 /**
@@ -108,7 +130,14 @@ export async function getAll(options = {}) {
     `SELECT * FROM ${TABLE} ${whereClause} ORDER BY ${safeOrderBy} ${safeOrderDirection} LIMIT ? OFFSET ?`,
     [...params, limit, offset]
   );
-  return rows;
+  return rows.map(row => ({
+    ...row,
+    opening_balance: getAmount(row, FIELDS.OPENING_BALANCE, FIELDS.OPENING_BALANCE_CENTS),
+    total_income: getAmount(row, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
+    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
+    closing_balance: getAmount(row, FIELDS.CLOSING_BALANCE, FIELDS.CLOSING_BALANCE_CENTS),
+    net_movement: getAmount(row, FIELDS.NET_MOVEMENT, FIELDS.NET_MOVEMENT_CENTS)
+  }));
 }
 
 /**
@@ -211,16 +240,28 @@ export async function create(data) {
   // Calculate closing balance if not provided
   const calculatedClosingBalance = closing_balance || (opening_balance + calculatedNetMovement);
 
+  // Convert to cents
+  const openingBalanceCents = toCents(opening_balance);
+  const totalIncomeCents = toCents(total_income);
+  const totalExpensesCents = toCents(total_expenses);
+  const closingBalanceCents = toCents(calculatedClosingBalance);
+  const netMovementCents = toCents(calculatedNetMovement);
+
   const result = await db.run(
-    `INSERT INTO ${TABLE} (${FIELDS.DATE}, ${FIELDS.OPENING_BALANCE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.CLOSING_BALANCE}, ${FIELDS.NET_MOVEMENT}, ${FIELDS.TRANSACTION_COUNT}) 
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO ${TABLE} (${FIELDS.DATE}, ${FIELDS.OPENING_BALANCE}, ${FIELDS.OPENING_BALANCE_CENTS}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_INCOME_CENTS}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.TOTAL_EXPENSES_CENTS}, ${FIELDS.CLOSING_BALANCE}, ${FIELDS.CLOSING_BALANCE_CENTS}, ${FIELDS.NET_MOVEMENT}, ${FIELDS.NET_MOVEMENT_CENTS}, ${FIELDS.TRANSACTION_COUNT}) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       date,
       opening_balance,
+      openingBalanceCents,
       total_income,
+      totalIncomeCents,
       total_expenses,
+      totalExpensesCents,
       calculatedClosingBalance,
+      closingBalanceCents,
       calculatedNetMovement,
+      netMovementCents,
       transaction_count
     ]
   );
@@ -254,24 +295,41 @@ export async function update(id, data) {
   // Calculate closing balance if opening balance or net movement changed
   const calculatedClosingBalance = closing_balance || (opening_balance + calculatedNetMovement);
 
+  // Convert to cents
+  const openingBalanceCents = toCents(opening_balance);
+  const totalIncomeCents = toCents(total_income);
+  const totalExpensesCents = toCents(total_expenses);
+  const closingBalanceCents = toCents(calculatedClosingBalance);
+  const netMovementCents = toCents(calculatedNetMovement);
+
   await db.run(
     `UPDATE ${TABLE} SET 
      ${FIELDS.DATE} = ?,
      ${FIELDS.OPENING_BALANCE} = ?,
+     ${FIELDS.OPENING_BALANCE_CENTS} = ?,
      ${FIELDS.TOTAL_INCOME} = ?,
+     ${FIELDS.TOTAL_INCOME_CENTS} = ?,
      ${FIELDS.TOTAL_EXPENSES} = ?,
+     ${FIELDS.TOTAL_EXPENSES_CENTS} = ?,
      ${FIELDS.CLOSING_BALANCE} = ?,
+     ${FIELDS.CLOSING_BALANCE_CENTS} = ?,
      ${FIELDS.NET_MOVEMENT} = ?,
+     ${FIELDS.NET_MOVEMENT_CENTS} = ?,
      ${FIELDS.TRANSACTION_COUNT} = ?,
      ${FIELDS.UPDATED_AT} = CURRENT_TIMESTAMP
      WHERE ${FIELDS.ID} = ?`,
     [
       date,
       opening_balance,
+      openingBalanceCents,
       total_income,
+      totalIncomeCents,
       total_expenses,
+      totalExpensesCents,
       calculatedClosingBalance,
+      closingBalanceCents,
       calculatedNetMovement,
+      netMovementCents,
       transaction_count,
       id
     ]
@@ -321,9 +379,9 @@ export async function getStatistics(options = {}) {
   const stats = await db.get(
     `SELECT 
      COUNT(*) as total_days,
-     COALESCE(SUM(${FIELDS.TOTAL_INCOME}), 0) as total_income,
-     COALESCE(SUM(${FIELDS.TOTAL_EXPENSES}), 0) as total_expenses,
-     COALESCE(SUM(${FIELDS.NET_MOVEMENT}), 0) as net_movement,
+     COALESCE(SUM(${FIELDS.TOTAL_INCOME_CENTS}), SUM(${FIELDS.TOTAL_INCOME} * 100)) as total_income_cents,
+     COALESCE(SUM(${FIELDS.TOTAL_EXPENSES_CENTS}), SUM(${FIELDS.TOTAL_EXPENSES} * 100)) as total_expenses_cents,
+     COALESCE(SUM(${FIELDS.NET_MOVEMENT_CENTS}), SUM(${FIELDS.NET_MOVEMENT} * 100)) as net_movement_cents,
      COALESCE(SUM(${FIELDS.TRANSACTION_COUNT}), 0) as total_transactions,
      COALESCE(AVG(${FIELDS.TRANSACTION_COUNT}), 0) as avg_transactions_per_day,
      MIN(${FIELDS.DATE}) as first_date,
@@ -332,15 +390,24 @@ export async function getStatistics(options = {}) {
     params
   );
 
-  return stats || {
-    total_days: 0,
-    total_income: 0,
-    total_expenses: 0,
-    net_movement: 0,
-    total_transactions: 0,
-    avg_transactions_per_day: 0,
-    first_date: null,
-    last_date: null
+  if (!stats) {
+    return {
+      total_days: 0,
+      total_income: 0,
+      total_expenses: 0,
+      net_movement: 0,
+      total_transactions: 0,
+      avg_transactions_per_day: 0,
+      first_date: null,
+      last_date: null
+    };
+  }
+  
+  return {
+    ...stats,
+    total_income: parseFloat(fromCents(stats.total_income_cents || 0)),
+    total_expenses: parseFloat(fromCents(stats.total_expenses_cents || 0)),
+    net_movement: parseFloat(fromCents(stats.net_movement_cents || 0))
   };
 }
 
@@ -408,19 +475,21 @@ export async function generateForDate(date) {
   
   const openingBalance = previousLedger ? previousLedger.closing_balance : 0;
 
-  // Get transactions for the date
+  // Get transactions for the date - use COALESCE to prefer cents columns
   const transactions = await db.all(
     `SELECT 
-     COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END), 0) as total_income,
-     COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END), 0) as total_expenses,
+     COALESCE(SUM(CASE WHEN transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN amount_cents ELSE 0 END), 
+              SUM(CASE WHEN transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN amount * 100 ELSE 0 END)) as total_income_cents,
+     COALESCE(SUM(CASE WHEN transaction_type IN ('expense', 'director_withdrawal') THEN amount_cents ELSE 0 END), 
+              SUM(CASE WHEN transaction_type IN ('expense', 'director_withdrawal') THEN amount * 100 ELSE 0 END)) as total_expenses_cents,
      COUNT(*) as transaction_count
      FROM ${TRANSACTIONS_TABLE} 
      WHERE transaction_date = ?`,
     [date]
   );
 
-  const totalIncome = parseFloat(transactions.total_income) || 0;
-  const totalExpenses = parseFloat(transactions.total_expenses) || 0;
+  const totalIncome = parseFloat(fromCents(transactions.total_income_cents || 0));
+  const totalExpenses = parseFloat(fromCents(transactions.total_expenses_cents || 0));
   const transactionCount = transactions.transaction_count || 0;
   const netMovement = totalIncome - totalExpenses;
   const closingBalance = openingBalance + netMovement;

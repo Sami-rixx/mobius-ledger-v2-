@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { toCents, fromCents, getAmount } from '../utils/money.js';
 
 /**
  * Transaction Model
@@ -23,6 +24,7 @@ const FIELDS = {
   RECEIPT_NUMBER: 'receipt_number',
   TRANSACTION_TYPE: 'transaction_type',
   AMOUNT: 'amount',
+  AMOUNT_CENTS: 'amount_cents',
   CATEGORY_ID: 'category_id',
   INCOME_CATEGORY_ID: 'income_category_id',
   EXPENSE_CATEGORY_ID: 'expense_category_id',
@@ -109,7 +111,11 @@ export const getAllTransactions = (options = {}) => {
   params.push(limit, offset);
 
   const stmt = db.prepare(query);
-  return stmt.all(...params);
+  const rows = stmt.all(...params);
+  return rows.map(row => ({
+    ...row,
+    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+  }));
 };
 
 /**
@@ -164,7 +170,12 @@ export const getTransactionCount = (options = {}) => {
  */
 export const getTransactionById = (id) => {
   const stmt = db.prepare(`SELECT * FROM ${TABLE} WHERE id = ?`);
-  return stmt.get(id) || null;
+  const row = stmt.get(id);
+  if (!row) return null;
+  return {
+    ...row,
+    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+  };
 };
 
 /**
@@ -174,7 +185,12 @@ export const getTransactionById = (id) => {
  */
 export const getTransactionByReceiptNumber = (receiptNumber) => {
   const stmt = db.prepare(`SELECT * FROM ${TABLE} WHERE receipt_number = ?`);
-  return stmt.get(receiptNumber) || null;
+  const row = stmt.get(receiptNumber);
+  if (!row) return null;
+  return {
+    ...row,
+    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+  };
 };
 
 /**
@@ -204,19 +220,23 @@ export const createTransaction = (data) => {
     updatedBy
   } = data;
 
+  // Convert amount to cents for storage
+  const amountCents = toCents(amount);
+
   const stmt = db.prepare(`
     INSERT INTO ${TABLE} 
-    (receipt_number, transaction_type, amount, category_id, income_category_id, 
+    (receipt_number, transaction_type, amount, amount_cents, category_id, income_category_id, 
      expense_category_id, student_id, description, payment_method_id, 
      transaction_date, transaction_time, reference, notes, is_verified, 
      verified_by, verified_at, created_by, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
     receiptNumber,
     transactionType,
     amount,
+    amountCents,
     categoryId,
     incomeCategoryId,
     expenseCategoryId,
@@ -269,9 +289,15 @@ export const updateTransaction = (id, data) => {
     updatedBy
   } = data;
 
+  // Calculate amount_cents if amount is being updated
+  let amountCents = existing.amount_cents;
+  if (amount !== undefined) {
+    amountCents = toCents(amount);
+  }
+
   const stmt = db.prepare(`
     UPDATE ${TABLE} 
-    SET receipt_number = ?, transaction_type = ?, amount = ?, category_id = ?, 
+    SET receipt_number = ?, transaction_type = ?, amount = ?, amount_cents = ?, category_id = ?, 
         income_category_id = ?, expense_category_id = ?, student_id = ?, 
         description = ?, payment_method_id = ?, transaction_date = ?, 
         transaction_time = ?, reference = ?, notes = ?, is_verified = ?, 
@@ -283,6 +309,7 @@ export const updateTransaction = (id, data) => {
     receiptNumber || existing.receipt_number,
     transactionType || existing.transaction_type,
     amount || existing.amount,
+    amountCents,
     categoryId || existing.category_id,
     incomeCategoryId || existing.income_category_id,
     expenseCategoryId || existing.expense_category_id,
@@ -330,7 +357,11 @@ export const getTransactionsByStudent = (studentId) => {
     WHERE student_id = ? 
     ORDER BY transaction_date DESC, transaction_time DESC
   `);
-  return stmt.all(studentId);
+  const rows = stmt.all(studentId);
+  return rows.map(row => ({
+    ...row,
+    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+  }));
 };
 
 /**
@@ -345,7 +376,11 @@ export const getTransactionsByDateRange = (startDate, endDate) => {
     WHERE transaction_date BETWEEN ? AND ? 
     ORDER BY transaction_date, transaction_time
   `);
-  return stmt.all(startDate, endDate);
+  const rows = stmt.all(startDate, endDate);
+  return rows.map(row => ({
+    ...row,
+    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+  }));
 };
 
 export default {

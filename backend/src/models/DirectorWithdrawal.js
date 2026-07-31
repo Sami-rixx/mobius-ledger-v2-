@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { toCents, fromCents, getAmount } from '../utils/money.js';
 
 /**
  * Director Withdrawal Model
@@ -35,6 +36,7 @@ const WITHDRAWAL_STATUS = {
 const FIELDS = {
   ID: 'id',
   AMOUNT: 'amount',
+  AMOUNT_CENTS: 'amount_cents',
   LABEL: 'label',
   PURPOSE: 'purpose',
   DESCRIPTION: 'description',
@@ -146,6 +148,7 @@ export async function getAll(options = {}) {
     const rows = await db.all(query, params);
     return rows.map(row => ({
       ...row,
+      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS),
       is_approved: row.status === WITHDRAWAL_STATUS.APPROVED,
       is_pending: row.status === WITHDRAWAL_STATUS.PENDING,
       is_rejected: row.status === WITHDRAWAL_STATUS.REJECTED,
@@ -184,6 +187,7 @@ export async function getById(id) {
     
     return {
       ...row,
+      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS),
       is_approved: row.status === WITHDRAWAL_STATUS.APPROVED,
       is_pending: row.status === WITHDRAWAL_STATUS.PENDING,
       is_rejected: row.status === WITHDRAWAL_STATUS.REJECTED,
@@ -225,9 +229,13 @@ export async function create(data) {
     createdBy
   } = data;
 
+  // Convert amount to cents for storage
+  const amountCents = toCents(amount);
+
   const query = `
     INSERT INTO ${TABLE} (
       ${FIELDS.AMOUNT},
+      ${FIELDS.AMOUNT_CENTS},
       ${FIELDS.LABEL},
       ${FIELDS.PURPOSE},
       ${FIELDS.DESCRIPTION},
@@ -241,11 +249,12 @@ export async function create(data) {
       ${FIELDS.UPDATED_BY},
       ${FIELDS.CREATED_AT},
       ${FIELDS.UPDATED_AT}
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   `;
 
   const params = [
     amount,
+    amountCents,
     label,
     purpose,
     description,
@@ -300,9 +309,16 @@ export async function update(id, data) {
     updatedBy
   } = data;
 
+  // Calculate amount_cents if amount is being updated
+  let amountCents = undefined;
+  if (amount !== undefined) {
+    amountCents = toCents(amount);
+  }
+
   const query = `
     UPDATE ${TABLE} SET
       ${FIELDS.AMOUNT} = ?,
+      ${FIELDS.AMOUNT_CENTS} = ?,
       ${FIELDS.LABEL} = ?,
       ${FIELDS.PURPOSE} = ?,
       ${FIELDS.DESCRIPTION} = ?,
@@ -319,6 +335,7 @@ export async function update(id, data) {
 
   const params = [
     amount,
+    amountCents,
     label,
     purpose,
     description,
@@ -538,10 +555,10 @@ export async function getStatistics() {
       SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN 1 ELSE 0 END) as rejected_count,
       SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN 1 ELSE 0 END) as completed_count,
       SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN 1 ELSE 0 END) as cancelled_count,
-      SUM(${FIELDS.AMOUNT}) as total_amount,
-      SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} ELSE 0 END) as pending_amount,
-      SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} ELSE 0 END) as approved_amount,
-      SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} ELSE 0 END) as rejected_amount
+      COALESCE(SUM(${FIELDS.AMOUNT_CENTS}), SUM(${FIELDS.AMOUNT} * 100)) as total_amount_cents,
+      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT_CENTS} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as pending_amount_cents,
+      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT_CENTS} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as approved_amount_cents,
+      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT_CENTS} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as rejected_amount_cents
     FROM ${TABLE}
   `;
 
@@ -552,7 +569,10 @@ export async function getStatistics() {
     WITHDRAWAL_STATUS.COMPLETED,
     WITHDRAWAL_STATUS.CANCELLED,
     WITHDRAWAL_STATUS.PENDING,
+    WITHDRAWAL_STATUS.PENDING,
     WITHDRAWAL_STATUS.APPROVED,
+    WITHDRAWAL_STATUS.APPROVED,
+    WITHDRAWAL_STATUS.REJECTED,
     WITHDRAWAL_STATUS.REJECTED
   ];
 
@@ -568,10 +588,10 @@ export async function getStatistics() {
         cancelled: row.cancelled_count || 0
       },
       by_amount: {
-        total: row.total_amount || 0,
-        pending: row.pending_amount || 0,
-        approved: row.approved_amount || 0,
-        rejected: row.rejected_amount || 0
+        total: parseFloat(fromCents(row.total_amount_cents || 0)),
+        pending: parseFloat(fromCents(row.pending_amount_cents || 0)),
+        approved: parseFloat(fromCents(row.approved_amount_cents || 0)),
+        rejected: parseFloat(fromCents(row.rejected_amount_cents || 0))
       }
     };
   } catch (error) {
