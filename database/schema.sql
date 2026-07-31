@@ -136,6 +136,7 @@ CREATE TABLE IF NOT EXISTS income (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   receipt_number TEXT UNIQUE NOT NULL,
   amount DECIMAL(10, 2) NOT NULL,
+  amount_cents INTEGER,
   income_category_id INTEGER NOT NULL,
   description TEXT,
   payer_name TEXT NOT NULL,
@@ -194,6 +195,7 @@ CREATE INDEX IF NOT EXISTS idx_expense_categories_kitchen ON expense_categories(
 CREATE TABLE IF NOT EXISTS expenses (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   amount DECIMAL(10, 2) NOT NULL,
+  amount_cents INTEGER,
   expense_category_id INTEGER NOT NULL,
   description TEXT,
   vendor_name TEXT NOT NULL,
@@ -314,6 +316,7 @@ CREATE TABLE IF NOT EXISTS student_charges (
   name TEXT NOT NULL,
   description TEXT,
   amount DECIMAL(10, 2) NOT NULL,
+  amount_cents INTEGER,
   charge_type TEXT DEFAULT 'individual' CHECK(charge_type IN ('individual', 'all', 'class', 'grade', 'custom')),
   class_id INTEGER,
   is_active BOOLEAN DEFAULT 1,
@@ -335,6 +338,7 @@ CREATE TABLE IF NOT EXISTS student_charge_assignments (
   charge_id INTEGER NOT NULL,
   student_id INTEGER NOT NULL,
   amount DECIMAL(10, 2) NOT NULL,
+  amount_cents INTEGER,
   assigned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   notes TEXT,
   FOREIGN KEY (charge_id) REFERENCES student_charges(id),
@@ -350,6 +354,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   receipt_number TEXT UNIQUE,
   transaction_type TEXT NOT NULL CHECK(transaction_type IN ('income', 'expense', 'school_fee', 'lunch_fee', 'student_charge', 'director_withdrawal')),
   amount DECIMAL(10, 2) NOT NULL,
+  amount_cents INTEGER,
   category_id INTEGER,
   income_category_id INTEGER,
   expense_category_id INTEGER,
@@ -392,6 +397,7 @@ CREATE TABLE IF NOT EXISTS school_fee_payments (
   student_id INTEGER NOT NULL,
   transaction_id INTEGER NOT NULL,
   amount DECIMAL(10, 2) NOT NULL,
+  amount_cents INTEGER,
   payment_date DATE NOT NULL,
   academic_year TEXT NOT NULL,
   term TEXT CHECK(term IN ('Term 1', 'Term 2', 'Term 3')),
@@ -414,6 +420,7 @@ CREATE TABLE IF NOT EXISTS lunch_payments (
   student_id INTEGER NOT NULL,
   transaction_id INTEGER NOT NULL,
   amount DECIMAL(10, 2) NOT NULL,
+  amount_cents INTEGER,
   payment_date DATE NOT NULL,
   payment_type TEXT DEFAULT 'daily' CHECK(payment_type IN ('daily', 'weekly', 'monthly')),
   start_date DATE,
@@ -458,10 +465,15 @@ CREATE TABLE IF NOT EXISTS daily_ledger (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   date DATE UNIQUE NOT NULL,
   opening_balance DECIMAL(10, 2) DEFAULT 0,
+  opening_balance_cents INTEGER DEFAULT 0,
   total_income DECIMAL(10, 2) DEFAULT 0,
+  total_income_cents INTEGER DEFAULT 0,
   total_expenses DECIMAL(10, 2) DEFAULT 0,
+  total_expenses_cents INTEGER DEFAULT 0,
   closing_balance DECIMAL(10, 2) DEFAULT 0,
+  closing_balance_cents INTEGER DEFAULT 0,
   net_movement DECIMAL(10, 2) DEFAULT 0,
+  net_movement_cents INTEGER DEFAULT 0,
   transaction_count INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -517,9 +529,13 @@ BEGIN
   UPDATE daily_ledger
   SET 
     total_income = total_income + CASE WHEN NEW.transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN NEW.amount ELSE 0 END,
+    total_income_cents = total_income_cents + CASE WHEN NEW.transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN NEW.amount * 100 ELSE 0 END,
     total_expenses = total_expenses + CASE WHEN NEW.transaction_type IN ('expense', 'director_withdrawal') THEN NEW.amount ELSE 0 END,
+    total_expenses_cents = total_expenses_cents + CASE WHEN NEW.transaction_type IN ('expense', 'director_withdrawal') THEN NEW.amount * 100 ELSE 0 END,
     net_movement = (total_income + CASE WHEN NEW.transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN NEW.amount ELSE 0 END) - 
                    (total_expenses + CASE WHEN NEW.transaction_type IN ('expense', 'director_withdrawal') THEN NEW.amount ELSE 0 END),
+    net_movement_cents = (total_income_cents + CASE WHEN NEW.transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN NEW.amount * 100 ELSE 0 END) - 
+                         (total_expenses_cents + CASE WHEN NEW.transaction_type IN ('expense', 'director_withdrawal') THEN NEW.amount * 100 ELSE 0 END),
     transaction_count = transaction_count + 1,
     updated_at = CURRENT_TIMESTAMP
   WHERE date = NEW.transaction_date;
@@ -533,9 +549,13 @@ BEGIN
   UPDATE daily_ledger
   SET 
     total_income = total_income - CASE WHEN OLD.transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN OLD.amount ELSE 0 END,
+    total_income_cents = total_income_cents - CASE WHEN OLD.transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN OLD.amount * 100 ELSE 0 END,
     total_expenses = total_expenses - CASE WHEN OLD.transaction_type IN ('expense', 'director_withdrawal') THEN OLD.amount ELSE 0 END,
+    total_expenses_cents = total_expenses_cents - CASE WHEN OLD.transaction_type IN ('expense', 'director_withdrawal') THEN OLD.amount * 100 ELSE 0 END,
     net_movement = (total_income - CASE WHEN OLD.transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN OLD.amount ELSE 0 END) - 
                    (total_expenses - CASE WHEN OLD.transaction_type IN ('expense', 'director_withdrawal') THEN OLD.amount ELSE 0 END),
+    net_movement_cents = (total_income_cents - CASE WHEN OLD.transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN OLD.amount * 100 ELSE 0 END) - 
+                         (total_expenses_cents - CASE WHEN OLD.transaction_type IN ('expense', 'director_withdrawal') THEN OLD.amount * 100 ELSE 0 END),
     transaction_count = transaction_count - 1,
     updated_at = CURRENT_TIMESTAMP
   WHERE date = OLD.transaction_date;
@@ -610,6 +630,7 @@ ORDER BY dl.date DESC;
 CREATE TABLE IF NOT EXISTS director_withdrawals (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   amount DECIMAL(10, 2) NOT NULL,
+  amount_cents INTEGER,
   label TEXT,
   purpose TEXT NOT NULL,
   description TEXT,
@@ -668,10 +689,13 @@ CREATE TABLE IF NOT EXISTS daily_summaries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   summary_date DATE NOT NULL UNIQUE,
   total_income DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  total_income_cents INTEGER NOT NULL DEFAULT 0,
   income_count INTEGER NOT NULL DEFAULT 0,
   total_expenses DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  total_expenses_cents INTEGER NOT NULL DEFAULT 0,
   expense_count INTEGER NOT NULL DEFAULT 0,
   net_flow DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  net_flow_cents INTEGER NOT NULL DEFAULT 0,
   transaction_count INTEGER NOT NULL DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
