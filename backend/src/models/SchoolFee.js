@@ -26,7 +26,6 @@ const FIELDS = {
   STUDENT_ID: 'student_id',
   TRANSACTION_ID: 'transaction_id',
   AMOUNT: 'amount',
-  AMOUNT_CENTS: 'amount_cents',
   PAYMENT_DATE: 'payment_date',
   ACADEMIC_YEAR: 'academic_year',
   TERM: 'term',
@@ -122,7 +121,7 @@ export const getAllSchoolFeePayments = (options = {}) => {
   const rows = stmt.all(...params);
   return rows.map(row => ({
     ...row,
-    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+    amount: getAmount(row, FIELDS.AMOUNT)
   }));
 };
 
@@ -203,7 +202,7 @@ export const getSchoolFeePaymentById = (id) => {
   if (!row) return null;
   return {
     ...row,
-    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+    amount: getAmount(row, FIELDS.AMOUNT)
   };
 };
 
@@ -230,7 +229,7 @@ export const getSchoolFeePaymentsByStudent = (studentId) => {
   const rows = db.prepare(query).all(studentId);
   return rows.map(row => ({
     ...row,
-    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+    amount: getAmount(row, FIELDS.AMOUNT)
   }));
 };
 
@@ -242,7 +241,7 @@ export const getSchoolFeePaymentsByStudent = (studentId) => {
 export const getStudentSchoolFeeBalance = (studentId) => {
   // Get total paid - use COALESCE to prefer cents
   const paidStmt = db.prepare(`
-    SELECT COALESCE(SUM(amount_cents), SUM(amount * 100)) as total_paid_cents 
+    SELECT COALESCE(SUM(amount), SUM(amount * 100)) as total_paid_cents 
     FROM ${TABLE} 
     WHERE student_id = ?
   `);
@@ -277,7 +276,7 @@ export const getStudentsInArrears = (academicYear, term) => {
       s.last_name,
       s.class_id,
       c.name as class_name,
-      COALESCE(SUM(sfp.amount_cents), SUM(sfp.amount * 100)) as total_paid_cents,
+      COALESCE(SUM(sfp.amount), SUM(sfp.amount * 100)) as total_paid_cents,
       0 as expected_fees, -- Would be from fee structure
       0 as balance -- Would be calculated
     FROM ${STUDENTS_TABLE} s
@@ -342,7 +341,7 @@ export const createSchoolFeePayment = (data) => {
 
   const stmt = db.prepare(`
     INSERT INTO ${TABLE} 
-    (student_id, transaction_id, amount, amount_cents, payment_date, academic_year, term, notes, created_by, updated_by)
+    (student_id, transaction_id, amount,  payment_date, academic_year, term, notes, created_by, updated_by)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
@@ -394,14 +393,14 @@ export const updateSchoolFeePayment = (id, data) => {
   }
 
   // Convert amount to cents if provided
-  let amountCents = existing.amount_cents;
+  let amountCents = existing.amount;
   if (amount !== undefined) {
     amountCents = toCents(amount);
   }
 
   const stmt = db.prepare(`
     UPDATE ${TABLE} 
-    SET student_id = ?, transaction_id = ?, amount = ?, amount_cents = ?, payment_date = ?, 
+    SET student_id = ?, transaction_id = ?, amount = ?, amount = ?, payment_date = ?, 
         academic_year = ?, term = ?, notes = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
@@ -448,7 +447,7 @@ export const getSchoolFeeStatistics = (academicYear, term) => {
   let query = `
     SELECT 
       COUNT(*) as total_payments,
-      COALESCE(SUM(amount_cents), SUM(amount * 100)) as total_amount_cents,
+      COALESCE(SUM(amount), SUM(amount * 100)) as total_
       COUNT(DISTINCT student_id) as unique_students
     FROM ${TABLE}
   `;
@@ -474,7 +473,7 @@ export const getSchoolFeeStatistics = (academicYear, term) => {
 
   return {
     total_payments: result.total_payments || 0,
-    total_amount: parseFloat(fromCents(result.total_amount_cents || 0)) || 0,
+    total_amount: parseFloat(fromCents(result.total_amount || 0)) || 0,
     unique_students: result.unique_students || 0
   };
 };
@@ -487,7 +486,7 @@ export const getSchoolFeeSummary = () => {
   // Get today's payments
   const today = new Date().toISOString().split('T')[0];
   const todayPayments = db.prepare(`
-    SELECT COUNT(*) as count, COALESCE(SUM(amount_cents), SUM(amount * 100)) as total_cents 
+    SELECT COUNT(*) as count, COALESCE(SUM(amount), SUM(amount * 100)) as total_cents 
     FROM ${TABLE} 
     WHERE payment_date = ?
   `).get(today);
@@ -495,14 +494,14 @@ export const getSchoolFeeSummary = () => {
   // Get this month's payments
   const thisMonth = today.substring(0, 7);
   const monthPayments = db.prepare(`
-    SELECT COUNT(*) as count, COALESCE(SUM(amount_cents), SUM(amount * 100)) as total_cents 
+    SELECT COUNT(*) as count, COALESCE(SUM(amount), SUM(amount * 100)) as total_cents 
     FROM ${TABLE} 
     WHERE payment_date LIKE ?
   `).get(`${thisMonth}%`);
 
   // Get total
   const total = db.prepare(`
-    SELECT COUNT(*) as count, COALESCE(SUM(amount_cents), SUM(amount * 100)) as total_cents 
+    SELECT COUNT(*) as count, COALESCE(SUM(amount), SUM(amount * 100)) as total_cents 
     FROM ${TABLE}
   `).get();
 

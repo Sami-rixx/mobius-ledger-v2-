@@ -35,7 +35,6 @@ const FIELDS = {
   CHARGE_ID: 'charge_id',
   STUDENT_ID: 'student_id',
   AMOUNT: 'amount',
-  AMOUNT_CENTS: 'amount_cents',
   ASSIGNED_AT: 'assigned_at',
   PAID: 'paid',
   PAID_AT: 'paid_at',
@@ -137,8 +136,8 @@ export const getAllStudentChargeAssignments = (options = {}) => {
   const rows = stmt.all(...params);
   return rows.map(row => ({
     ...row,
-    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS),
-    charge_amount: getAmount(row, 'charge_amount', 'charge_amount_cents')
+    amount: getAmount(row, FIELDS.AMOUNT),
+    charge_amount: getAmount(row, 'charge_amount', 'charge_amount')
   }));
 };
 
@@ -154,7 +153,7 @@ export const getStudentChargeAssignmentById = (id) => {
       sc.name as charge_name,
       sc.description as charge_description,
       sc.amount as charge_amount,
-      sc.amount_cents as charge_amount_cents,
+      sc.amount as charge_
       sc.charge_type,
       sc.due_date,
       s.id as student_id,
@@ -179,8 +178,8 @@ export const getStudentChargeAssignmentById = (id) => {
   if (!row) return null;
   return {
     ...row,
-    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS),
-    charge_amount: getAmount(row, 'charge_amount', 'charge_amount_cents')
+    amount: getAmount(row, FIELDS.AMOUNT),
+    charge_amount: getAmount(row, 'charge_amount', 'charge_amount')
   };
 };
 
@@ -250,7 +249,7 @@ export const createStudentChargeAssignment = (assignmentData) => {
   // Get charge amount if not provided
   let finalAmount = amount;
   if (finalAmount === undefined) {
-    const charge = db.prepare(`SELECT amount, amount_cents FROM ${STUDENT_CHARGES_TABLE} WHERE id = ?`).get(chargeId);
+    const charge = db.prepare(`SELECT amount, amount FROM ${STUDENT_CHARGES_TABLE} WHERE id = ?`).get(chargeId);
     if (!charge) {
       throw new Error(`Charge with ID ${chargeId} not found`);
     }
@@ -262,7 +261,7 @@ export const createStudentChargeAssignment = (assignmentData) => {
 
   const query = `
     INSERT INTO ${TABLE} 
-      (charge_id, student_id, amount, amount_cents, notes)
+      (charge_id, student_id, amount,  notes)
     VALUES (?, ?, ?, ?, ?)
   `;
 
@@ -320,7 +319,7 @@ export const updateStudentChargeAssignment = (id, assignmentData) => {
 
   if (amount !== undefined) {
     updates.push(`amount = ?`);
-    updates.push(`amount_cents = ?`);
+    updates.push(`amount = ?`);
     params.push(amount);
     params.push(toCents(amount));
   }
@@ -501,9 +500,9 @@ export const getStudentChargeAssignmentStatistics = (chargeId = null) => {
       COUNT(*) as total_assignments,
       COUNT(CASE WHEN paid = 1 THEN 1 END) as paid_count,
       COUNT(CASE WHEN paid = 0 THEN 1 END) as unpaid_count,
-      COALESCE(SUM(amount_cents), SUM(amount * 100)) as total_amount_cents,
-      COALESCE(SUM(CASE WHEN paid = 1 THEN amount_cents ELSE 0 END), SUM(CASE WHEN paid = 1 THEN amount * 100 ELSE 0 END)) as total_paid_cents,
-      COALESCE(SUM(CASE WHEN paid = 0 THEN amount_cents ELSE 0 END), SUM(CASE WHEN paid = 0 THEN amount * 100 ELSE 0 END)) as total_outstanding_cents
+      COALESCE(SUM(amount), SUM(amount * 100)) as total_
+      COALESCE(SUM(CASE WHEN paid = 1 THEN amount ELSE 0 END), SUM(CASE WHEN paid = 1 THEN amount * 100 ELSE 0 END)) as total_paid_cents,
+      COALESCE(SUM(CASE WHEN paid = 0 THEN amount ELSE 0 END), SUM(CASE WHEN paid = 0 THEN amount * 100 ELSE 0 END)) as total_outstanding_cents
     FROM ${TABLE}
   `;
 
@@ -531,7 +530,7 @@ export const getStudentChargeAssignmentStatistics = (chargeId = null) => {
     total_assignments: result.total_assignments || 0,
     paid_count: result.paid_count || 0,
     unpaid_count: result.unpaid_count || 0,
-    total_amount: parseFloat(fromCents(result.total_amount_cents || 0)),
+    total_amount: parseFloat(fromCents(result.total_amount || 0)),
     total_paid: parseFloat(fromCents(result.total_paid_cents || 0)),
     total_outstanding: parseFloat(fromCents(result.total_outstanding_cents || 0))
   };
@@ -562,7 +561,7 @@ export const isStudentAssignedToCharge = (chargeId, studentId) => {
  */
 export const getStudentOutstandingChargeAmount = (studentId) => {
   const query = `
-    SELECT COALESCE(SUM(sca.amount_cents), SUM(sca.amount * 100)) as total_outstanding_cents
+    SELECT COALESCE(SUM(sca.amount), SUM(sca.amount * 100)) as total_outstanding_cents
     FROM ${TABLE} sca
     JOIN ${STUDENT_CHARGES_TABLE} sc ON sca.charge_id = sc.id
     WHERE sca.student_id = ? AND sca.paid = 0 AND sc.is_active = 1

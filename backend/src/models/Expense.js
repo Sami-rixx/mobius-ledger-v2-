@@ -27,7 +27,6 @@ const USERS_TABLE = 'users';
 const FIELDS = {
   ID: 'id',
   AMOUNT: 'amount',
-  AMOUNT_CENTS: 'amount_cents',
   EXPENSE_CATEGORY_ID: 'expense_category_id',
   DESCRIPTION: 'description',
   VENDOR_NAME: 'vendor_name',
@@ -139,7 +138,7 @@ export async function getAll(options = {}) {
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
-      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+      amount: getAmount(row, FIELDS.AMOUNT)
     }));
   } catch (error) {
     console.error('Error in getAll expenses:', error.message);
@@ -171,7 +170,7 @@ export async function getById(id) {
       return {
         ...row,
         is_verified: Boolean(row.is_verified),
-        amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+        amount: getAmount(row, FIELDS.AMOUNT)
       };
     }
     return null;
@@ -203,7 +202,7 @@ export async function getByReceiptNumber(receiptNumber) {
       return {
         ...row,
         is_verified: Boolean(row.is_verified),
-        amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+        amount: getAmount(row, FIELDS.AMOUNT)
       };
     }
     return null;
@@ -239,7 +238,7 @@ export async function getByCategory(categoryId, options = {}) {
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
-      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+      amount: getAmount(row, FIELDS.AMOUNT)
     }));
   } catch (error) {
     console.error('Error in getByCategory expense:', error.message);
@@ -270,7 +269,7 @@ export async function getByDateRange(startDate, endDate) {
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
-      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+      amount: getAmount(row, FIELDS.AMOUNT)
     }));
   } catch (error) {
     console.error('Error in getByDateRange expense:', error.message);
@@ -306,7 +305,7 @@ export async function create(data) {
   const query = `
     INSERT INTO ${TABLE} (
       ${FIELDS.AMOUNT},
-      ${FIELDS.AMOUNT_CENTS},
+      ${FIELDS.AMOUNT},
       ${FIELDS.EXPENSE_CATEGORY_ID},
       ${FIELDS.DESCRIPTION},
       ${FIELDS.VENDOR_NAME},
@@ -375,7 +374,7 @@ export async function update(id, data) {
 
   if (amount !== undefined) {
     updates.push(`${FIELDS.AMOUNT} = ?`);
-    updates.push(`${FIELDS.AMOUNT_CENTS} = ?`);
+    updates.push(`${FIELDS.AMOUNT} = ?`);
     params.push(amount);
     params.push(toCents(amount));
   }
@@ -533,7 +532,7 @@ export async function count(options = {}) {
 export async function getStatistics() {
   try {
     // Total expenses - use COALESCE to prefer cents column, fall back to decimal
-    const totalQuery = `SELECT COALESCE(SUM(${FIELDS.AMOUNT_CENTS}), SUM(${FIELDS.AMOUNT} * 100)) as totalAmountCents, COUNT(*) as totalCount FROM ${TABLE}`;
+    const totalQuery = `SELECT COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as totalAmountCents, COUNT(*) as totalCount FROM ${TABLE}`;
     const totalResult = await db.get(totalQuery);
 
     // Expenses by category
@@ -541,7 +540,7 @@ export async function getStatistics() {
       SELECT 
         ${EXPENSE_CATEGORIES_TABLE}.id,
         ${EXPENSE_CATEGORIES_TABLE}.name as category_name,
-        COALESCE(SUM(${TABLE}.${FIELDS.AMOUNT_CENTS}), SUM(${TABLE}.${FIELDS.AMOUNT} * 100)) as amount_cents,
+        COALESCE(SUM(${TABLE}.${FIELDS.AMOUNT}), SUM(${TABLE}.${FIELDS.AMOUNT} * 100)) as 
         COUNT(${TABLE}.${FIELDS.ID}) as count
       FROM ${EXPENSE_CATEGORIES_TABLE}
       LEFT JOIN ${TABLE} ON ${TABLE}.${FIELDS.EXPENSE_CATEGORY_ID} = ${EXPENSE_CATEGORIES_TABLE}.id
@@ -554,7 +553,7 @@ export async function getStatistics() {
     const monthlyQuery = `
       SELECT 
         strftime('%Y-%m', ${FIELDS.EXPENSE_DATE}) as month,
-        COALESCE(SUM(${FIELDS.AMOUNT_CENTS}), SUM(${FIELDS.AMOUNT} * 100)) as amount_cents,
+        COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as 
         COUNT(*) as count
       FROM ${TABLE}
       WHERE strftime('%Y', ${FIELDS.EXPENSE_DATE}) = ?
@@ -571,12 +570,12 @@ export async function getStatistics() {
       byCategory: byCategoryResult.map(row => ({
         categoryId: row.id,
         categoryName: row.category_name,
-        amount: parseFloat(fromCents(row.amount_cents || 0)),
+        amount: parseFloat(fromCents(row.amount || 0)),
         count: row.count
       })),
       monthly: monthlyResult.map(row => ({
         month: row.month,
-        amount: parseFloat(fromCents(row.amount_cents || 0)),
+        amount: parseFloat(fromCents(row.amount || 0)),
         count: row.count
       }))
     };
@@ -619,7 +618,7 @@ export async function search(searchTerm, options = {}) {
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
-      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+      amount: getAmount(row, FIELDS.AMOUNT)
     }));
   } catch (error) {
     console.error('Error in search expense:', error.message);

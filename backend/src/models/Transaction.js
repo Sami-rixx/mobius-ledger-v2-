@@ -24,7 +24,6 @@ const FIELDS = {
   RECEIPT_NUMBER: 'receipt_number',
   TRANSACTION_TYPE: 'transaction_type',
   AMOUNT: 'amount',
-  AMOUNT_CENTS: 'amount_cents',
   CATEGORY_ID: 'category_id',
   INCOME_CATEGORY_ID: 'income_category_id',
   EXPENSE_CATEGORY_ID: 'expense_category_id',
@@ -114,7 +113,7 @@ export const getAllTransactions = (options = {}) => {
   const rows = stmt.all(...params);
   return rows.map(row => ({
     ...row,
-    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+    amount: getAmount(row, FIELDS.AMOUNT)
   }));
 };
 
@@ -174,7 +173,7 @@ export const getTransactionById = (id) => {
   if (!row) return null;
   return {
     ...row,
-    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+    amount: getAmount(row, FIELDS.AMOUNT)
   };
 };
 
@@ -189,7 +188,7 @@ export const getTransactionByReceiptNumber = (receiptNumber) => {
   if (!row) return null;
   return {
     ...row,
-    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+    amount: getAmount(row, FIELDS.AMOUNT)
   };
 };
 
@@ -225,7 +224,7 @@ export const createTransaction = (data) => {
 
   const stmt = db.prepare(`
     INSERT INTO ${TABLE} 
-    (receipt_number, transaction_type, amount, amount_cents, category_id, income_category_id, 
+    (receipt_number, transaction_type, amount,  category_id, income_category_id, 
      expense_category_id, student_id, description, payment_method_id, 
      transaction_date, transaction_time, reference, notes, is_verified, 
      verified_by, verified_at, created_by, updated_by)
@@ -289,15 +288,15 @@ export const updateTransaction = (id, data) => {
     updatedBy
   } = data;
 
-  // Calculate amount_cents if amount is being updated
-  let amountCents = existing.amount_cents;
+  // Calculate amount if amount is being updated
+  let amountCents = existing.amount;
   if (amount !== undefined) {
     amountCents = toCents(amount);
   }
 
   const stmt = db.prepare(`
     UPDATE ${TABLE} 
-    SET receipt_number = ?, transaction_type = ?, amount = ?, amount_cents = ?, category_id = ?, 
+    SET receipt_number = ?, transaction_type = ?, amount = ?, amount = ?, category_id = ?, 
         income_category_id = ?, expense_category_id = ?, student_id = ?, 
         description = ?, payment_method_id = ?, transaction_date = ?, 
         transaction_time = ?, reference = ?, notes = ?, is_verified = ?, 
@@ -360,7 +359,7 @@ export const getTransactionsByStudent = (studentId) => {
   const rows = stmt.all(studentId);
   return rows.map(row => ({
     ...row,
-    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+    amount: getAmount(row, FIELDS.AMOUNT)
   }));
 };
 
@@ -379,7 +378,7 @@ export const getTransactionsByDateRange = (startDate, endDate) => {
   const rows = stmt.all(startDate, endDate);
   return rows.map(row => ({
     ...row,
-    amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+    amount: getAmount(row, FIELDS.AMOUNT)
   }));
 };
 

@@ -28,7 +28,6 @@ const FIELDS = {
   ID: 'id',
   RECEIPT_NUMBER: 'receipt_number',
   AMOUNT: 'amount',
-  AMOUNT_CENTS: 'amount_cents',
   INCOME_CATEGORY_ID: 'income_category_id',
   DESCRIPTION: 'description',
   PAYER_NAME: 'payer_name',
@@ -137,7 +136,7 @@ export async function getAll(options = {}) {
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
-      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+      amount: getAmount(row, FIELDS.AMOUNT)
     }));
   } catch (error) {
     console.error('Error in getAll income:', error.message);
@@ -167,7 +166,7 @@ export async function getById(id) {
       return {
         ...row,
         is_verified: Boolean(row.is_verified),
-        amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+        amount: getAmount(row, FIELDS.AMOUNT)
       };
     }
     return null;
@@ -199,7 +198,7 @@ export async function getByReceiptNumber(receiptNumber) {
       return {
         ...row,
         is_verified: Boolean(row.is_verified),
-        amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+        amount: getAmount(row, FIELDS.AMOUNT)
       };
     }
     return null;
@@ -235,7 +234,7 @@ export async function getByCategory(categoryId, options = {}) {
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
-      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+      amount: getAmount(row, FIELDS.AMOUNT)
     }));
   } catch (error) {
     console.error('Error in getByCategory income:', error.message);
@@ -266,7 +265,7 @@ export async function getByDateRange(startDate, endDate) {
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
-      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+      amount: getAmount(row, FIELDS.AMOUNT)
     }));
   } catch (error) {
     console.error('Error in getByDateRange income:', error.message);
@@ -303,7 +302,7 @@ export async function create(data) {
     INSERT INTO ${TABLE} (
       ${FIELDS.RECEIPT_NUMBER},
       ${FIELDS.AMOUNT},
-      ${FIELDS.AMOUNT_CENTS},
+      ${FIELDS.AMOUNT},
       ${FIELDS.INCOME_CATEGORY_ID},
       ${FIELDS.DESCRIPTION},
       ${FIELDS.PAYER_NAME},
@@ -375,7 +374,7 @@ export async function update(id, data) {
   }
   if (amount !== undefined) {
     updates.push(`${FIELDS.AMOUNT} = ?`);
-    updates.push(`${FIELDS.AMOUNT_CENTS} = ?`);
+    updates.push(`${FIELDS.AMOUNT} = ?`);
     params.push(amount);
     params.push(toCents(amount));
   }
@@ -529,7 +528,7 @@ export async function count(options = {}) {
 export async function getStatistics() {
   try {
     // Total income - use COALESCE to prefer cents column, fall back to decimal
-    const totalQuery = `SELECT COALESCE(SUM(${FIELDS.AMOUNT_CENTS}), SUM(${FIELDS.AMOUNT} * 100)) as totalAmountCents, COUNT(*) as totalCount FROM ${TABLE}`;
+    const totalQuery = `SELECT COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as totalAmountCents, COUNT(*) as totalCount FROM ${TABLE}`;
     const totalResult = await db.get(totalQuery);
 
     // Income by category
@@ -537,7 +536,7 @@ export async function getStatistics() {
       SELECT 
         ${INCOME_CATEGORIES_TABLE}.id,
         ${INCOME_CATEGORIES_TABLE}.name as category_name,
-        COALESCE(SUM(${TABLE}.${FIELDS.AMOUNT_CENTS}), SUM(${TABLE}.${FIELDS.AMOUNT} * 100)) as amount_cents,
+        COALESCE(SUM(${TABLE}.${FIELDS.AMOUNT}), SUM(${TABLE}.${FIELDS.AMOUNT} * 100)) as 
         COUNT(${TABLE}.${FIELDS.ID}) as count
       FROM ${INCOME_CATEGORIES_TABLE}
       LEFT JOIN ${TABLE} ON ${TABLE}.${FIELDS.INCOME_CATEGORY_ID} = ${INCOME_CATEGORIES_TABLE}.id
@@ -550,7 +549,7 @@ export async function getStatistics() {
     const monthlyQuery = `
       SELECT 
         strftime('%Y-%m', ${FIELDS.INCOME_DATE}) as month,
-        COALESCE(SUM(${FIELDS.AMOUNT_CENTS}), SUM(${FIELDS.AMOUNT} * 100)) as amount_cents,
+        COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as 
         COUNT(*) as count
       FROM ${TABLE}
       WHERE strftime('%Y', ${FIELDS.INCOME_DATE}) = ?
@@ -567,12 +566,12 @@ export async function getStatistics() {
       byCategory: byCategoryResult.map(row => ({
         categoryId: row.id,
         categoryName: row.category_name,
-        amount: parseFloat(fromCents(row.amount_cents || 0)),
+        amount: parseFloat(fromCents(row.amount || 0)),
         count: row.count
       })),
       monthly: monthlyResult.map(row => ({
         month: row.month,
-        amount: parseFloat(fromCents(row.amount_cents || 0)),
+        amount: parseFloat(fromCents(row.amount || 0)),
         count: row.count
       }))
     };
@@ -615,7 +614,7 @@ export async function search(searchTerm, options = {}) {
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
-      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS)
+      amount: getAmount(row, FIELDS.AMOUNT)
     }));
   } catch (error) {
     console.error('Error in search income:', error.message);

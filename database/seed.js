@@ -117,7 +117,7 @@ try {
   // Insert sample transactions
   console.log('Inserting sample transactions...');
   const transactionInsert = db.prepare(`
-    INSERT INTO transactions (receipt_number, transaction_type, amount, amount_cents, category_id, student_id, description, payment_method_id, transaction_date, created_by, updated_by) 
+    INSERT INTO transactions (receipt_number, transaction_type, amount, category_id, student_id, description, payment_method_id, transaction_date, created_by, updated_by) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
@@ -134,25 +134,25 @@ try {
 
   const transactions = [
     // School fee payments
-    [generateSeedReceipt(), 'school_fee', 15000, 1500000, schoolFeesCategory, studentIds['ML-2026-001'], 'Term 1 School Fees - John Doe', cashPaymentMethod, today, systemUserId, systemUserId],
-    [generateSeedReceipt(), 'school_fee', 15000, 1500000, schoolFeesCategory, studentIds['ML-2026-002'], 'Term 1 School Fees - Jane Smith', mpesaPaymentMethod, today, systemUserId, systemUserId],
-    [generateSeedReceipt(), 'school_fee', 15000, 1500000, schoolFeesCategory, studentIds['ML-2026-003'], 'Term 1 School Fees - Michael Johnson', cashPaymentMethod, yesterday, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'school_fee', 1500000, schoolFeesCategory, studentIds['ML-2026-001'], 'Term 1 School Fees - John Doe', cashPaymentMethod, today, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'school_fee', 1500000, schoolFeesCategory, studentIds['ML-2026-002'], 'Term 1 School Fees - Jane Smith', mpesaPaymentMethod, today, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'school_fee', 1500000, schoolFeesCategory, studentIds['ML-2026-003'], 'Term 1 School Fees - Michael Johnson', cashPaymentMethod, yesterday, systemUserId, systemUserId],
     
     // Lunch payments
-    [generateSeedReceipt(), 'lunch_fee', 2000, 200000, lunchFeesCategory, studentIds['ML-2026-001'], 'January Lunch Fees - John Doe', mpesaPaymentMethod, today, systemUserId, systemUserId],
-    [generateSeedReceipt(), 'lunch_fee', 2000, 200000, lunchFeesCategory, studentIds['ML-2026-002'], 'January Lunch Fees - Jane Smith', cashPaymentMethod, yesterday, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'lunch_fee', 200000, lunchFeesCategory, studentIds['ML-2026-001'], 'January Lunch Fees - John Doe', mpesaPaymentMethod, today, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'lunch_fee', 200000, lunchFeesCategory, studentIds['ML-2026-002'], 'January Lunch Fees - Jane Smith', cashPaymentMethod, yesterday, systemUserId, systemUserId],
     
     // Income
-    [generateSeedReceipt(), 'income', 5000, 500000, schoolFeesCategory, null, 'Donation from Parent', cashPaymentMethod, lastWeek, systemUserId, systemUserId],
-    [generateSeedReceipt(), 'income', 3000, 300000, lunchFeesCategory, null, 'Book Sales', mpesaPaymentMethod, lastWeek, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'income', 500000, schoolFeesCategory, null, 'Donation from Parent', cashPaymentMethod, lastWeek, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'income', 300000, lunchFeesCategory, null, 'Book Sales', mpesaPaymentMethod, lastWeek, systemUserId, systemUserId],
     
     // Expenses
-    [generateSeedReceipt(), 'expense', 8000, 800000, kitchenCategory, null, 'Rice and Beans Purchase', cashPaymentMethod, today, systemUserId, systemUserId],
-    [generateSeedReceipt(), 'expense', 3000, 300000, academicCategory, null, 'Printing Exam Papers', cashPaymentMethod, yesterday, systemUserId, systemUserId],
-    [generateSeedReceipt(), 'expense', 2000, 200000, operationalCategory, null, 'Electricity Bill', cashPaymentMethod, lastWeek, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'expense', 800000, kitchenCategory, null, 'Rice and Beans Purchase', cashPaymentMethod, today, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'expense', 300000, academicCategory, null, 'Printing Exam Papers', cashPaymentMethod, yesterday, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'expense', 200000, operationalCategory, null, 'Electricity Bill', cashPaymentMethod, lastWeek, systemUserId, systemUserId],
     
     // Director withdrawal
-    [generateSeedReceipt(), 'director_withdrawal', 10000, 1000000, null, null, 'Director Monthly Withdrawal', cashPaymentMethod, today, systemUserId, systemUserId],
+    [generateSeedReceipt(), 'director_withdrawal', 1000000, null, null, 'Director Monthly Withdrawal', cashPaymentMethod, today, systemUserId, systemUserId],
   ];
 
   transactions.forEach(txn => transactionInsert.run(...txn));
@@ -160,8 +160,8 @@ try {
   // Insert school fee payments
   console.log('Inserting school fee payments...');
   const feePaymentInsert = db.prepare(`
-    INSERT INTO school_fee_payments (student_id, transaction_id, amount, amount_cents, payment_date, academic_year, term, created_by, updated_by) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO school_fee_payments (student_id, transaction_id, amount, payment_date, academic_year, term, created_by, updated_by) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const schoolFeeTxns = db.prepare(`
@@ -177,7 +177,6 @@ try {
       txn.student_id,
       txn.id,
       txn.amount,
-      txn.amount * 100,
       txn.transaction_date,
       '2026',
       term,
@@ -189,8 +188,8 @@ try {
   // Insert lunch payments
   console.log('Inserting lunch payments...');
   const lunchPaymentInsert = db.prepare(`
-    INSERT INTO lunch_payments (student_id, transaction_id, amount, amount_cents, payment_date, payment_type, start_date, end_date, created_by, updated_by) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO lunch_payments (student_id, transaction_id, amount, payment_date, payment_type, start_date, end_date, created_by, updated_by) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const lunchTxns = db.prepare(`
@@ -217,7 +216,6 @@ try {
       txn.student_id,
       txn.id,
       txn.amount,
-      txn.amount * 100,
       txn.transaction_date,
       paymentType,
       startDate,
@@ -276,7 +274,7 @@ try {
 
   if (withdrawalTxn) {
     db.prepare(`
-      INSERT INTO director_withdrawals (transaction_id, amount, amount_cents, withdrawal_date, description, approved_by, approved_at, created_by, updated_by) 
+      INSERT INTO director_withdrawals (transaction_id, amount, withdrawal_date, description, approved_by, approved_at, created_by, updated_by) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       withdrawalTxn.id,
@@ -294,14 +292,14 @@ try {
   // Insert sample student charges
   console.log('Inserting sample student charges...');
   const chargeInsert = db.prepare(`
-    INSERT INTO student_charges (name, description, amount, amount_cents, charge_type, class_id, due_date, created_by, updated_by) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO student_charges (name, description, amount, charge_type, class_id, due_date, created_by, updated_by) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const charges = [
-    ['Swimming Lessons', 'Weekly swimming classes', 2500, 250000, 'class', classIds['Grade 1'], '2026-03-31', systemUserId, systemUserId],
-    ['Educational Trip', 'Museum visit', 3500, 350000, 'all', null, '2026-04-15', systemUserId, systemUserId],
-    ['Sports Day Fee', 'Annual sports day participation', 1500, 150000, 'all', null, '2026-05-20', systemUserId, systemUserId],
+    ['Swimming Lessons', 'Weekly swimming classes', 250000, 'class', classIds['Grade 1'], '2026-03-31', systemUserId, systemUserId],
+    ['Educational Trip', 'Museum visit', 350000, 'all', null, '2026-04-15', systemUserId, systemUserId],
+    ['Sports Day Fee', 'Annual sports day participation', 150000, 'all', null, '2026-05-20', systemUserId, systemUserId],
   ];
 
   charges.forEach(charge => chargeInsert.run(...charge));
@@ -320,7 +318,7 @@ try {
   if (swimmingCharge) {
     grade1Students.forEach(([admissionNumber]) => {
       const studentId = studentIds[admissionNumber];
-      chargeAssignments.push([swimmingCharge, studentId, 2500, new Date().toISOString(), '']);
+      chargeAssignments.push([swimmingCharge, studentId, 250000, new Date().toISOString(), '']);
     });
   }
 
@@ -329,7 +327,7 @@ try {
   const tripCharge = db.prepare('SELECT id FROM student_charges WHERE name = ?').get('Educational Trip')?.id;
   if (tripCharge) {
     allStudents.forEach(studentId => {
-      chargeAssignments.push([tripCharge, studentId, 3500, new Date().toISOString(), '']);
+      chargeAssignments.push([tripCharge, studentId, 350000, new Date().toISOString(), '']);
     });
   }
 
@@ -337,13 +335,13 @@ try {
   const sportsCharge = db.prepare('SELECT id FROM student_charges WHERE name = ?').get('Sports Day Fee')?.id;
   if (sportsCharge) {
     allStudents.forEach(studentId => {
-      chargeAssignments.push([sportsCharge, studentId, 1500, new Date().toISOString(), '']);
+      chargeAssignments.push([sportsCharge, studentId, 150000, new Date().toISOString(), '']);
     });
   }
 
   const assignmentInsert = db.prepare(`
-    INSERT INTO student_charge_assignments (charge_id, student_id, amount, amount_cents, assigned_at, notes) 
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO student_charge_assignments (charge_id, student_id, amount, assigned_at, notes) 
+    VALUES (?, ?, ?, ?, ?)
   `);
   
   chargeAssignments.forEach(assignment => {

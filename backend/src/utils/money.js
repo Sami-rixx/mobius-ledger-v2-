@@ -1,14 +1,13 @@
 /**
  * Money utilities for cents-based storage
  * 
- * All monetary values are stored as INTEGER cents (smallest currency unit)
- * alongside the legacy DECIMAL columns for backward compatibility.
+ * All monetary values are stored as INTEGER cents (smallest currency unit).
  * This module provides utilities for converting between cents and decimal representation.
  * 
  * Storage pattern:
- * - NEW data: Write to both amount (DECIMAL) and amount_cents (INTEGER)
- * - READ data: Read from amount_cents, convert to decimal for amount field
- * - Legacy data: amount_cents may be NULL, fall back to amount * 100
+ * - All monetary data is stored as INTEGER cents
+ * - API inputs: Decimal strings are converted to cents via toCents()
+ * - API outputs: Cents are converted to decimal via fromCents()
  * 
  * Example usage:
  *   const { toCents, fromCents, formatCurrency } = require('./utils/money');
@@ -61,18 +60,16 @@ export function fromCents(cents) {
 }
 
 /**
- * Get decimal value from row, preferring _cents column if available
+ * Get decimal value from row
+ * All monetary values are now stored as INTEGER cents, so we simply convert to decimal
  * @param {Object} row - Database row
- * @param {string} amountField - The amount field name (e.g., 'amount')
- * @param {string} centsField - The cents field name (e.g., 'amount_cents')
+ * @param {string} fieldName - The field name containing cents (e.g., 'amount', 'total_income')
  * @returns {number} Decimal amount
  */
-export function getAmount(row, amountField, centsField) {
-  if (row[centsField] !== null && row[centsField] !== undefined) {
-    return fromCents(row[centsField]);
-  }
-  // Fall back to legacy DECIMAL column
-  return row[amountField] !== null && row[amountField] !== undefined ? parseFloat(row[amountField]) : null;
+export function getAmount(row, fieldName) {
+  const value = row[fieldName];
+  if (value === null || value === undefined) return null;
+  return fromCents(value);
 }
 
 /**
@@ -145,6 +142,18 @@ export async function getCurrencySymbol(db) {
 }
 
 export default {
+  DEFAULT_CURRENCY,
+  toCents,
+  fromCents,
+  getAmount,
+  formatCurrency,
+  parseCurrency,
+  isValidMoney,
+  getCurrencySymbol
+};
+
+// Re-export for CommonJS compatibility
+module.exports = {
   DEFAULT_CURRENCY,
   toCents,
   fromCents,

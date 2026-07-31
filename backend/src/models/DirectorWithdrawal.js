@@ -36,7 +36,6 @@ const WITHDRAWAL_STATUS = {
 const FIELDS = {
   ID: 'id',
   AMOUNT: 'amount',
-  AMOUNT_CENTS: 'amount_cents',
   LABEL: 'label',
   PURPOSE: 'purpose',
   DESCRIPTION: 'description',
@@ -148,7 +147,7 @@ export async function getAll(options = {}) {
     const rows = await db.all(query, params);
     return rows.map(row => ({
       ...row,
-      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS),
+      amount: getAmount(row, FIELDS.AMOUNT),
       is_approved: row.status === WITHDRAWAL_STATUS.APPROVED,
       is_pending: row.status === WITHDRAWAL_STATUS.PENDING,
       is_rejected: row.status === WITHDRAWAL_STATUS.REJECTED,
@@ -187,7 +186,7 @@ export async function getById(id) {
     
     return {
       ...row,
-      amount: getAmount(row, FIELDS.AMOUNT, FIELDS.AMOUNT_CENTS),
+      amount: getAmount(row, FIELDS.AMOUNT),
       is_approved: row.status === WITHDRAWAL_STATUS.APPROVED,
       is_pending: row.status === WITHDRAWAL_STATUS.PENDING,
       is_rejected: row.status === WITHDRAWAL_STATUS.REJECTED,
@@ -235,7 +234,7 @@ export async function create(data) {
   const query = `
     INSERT INTO ${TABLE} (
       ${FIELDS.AMOUNT},
-      ${FIELDS.AMOUNT_CENTS},
+      ${FIELDS.AMOUNT},
       ${FIELDS.LABEL},
       ${FIELDS.PURPOSE},
       ${FIELDS.DESCRIPTION},
@@ -309,7 +308,7 @@ export async function update(id, data) {
     updatedBy
   } = data;
 
-  // Calculate amount_cents if amount is being updated
+  // Calculate amount if amount is being updated
   let amountCents = undefined;
   if (amount !== undefined) {
     amountCents = toCents(amount);
@@ -318,7 +317,7 @@ export async function update(id, data) {
   const query = `
     UPDATE ${TABLE} SET
       ${FIELDS.AMOUNT} = ?,
-      ${FIELDS.AMOUNT_CENTS} = ?,
+      ${FIELDS.AMOUNT} = ?,
       ${FIELDS.LABEL} = ?,
       ${FIELDS.PURPOSE} = ?,
       ${FIELDS.DESCRIPTION} = ?,
@@ -555,10 +554,10 @@ export async function getStatistics() {
       SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN 1 ELSE 0 END) as rejected_count,
       SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN 1 ELSE 0 END) as completed_count,
       SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN 1 ELSE 0 END) as cancelled_count,
-      COALESCE(SUM(${FIELDS.AMOUNT_CENTS}), SUM(${FIELDS.AMOUNT} * 100)) as total_amount_cents,
-      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT_CENTS} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as pending_amount_cents,
-      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT_CENTS} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as approved_amount_cents,
-      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT_CENTS} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as rejected_amount_cents
+      COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as total_
+      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as pending_
+      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as approved_
+      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as rejected_amount
     FROM ${TABLE}
   `;
 
@@ -588,10 +587,10 @@ export async function getStatistics() {
         cancelled: row.cancelled_count || 0
       },
       by_amount: {
-        total: parseFloat(fromCents(row.total_amount_cents || 0)),
-        pending: parseFloat(fromCents(row.pending_amount_cents || 0)),
-        approved: parseFloat(fromCents(row.approved_amount_cents || 0)),
-        rejected: parseFloat(fromCents(row.rejected_amount_cents || 0))
+        total: parseFloat(fromCents(row.total_amount || 0)),
+        pending: parseFloat(fromCents(row.pending_amount || 0)),
+        approved: parseFloat(fromCents(row.approved_amount || 0)),
+        rejected: parseFloat(fromCents(row.rejected_amount || 0))
       }
     };
   } catch (error) {

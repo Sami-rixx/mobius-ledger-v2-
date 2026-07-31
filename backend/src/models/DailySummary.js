@@ -28,13 +28,10 @@ const FIELDS = {
   ID: 'id',
   DATE: 'summary_date',
   TOTAL_INCOME: 'total_income',
-  TOTAL_INCOME_CENTS: 'total_income_cents',
   INCOME_COUNT: 'income_count',
   TOTAL_EXPENSES: 'total_expenses',
-  TOTAL_EXPENSES_CENTS: 'total_expenses_cents',
   EXPENSE_COUNT: 'expense_count',
   NET_FLOW: 'net_flow',
-  NET_FLOW_CENTS: 'net_flow_cents',
   TRANSACTION_COUNT: 'transaction_count',
   CREATED_AT: 'created_at'
 };
@@ -104,9 +101,9 @@ export async function getAll(options = {}) {
   const rows = stmt.all(...params);
   return rows.map(row => ({
     ...row,
-    total_income: getAmount(row, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
-    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
-    net_flow: getAmount(row, FIELDS.NET_FLOW, FIELDS.NET_FLOW_CENTS)
+    total_income: getAmount(row, FIELDS.TOTAL_INCOME),
+    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES),
+    net_flow: getAmount(row, FIELDS.NET_FLOW)
   }));
 }
 
@@ -130,9 +127,9 @@ export async function getByDate(date) {
   if (!row) return undefined;
   return {
     ...row,
-    total_income: getAmount(row, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
-    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
-    net_flow: getAmount(row, FIELDS.NET_FLOW, FIELDS.NET_FLOW_CENTS)
+    total_income: getAmount(row, FIELDS.TOTAL_INCOME),
+    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES),
+    net_flow: getAmount(row, FIELDS.NET_FLOW)
   };
 }
 
@@ -151,9 +148,9 @@ export async function getById(id) {
   if (!row) return undefined;
   return {
     ...row,
-    total_income: getAmount(row, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
-    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
-    net_flow: getAmount(row, FIELDS.NET_FLOW, FIELDS.NET_FLOW_CENTS)
+    total_income: getAmount(row, FIELDS.TOTAL_INCOME),
+    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES),
+    net_flow: getAmount(row, FIELDS.NET_FLOW)
   };
 }
 
@@ -172,9 +169,9 @@ export async function getLatest() {
   if (!row) return undefined;
   return {
     ...row,
-    total_income: getAmount(row, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
-    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
-    net_flow: getAmount(row, FIELDS.NET_FLOW, FIELDS.NET_FLOW_CENTS)
+    total_income: getAmount(row, FIELDS.TOTAL_INCOME),
+    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES),
+    net_flow: getAmount(row, FIELDS.NET_FLOW)
   };
 }
 
@@ -198,9 +195,9 @@ export async function getByDateRange(startDate, endDate) {
   const rows = stmt.all(startDate, endDate);
   return rows.map(row => ({
     ...row,
-    total_income: getAmount(row, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
-    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
-    net_flow: getAmount(row, FIELDS.NET_FLOW, FIELDS.NET_FLOW_CENTS)
+    total_income: getAmount(row, FIELDS.TOTAL_INCOME),
+    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES),
+    net_flow: getAmount(row, FIELDS.NET_FLOW)
   }));
 }
 
@@ -230,9 +227,9 @@ export async function getByMonth(year, month) {
   const rows = stmt.all(startDate, endDate);
   return rows.map(row => ({
     ...row,
-    total_income: getAmount(row, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
-    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
-    net_flow: getAmount(row, FIELDS.NET_FLOW, FIELDS.NET_FLOW_CENTS)
+    total_income: getAmount(row, FIELDS.TOTAL_INCOME),
+    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES),
+    net_flow: getAmount(row, FIELDS.NET_FLOW)
   }));
 }
 
@@ -261,9 +258,9 @@ export async function getByWeek(startDate) {
   const rows = stmt.all(startDate, endDate);
   return rows.map(row => ({
     ...row,
-    total_income: getAmount(row, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
-    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
-    net_flow: getAmount(row, FIELDS.NET_FLOW, FIELDS.NET_FLOW_CENTS)
+    total_income: getAmount(row, FIELDS.TOTAL_INCOME),
+    total_expenses: getAmount(row, FIELDS.TOTAL_EXPENSES),
+    net_flow: getAmount(row, FIELDS.NET_FLOW)
   }));
 }
 
@@ -320,8 +317,8 @@ export async function create(data) {
 
   const stmt = db.prepare(`
     INSERT INTO ${TABLE} (
-      ${FIELDS.DATE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_INCOME_CENTS}, ${FIELDS.INCOME_COUNT},
-      ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.TOTAL_EXPENSES_CENTS}, ${FIELDS.EXPENSE_COUNT}, ${FIELDS.NET_FLOW}, ${FIELDS.NET_FLOW_CENTS},
+      ${FIELDS.DATE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.INCOME_COUNT},
+      ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.EXPENSE_COUNT}, ${FIELDS.NET_FLOW}, ${FIELDS.NET_FLOW},
       ${FIELDS.TRANSACTION_COUNT}
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
@@ -342,9 +339,9 @@ export async function create(data) {
   return { 
     ...data,
     id: result.lastInsertRowid,
-    total_income: getAmount(data, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME_CENTS),
-    total_expenses: getAmount(data, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES_CENTS),
-    net_flow: getAmount(data, FIELDS.NET_FLOW, FIELDS.NET_FLOW_CENTS)
+    total_income: getAmount(data, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME),
+    total_expenses: getAmount(data, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES),
+    net_flow: getAmount(data, FIELDS.NET_FLOW, FIELDS.NET_FLOW)
   };
 }
 
@@ -390,13 +387,13 @@ export async function update(id, updates) {
       
       // Also update the cents column if this is a monetary field
       if (key === 'TOTAL_INCOME' || key === 'total_income') {
-        setClauses.push(`${FIELDS.TOTAL_INCOME_CENTS} = ?`);
+        setClauses.push(`${FIELDS.TOTAL_INCOME} = ?`);
         params.push(toCents(value));
       } else if (key === 'TOTAL_EXPENSES' || key === 'total_expenses') {
-        setClauses.push(`${FIELDS.TOTAL_EXPENSES_CENTS} = ?`);
+        setClauses.push(`${FIELDS.TOTAL_EXPENSES} = ?`);
         params.push(toCents(value));
       } else if (key === 'NET_FLOW' || key === 'net_flow') {
-        setClauses.push(`${FIELDS.NET_FLOW_CENTS} = ?`);
+        setClauses.push(`${FIELDS.NET_FLOW} = ?`);
         params.push(toCents(value));
       }
     }
@@ -464,15 +461,15 @@ export async function getStatistics(options = {}) {
   const query = `
     SELECT 
       COUNT(*) as total_days,
-      COALESCE(SUM(${FIELDS.TOTAL_INCOME_CENTS}), SUM(${FIELDS.TOTAL_INCOME} * 100)) as total_income_cents,
+      COALESCE(SUM(${FIELDS.TOTAL_INCOME}), SUM(${FIELDS.TOTAL_INCOME} * 100)) as total_income_cents,
       SUM(${FIELDS.INCOME_COUNT}) as total_income_records,
-      COALESCE(SUM(${FIELDS.TOTAL_EXPENSES_CENTS}), SUM(${FIELDS.TOTAL_EXPENSES} * 100)) as total_expenses_cents,
+      COALESCE(SUM(${FIELDS.TOTAL_EXPENSES}), SUM(${FIELDS.TOTAL_EXPENSES} * 100)) as total_expenses_cents,
       SUM(${FIELDS.EXPENSE_COUNT}) as total_expense_records,
-      COALESCE(SUM(${FIELDS.NET_FLOW_CENTS}), SUM(${FIELDS.NET_FLOW} * 100)) as net_flow_cents,
+      COALESCE(SUM(${FIELDS.NET_FLOW}), SUM(${FIELDS.NET_FLOW} * 100)) as net_flow_cents,
       SUM(${FIELDS.TRANSACTION_COUNT}) as total_transactions,
-      COALESCE(AVG(${FIELDS.TOTAL_INCOME_CENTS}), AVG(${FIELDS.TOTAL_INCOME} * 100)) as avg_daily_income_cents,
-      COALESCE(AVG(${FIELDS.TOTAL_EXPENSES_CENTS}), AVG(${FIELDS.TOTAL_EXPENSES} * 100)) as avg_daily_expenses_cents,
-      COALESCE(AVG(${FIELDS.NET_FLOW_CENTS}), AVG(${FIELDS.NET_FLOW} * 100)) as avg_daily_net_flow_cents
+      COALESCE(AVG(${FIELDS.TOTAL_INCOME}), AVG(${FIELDS.TOTAL_INCOME} * 100)) as avg_daily_income_cents,
+      COALESCE(AVG(${FIELDS.TOTAL_EXPENSES}), AVG(${FIELDS.TOTAL_EXPENSES} * 100)) as avg_daily_expenses_cents,
+      COALESCE(AVG(${FIELDS.NET_FLOW}), AVG(${FIELDS.NET_FLOW} * 100)) as avg_daily_net_flow_cents
     FROM ${TABLE}
     ${whereClause}
   `;
@@ -517,7 +514,7 @@ export async function generateForDate(date) {
 
   // Get income data for the date - use COALESCE to prefer cents
   const incomeStmt = db.prepare(`
-    SELECT COUNT(*) as count, COALESCE(SUM(amount_cents), SUM(amount * 100)) as total_cents 
+    SELECT COUNT(*) as count, COALESCE(SUM(amount), SUM(amount * 100)) as total_cents 
     FROM ${INCOME_TABLE} 
     WHERE income_date = ?
   `);
@@ -526,7 +523,7 @@ export async function generateForDate(date) {
 
   // Get expense data for the date - use COALESCE to prefer cents
   const expenseStmt = db.prepare(`
-    SELECT COUNT(*) as count, COALESCE(SUM(amount_cents), SUM(amount * 100)) as total_cents 
+    SELECT COUNT(*) as count, COALESCE(SUM(amount), SUM(amount * 100)) as total_cents 
     FROM ${EXPENSES_TABLE} 
     WHERE expense_date = ?
   `);
