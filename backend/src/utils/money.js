@@ -10,7 +10,7 @@
  * - API outputs: Cents are converted to decimal via fromCents()
  * 
  * Example usage:
- *   const { toCents, fromCents, formatCurrency } = require('./utils/money');
+ *   import { toCents, fromCents, formatCurrency } from './utils/money.js';
  *   
  *   // Storing: convert decimal string to cents
  *   const cents = toCents('123.45'); // 12345
@@ -142,18 +142,6 @@ export async function getCurrencySymbol(db) {
 }
 
 export default {
-  DEFAULT_CURRENCY,
-  toCents,
-  fromCents,
-  getAmount,
-  formatCurrency,
-  parseCurrency,
-  isValidMoney,
-  getCurrencySymbol
-};
-
-// Re-export for CommonJS compatibility
-module.exports = {
   DEFAULT_CURRENCY,
   toCents,
   fromCents,
