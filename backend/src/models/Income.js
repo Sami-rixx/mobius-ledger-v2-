@@ -302,7 +302,6 @@ export async function create(data) {
     INSERT INTO ${TABLE} (
       ${FIELDS.RECEIPT_NUMBER},
       ${FIELDS.AMOUNT},
-      ${FIELDS.AMOUNT},
       ${FIELDS.INCOME_CATEGORY_ID},
       ${FIELDS.DESCRIPTION},
       ${FIELDS.PAYER_NAME},
@@ -314,12 +313,11 @@ export async function create(data) {
       ${FIELDS.IS_VERIFIED},
       ${FIELDS.CREATED_BY},
       ${FIELDS.UPDATED_BY}
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
     receiptNumber,
-    amount,
     amountCents,
     incomeCategoryId,
     description,

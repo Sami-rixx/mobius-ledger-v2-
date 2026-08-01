@@ -266,7 +266,7 @@ export const createStudentChargeAssignment = (assignmentData) => {
   `;
 
   const stmt = db.prepare(query);
-  const result = stmt.run(chargeId, studentId, finalAmount, finalAmountCents, notes || null);
+  const result = stmt.run(chargeId, studentId, finalAmountCents, notes || null);
 
   return getStudentChargeAssignmentById(result.lastInsertRowid);
 };

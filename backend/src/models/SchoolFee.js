@@ -341,14 +341,13 @@ export const createSchoolFeePayment = (data) => {
 
   const stmt = db.prepare(`
     INSERT INTO ${TABLE} 
-    (student_id, transaction_id, amount,  payment_date, academic_year, term, notes, created_by, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (student_id, transaction_id, amount, payment_date, academic_year, term, notes, created_by, updated_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
     studentId,
     transactionId,
-    amount,
     amountCents,
     paymentDate,
     academicYear,

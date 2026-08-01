@@ -252,7 +252,6 @@ export const createStudentCharge = (chargeData) => {
   const result = stmt.run(
     name,
     description,
-    amount,
     amountCents,
     chargeType,
     classId || null,

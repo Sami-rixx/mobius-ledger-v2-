@@ -234,7 +234,6 @@ export async function create(data) {
   const query = `
     INSERT INTO ${TABLE} (
       ${FIELDS.AMOUNT},
-      ${FIELDS.AMOUNT},
       ${FIELDS.LABEL},
       ${FIELDS.PURPOSE},
       ${FIELDS.DESCRIPTION},
@@ -248,11 +247,10 @@ export async function create(data) {
       ${FIELDS.UPDATED_BY},
       ${FIELDS.CREATED_AT},
       ${FIELDS.UPDATED_AT}
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   `;
 
   const params = [
-    amount,
     amountCents,
     label,
     purpose,

@@ -224,17 +224,16 @@ export const createTransaction = (data) => {
 
   const stmt = db.prepare(`
     INSERT INTO ${TABLE} 
-    (receipt_number, transaction_type, amount,  category_id, income_category_id, 
+    (receipt_number, transaction_type, amount, category_id, income_category_id, 
      expense_category_id, student_id, description, payment_method_id, 
      transaction_date, transaction_time, reference, notes, is_verified, 
      verified_by, verified_at, created_by, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
     receiptNumber,
     transactionType,
-    amount,
     amountCents,
     categoryId,
     incomeCategoryId,

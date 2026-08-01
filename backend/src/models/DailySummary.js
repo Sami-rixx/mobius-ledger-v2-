@@ -317,21 +317,18 @@ export async function create(data) {
 
   const stmt = db.prepare(`
     INSERT INTO ${TABLE} (
-      ${FIELDS.DATE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.INCOME_COUNT},
-      ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.EXPENSE_COUNT}, ${FIELDS.NET_FLOW}, ${FIELDS.NET_FLOW},
+      ${FIELDS.DATE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.INCOME_COUNT},
+      ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.EXPENSE_COUNT}, ${FIELDS.NET_FLOW},
       ${FIELDS.TRANSACTION_COUNT}
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
   
   const result = stmt.run(
     data[FIELDS.DATE],
-    data[FIELDS.TOTAL_INCOME],
     totalIncomeCents,
     data[FIELDS.INCOME_COUNT],
-    data[FIELDS.TOTAL_EXPENSES],
     totalExpensesCents,
     data[FIELDS.EXPENSE_COUNT],
-    data[FIELDS.NET_FLOW],
     netFlowCents,
     data[FIELDS.TRANSACTION_COUNT]
   );
@@ -339,9 +336,9 @@ export async function create(data) {
   return { 
     ...data,
     id: result.lastInsertRowid,
-    total_income: getAmount(data, FIELDS.TOTAL_INCOME, FIELDS.TOTAL_INCOME),
-    total_expenses: getAmount(data, FIELDS.TOTAL_EXPENSES, FIELDS.TOTAL_EXPENSES),
-    net_flow: getAmount(data, FIELDS.NET_FLOW, FIELDS.NET_FLOW)
+    total_income: getAmount(data, FIELDS.TOTAL_INCOME),
+    total_expenses: getAmount(data, FIELDS.TOTAL_EXPENSES),
+    net_flow: getAmount(data, FIELDS.NET_FLOW)
   };
 }
 

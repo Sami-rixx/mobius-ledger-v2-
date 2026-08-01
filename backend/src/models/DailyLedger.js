@@ -243,19 +243,14 @@ export async function create(data) {
   const netMovementCents = toCents(calculatedNetMovement);
 
   const result = await db.run(
-    `INSERT INTO ${TABLE} (${FIELDS.DATE}, ${FIELDS.OPENING_BALANCE}, ${FIELDS.OPENING_BALANCE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.CLOSING_BALANCE}, ${FIELDS.CLOSING_BALANCE}, ${FIELDS.NET_MOVEMENT}, ${FIELDS.NET_MOVEMENT}, ${FIELDS.TRANSACTION_COUNT}) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO ${TABLE} (${FIELDS.DATE}, ${FIELDS.OPENING_BALANCE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.CLOSING_BALANCE}, ${FIELDS.NET_MOVEMENT}, ${FIELDS.TRANSACTION_COUNT}) 
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       date,
-      opening_balance,
       openingBalanceCents,
-      total_income,
       totalIncomeCents,
-      total_expenses,
       totalExpensesCents,
-      calculatedClosingBalance,
       closingBalanceCents,
-      calculatedNetMovement,
       netMovementCents,
       transaction_count
     ]
