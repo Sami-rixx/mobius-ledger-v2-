@@ -293,8 +293,8 @@ describe('DailySummary Model', () => {
 
       expect(result).toBeDefined();
       expect(result.summary_date).toBe(today);
-      expect(result.total_income).toBe('10000.00');
-      expect(result.net_flow).toBe('5000.00');
+      expect(result.total_income).toBe(10000.00);
+      expect(result.net_flow).toBe(5000.00);
     });
 
     it('should return undefined for non-existent date', () => {
@@ -323,7 +323,7 @@ describe('DailySummary Model', () => {
 
       expect(result).toBeDefined();
       expect(result.id).toBe(summaryId);
-      expect(result.total_income).toBe('15000.00');
+      expect(result.total_income).toBe(15000.00);
     });
 
     it('should return undefined for non-existent ID', () => {
@@ -470,9 +470,9 @@ describe('DailySummary Model', () => {
 
       expect(result).toBeDefined();
       expect(result.summary_date).toBe(testDate);
-      expect(result.total_income).toBe('25000.00');
-      expect(result.total_expenses).toBe('15000.00');
-      expect(result.net_flow).toBe('10000.00');
+      expect(result.total_income).toBe(25000.00);
+      expect(result.total_expenses).toBe(15000.00);
+      expect(result.net_flow).toBe(10000.00);
     });
 
     it('should require all required fields', () => {
@@ -518,9 +518,9 @@ describe('DailySummary Model', () => {
       const result = db.prepare('SELECT * FROM daily_summaries WHERE id = ?').get(summaryId);
 
       expect(result).toBeDefined();
-      expect(result.total_income).toBe('35000.00');
-      expect(result.total_expenses).toBe('20000.00');
-      expect(result.net_flow).toBe('15000.00');
+      expect(result.total_income).toBe(35000.00);
+      expect(result.total_expenses).toBe(20000.00);
+      expect(result.net_flow).toBe(15000.00);
     });
 
     it('should require ID parameter', () => {
@@ -799,7 +799,7 @@ describe('DailySummary Model', () => {
       const result = db.prepare('SELECT * FROM daily_summaries WHERE summary_date = ?').get(testDate);
 
       expect(result).toBeDefined();
-      expect(result.net_flow).toBe('0.00');
+      expect(result.net_flow).toBe(0.00);
     });
 
     it('should handle negative net flow', () => {
@@ -814,7 +814,7 @@ describe('DailySummary Model', () => {
       const result = db.prepare('SELECT * FROM daily_summaries WHERE summary_date = ?').get(testDate);
 
       expect(result).toBeDefined();
-      expect(result.net_flow).toBe('-10000.00');
+      expect(result.net_flow).toBe(-10000.00);
     });
   });
 });

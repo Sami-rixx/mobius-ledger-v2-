@@ -326,8 +326,8 @@ describe('Reports & Analytics Models', () => {
       
       expect(summary).toBeDefined();
       expect(summary.summary_date).toBe(today);
-      expect(summary.total_income).toBe('1000.00');
-      expect(summary.net_flow).toBe('500.00');
+      expect(summary.total_income).toBe(1000.00);
+      expect(summary.net_flow).toBe(500.00);
     });
 
     it('should retrieve summaries by date range', () => {
