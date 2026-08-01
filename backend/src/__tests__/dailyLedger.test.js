@@ -3,7 +3,7 @@
  * Comprehensive tests for DailyLedger model, service, and functionality
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
 
 // Test database setup

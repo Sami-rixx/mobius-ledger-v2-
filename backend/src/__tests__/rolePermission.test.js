@@ -3,7 +3,7 @@
  * Comprehensive tests for RolePermission model, service, and functionality
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
 
 // Test database setup
