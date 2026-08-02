@@ -7,6 +7,8 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@je
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import ImportExport from '../models/ImportExport.js';
+import importExportService from '../services/importExportService.js';
 
 // Test database setup
 const TEST_DB = ':memory:';
@@ -132,11 +134,6 @@ describe('ImportExport Module', () => {
 
   // Test ImportExport Model
   describe('ImportExport Model', () => {
-    let ImportExport;
-
-    beforeAll(() => {
-      ImportExport = require('../models/ImportExport.js');
-    });
 
     describe('Constants', () => {
       it('should have IMPORT_EXPORT_TYPES constant', () => {
@@ -311,11 +308,6 @@ describe('ImportExport Module', () => {
 
   // Test ImportExport Service
   describe('ImportExport Service', () => {
-    let importExportService;
-
-    beforeAll(() => {
-      importExportService = require('../services/importExportService.js');
-    });
 
     describe('validateParams', () => {
       it('should validate valid params', () => {
@@ -350,7 +342,6 @@ describe('ImportExport Module', () => {
 
     describe('getPaginatedLogs', () => {
       it('should return paginated logs', () => {
-        const ImportExport = require('../models/ImportExport.js');
         ImportExport.createLog({ type: 'export', action: 'database_export', user_id: 1 });
         ImportExport.createLog({ type: 'import', action: 'csv_import', user_id: 1 });
 
@@ -364,7 +355,6 @@ describe('ImportExport Module', () => {
 
     describe('getLogById', () => {
       it('should retrieve log by ID', () => {
-        const ImportExport = require('../models/ImportExport.js');
         const created = ImportExport.createLog({ type: 'export', action: 'database_export', user_id: 1 });
 
         const log = importExportService.getLogById(created.id);
@@ -403,7 +393,6 @@ describe('ImportExport Module', () => {
   // Test Module Exports
   describe('Module Exports', () => {
     it('should export ImportExport model', () => {
-      const ImportExport = require('../models/ImportExport.js');
       expect(ImportExport).toBeDefined();
       expect(typeof ImportExport.createLog).toBe('function');
       expect(typeof ImportExport.getLogById).toBe('function');
@@ -414,7 +403,6 @@ describe('ImportExport Module', () => {
     });
 
     it('should export importExportService', () => {
-      const importExportService = require('../services/importExportService.js');
       expect(importExportService).toBeDefined();
       expect(typeof importExportService.validateParams).toBe('function');
       expect(typeof importExportService.getPaginatedLogs).toBe('function');
@@ -422,8 +410,8 @@ describe('ImportExport Module', () => {
       expect(typeof importExportService.getStatistics).toBe('function');
     });
 
-    it('should export importExportController', () => {
-      const importExportController = require('../controllers/importExportController.js');
+    it('should export importExportController', async () => {
+      const importExportController = await import('../controllers/importExportController.js');
       expect(importExportController).toBeDefined();
       expect(typeof importExportController.listLogs).toBe('function');
       expect(typeof importExportController.countLogs).toBe('function');
@@ -442,8 +430,8 @@ describe('ImportExport Module', () => {
       expect(typeof importExportController.getSupportedTables).toBe('function');
     });
 
-    it('should export importExportRoutes', () => {
-      const importExportRoutes = require('../routes/importExportRoutes.js');
+    it('should export importExportRoutes', async () => {
+      const importExportRoutes = await import('../routes/importExportRoutes.js');
       expect(importExportRoutes).toBeDefined();
       expect(importExportRoutes.default).toBeDefined();
     });

@@ -5,6 +5,8 @@
 
 import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
+import Role from '../models/Role.js';
+import roleService from '../services/roleService.js';
 
 // Test database setup
 const TEST_DB = ':memory:';
@@ -79,27 +81,23 @@ describe('Role Module', () => {
   describe('Role Model', () => {
     describe('Constants', () => {
       it('should export ROLES_TABLE constant', () => {
-        const { ROLES_TABLE } = require('../models/Role.js');
-        expect(ROLES_TABLE).toBe('roles');
+        expect(Role.ROLES_TABLE).toBe('roles');
       });
 
       it('should export ROLE_FIELDS constant', () => {
-        const { ROLE_FIELDS } = require('../models/Role.js');
-        expect(ROLE_FIELDS).toBeInstanceOf(Array);
-        expect(ROLE_FIELDS.length).toBeGreaterThan(0);
+        expect(Role.ROLE_FIELDS).toBeInstanceOf(Array);
+        expect(Role.ROLE_FIELDS.length).toBeGreaterThan(0);
       });
 
       it('should export DEFAULT_ROLES constant', () => {
-        const { DEFAULT_ROLES } = require('../models/Role.js');
-        expect(DEFAULT_ROLES).toBeInstanceOf(Array);
-        expect(DEFAULT_ROLES).toContain('Admin');
+        expect(Role.DEFAULT_ROLES).toBeInstanceOf(Array);
+        expect(Role.DEFAULT_ROLES).toContain('Admin');
       });
     });
 
     describe('Model Functions', () => {
       it('should create a new role', () => {
-        const { createRole } = require('../models/Role.js');
-        const newRole = createRole({
+        const newRole = Role.createRole({
           name: 'Test Role',
           description: 'Test role for testing',
           is_default: 0,
@@ -112,57 +110,50 @@ describe('Role Module', () => {
       });
 
       it('should get role by ID', () => {
-        const { getRoleById } = require('../models/Role.js');
-        const role = getRoleById(1);
+        const role = Role.getRoleById(1);
         
         expect(role).toBeDefined();
         expect(role.name).toBe('Admin');
       });
 
       it('should get role by name', () => {
-        const { getRoleByName } = require('../models/Role.js');
-        const role = getRoleByName('Teacher');
+        const role = Role.getRoleByName('Teacher');
         
         expect(role).toBeDefined();
         expect(role.name).toBe('Teacher');
       });
 
       it('should get all roles', () => {
-        const { getAllRoles } = require('../models/Role.js');
-        const roles = getAllRoles();
+        const roles = Role.getAllRoles();
         
         expect(roles).toBeInstanceOf(Array);
         expect(roles.length).toBeGreaterThanOrEqual(5);
       });
 
       it('should get default role', () => {
-        const { getDefaultRole } = require('../models/Role.js');
-        const role = getDefaultRole();
+        const role = Role.getDefaultRole();
         
         expect(role).toBeDefined();
         expect(role.is_default).toBe(1);
       });
 
       it('should check if role exists', () => {
-        const { roleExists } = require('../models/Role.js');
-        const exists = roleExists('Admin');
-        const notExists = roleExists('Nonexistent Role');
+        const exists = Role.roleExists('Admin');
+        const notExists = Role.roleExists('Nonexistent Role');
         
         expect(exists).toBe(true);
         expect(notExists).toBe(false);
       });
 
       it('should get roles with user count', () => {
-        const { getRolesWithUserCount } = require('../models/Role.js');
-        const roles = getRolesWithUserCount();
+        const roles = Role.getRolesWithUserCount();
         
         expect(roles).toBeInstanceOf(Array);
         expect(roles.every(r => r.user_count !== undefined)).toBe(true);
       });
 
       it('should update a role', () => {
-        const { updateRole } = require('../models/Role.js');
-        const updated = updateRole(3, {
+        const updated = Role.updateRole(3, {
           description: 'Updated Student role',
           is_active: 0
         });
@@ -173,42 +164,37 @@ describe('Role Module', () => {
       });
 
       it('should delete a role', () => {
-        const { deleteRole, getRoleById } = require('../models/Role.js');
         const roleId = 5;
-        const deleted = deleteRole(roleId);
-        const deletedRole = getRoleById(roleId);
+        const deleted = Role.deleteRole(roleId);
+        const deletedRole = Role.getRoleById(roleId);
         
         expect(deleted).toBe(true);
         expect(deletedRole).toBeUndefined();
       });
 
       it('should get role count', () => {
-        const { getRoleCount } = require('../models/Role.js');
-        const count = getRoleCount();
+        const count = Role.getRoleCount();
         
         expect(typeof count).toBe('number');
         expect(count).toBeGreaterThan(0);
       });
 
       it('should search roles', () => {
-        const { searchRoles } = require('../models/Role.js');
-        const results = searchRoles('Role');
+        const results = Role.searchRoles('Role');
         
         expect(results).toBeInstanceOf(Array);
         expect(results.every(r => r.name.includes('Role') || r.description.includes('Role'))).toBe(true);
       });
 
       it('should get role statistics', () => {
-        const { getRoleStatistics } = require('../models/Role.js');
-        const stats = getRoleStatistics();
+        const stats = Role.getRoleStatistics();
         
         expect(stats).toBeDefined();
         expect(stats.total).toBeDefined();
       });
 
       it('should get all default role names', () => {
-        const { getDefaultRoleNames } = require('../models/Role.js');
-        const names = getDefaultRoleNames();
+        const names = Role.getDefaultRoleNames();
         
         expect(names).toBeInstanceOf(Array);
         expect(names).toContain('Admin');
@@ -217,8 +203,6 @@ describe('Role Module', () => {
 
     describe('Model Exports', () => {
       it('should export all expected functions and constants', () => {
-        const Role = require('../models/Role.js');
-        
         expect(Role).toBeDefined();
         expect(Role.ROLES_TABLE).toBe('roles');
         expect(Role.ROLE_FIELDS).toBeInstanceOf(Array);
@@ -248,39 +232,30 @@ describe('Role Module', () => {
   describe('Role Service', () => {
     describe('Service Functions', () => {
       it('should validate role data', () => {
-        const { validateRole } = require('../services/roleService.js');
-        
-        const validData = {
+        const result = roleService.validateRole({
           name: 'Valid Role',
           description: 'Valid description',
           is_default: 0,
           is_active: 1
-        };
-        
-        const result = validateRole(validData);
+        });
         expect(result).toBeDefined();
         expect(result.isValid).toBe(true);
       });
 
       it('should reject invalid role data', () => {
-        const { validateRole } = require('../services/roleService.js');
-        
-        const invalidData = {
+        const result = roleService.validateRole({
           name: '',
           description: '',
           is_default: null,
           is_active: null
-        };
-        
-        const result = validateRole(invalidData);
+        });
         expect(result.isValid).toBe(false);
         expect(result.errors).toBeInstanceOf(Array);
         expect(result.errors.length).toBeGreaterThan(0);
       });
 
       it('should get paginated roles', () => {
-        const { getPaginatedRoles } = require('../services/roleService.js');
-        const result = getPaginatedRoles({ page: 1, pageSize: 5 });
+        const result = roleService.getPaginatedRoles({ page: 1, pageSize: 5 });
         
         expect(result).toBeDefined();
         expect(result.data).toBeInstanceOf(Array);
@@ -290,8 +265,7 @@ describe('Role Module', () => {
       });
 
       it('should create a role with service', () => {
-        const { createRole } = require('../services/roleService.js');
-        const newRole = createRole({
+        const newRole = roleService.createRole({
           name: 'Service Test Role',
           description: 'Service test role',
           is_default: 0,
@@ -303,8 +277,7 @@ describe('Role Module', () => {
       });
 
       it('should update a role with service', () => {
-        const { updateRole } = require('../services/roleService.js');
-        const updated = updateRole(2, {
+        const updated = roleService.updateRole(2, {
           description: 'Updated by service'
         });
         
@@ -313,39 +286,34 @@ describe('Role Module', () => {
       });
 
       it('should delete a role with service', () => {
-        const { deleteRole, getRoleById } = require('../services/roleService.js');
         const roleId = 4;
-        const deleted = deleteRole(roleId);
-        const deletedRole = getRoleById(roleId);
+        const deleted = roleService.deleteRole(roleId);
+        const deletedRole = roleService.getRoleById(roleId);
         
         expect(deleted).toBe(true);
         expect(deletedRole).toBeUndefined();
       });
 
       it('should get role statistics from service', () => {
-        const { getRoleStatistics } = require('../services/roleService.js');
-        const stats = getRoleStatistics();
+        const stats = roleService.getRoleStatistics();
         
         expect(stats).toBeDefined();
         expect(stats.total).toBeDefined();
       });
 
       it('should set a role as default', () => {
-        const { setDefaultRole, getDefaultRole } = require('../services/roleService.js');
-        setDefaultRole(2);
-        const defaultRole = getDefaultRole();
+        roleService.setDefaultRole(2);
+        const defaultRole = roleService.getDefaultRole();
         
         expect(defaultRole).toBeDefined();
         expect(defaultRole.id).toBe(2);
         // Reset to original default
-        setDefaultRole(1);
+        roleService.setDefaultRole(1);
       });
     });
 
     describe('Service Exports', () => {
       it('should export all expected service functions', () => {
-        const roleService = require('../services/roleService.js');
-        
         expect(roleService).toBeDefined();
         expect(typeof roleService.validateRole).toBe('function');
         expect(typeof roleService.getPaginatedRoles).toBe('function');
