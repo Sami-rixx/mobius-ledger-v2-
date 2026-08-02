@@ -266,7 +266,7 @@ describe('Analytics Model', () => {
       const today = new Date().toISOString().split('T')[0];
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", income_date) as period,
+          strftime('%Y-%m', income_date) as period,
           SUM(CASE WHEN source = 'income' THEN amount ELSE 0 END) as total_income,
           COUNT(CASE WHEN source = 'income' THEN 1 END) as income_count,
           SUM(CASE WHEN source = 'expense' THEN amount ELSE 0 END) as total_expenses,
@@ -299,7 +299,7 @@ describe('Analytics Model', () => {
     it('should group by month correctly', () => {
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", income_date) as period,
+          strftime('%Y-%m', income_date) as period,
           SUM(CASE WHEN source = 'income' THEN amount ELSE 0 END) as total_income,
           SUM(CASE WHEN source = 'expense' THEN amount ELSE 0 END) as total_expenses
         FROM (
@@ -546,7 +546,7 @@ describe('Analytics Model', () => {
 
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", income_date) as period,
+          strftime('%Y-%m', income_date) as period,
           COUNT(*) as count,
           COALESCE(SUM(amount), 0) as total_amount,
           AVG(amount) as avg_amount
@@ -578,7 +578,7 @@ describe('Analytics Model', () => {
 
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", expense_date) as period,
+          strftime('%Y-%m', expense_date) as period,
           COUNT(*) as count,
           COALESCE(SUM(amount), 0) as total_amount,
           AVG(amount) as avg_amount
@@ -600,7 +600,7 @@ describe('Analytics Model', () => {
 
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", date) as period,
+          strftime('%Y-%m', date) as period,
           SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
           SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expenses,
           SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END) as net_flow,
