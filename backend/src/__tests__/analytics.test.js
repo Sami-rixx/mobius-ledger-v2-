@@ -103,7 +103,7 @@ describe('Analytics Model', () => {
       CREATE TABLE IF NOT EXISTS income (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         income_category_id INTEGER NOT NULL,
         description TEXT,
         payer_name TEXT NOT NULL,
@@ -126,7 +126,7 @@ describe('Analytics Model', () => {
 
       CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         expense_category_id INTEGER NOT NULL,
         description TEXT,
         vendor_name TEXT NOT NULL,
@@ -232,19 +232,19 @@ describe('Analytics Model', () => {
     const lastWeek = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
     const lastMonth = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-    // Insert income records
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-001`, 10000.00, schoolFeesCatId, 'Term 1 fees', 'Parent A', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-002`, 5000.00, donationsCatId, 'Annual donation', 'Donor B', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${yesterday}-001`, 8000.00, schoolFeesCatId, 'Term 1 fees', 'Parent C', yesterday, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${lastWeek}-001`, 15000.00, schoolFeesCatId, 'Term 1 fees', 'Parent D', lastWeek, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${lastMonth}-001`, 12000.00, donationsCatId, 'Monthly donation', 'Donor C', lastMonth, 1, userId);
+    // Insert income records (amounts in cents)
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-001`, 1000000, schoolFeesCatId, 'Term 1 fees', 'Parent A', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-002`, 500000, donationsCatId, 'Annual donation', 'Donor B', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${yesterday}-001`, 800000, schoolFeesCatId, 'Term 1 fees', 'Parent C', yesterday, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${lastWeek}-001`, 1500000, schoolFeesCatId, 'Term 1 fees', 'Parent D', lastWeek, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${lastMonth}-001`, 1200000, donationsCatId, 'Monthly donation', 'Donor C', lastMonth, 1, userId);
 
-    // Insert expense records
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(3000.00, salariesCatId, 'January salaries', 'Staff Payroll', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(2000.00, salariesCatId, 'January salaries', 'Staff Payroll', yesterday, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(1500.00, utilitiesCatId, 'Electricity bill', 'Power Co', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(800.00, utilitiesCatId, 'Water bill', 'Water Co', lastWeek, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(5000.00, salariesCatId, 'December salaries', 'Staff Payroll', lastMonth, 1, userId);
+    // Insert expense records (amounts in cents)
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(300000, salariesCatId, 'January salaries', 'Staff Payroll', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(200000, salariesCatId, 'January salaries', 'Staff Payroll', yesterday, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(150000, utilitiesCatId, 'Electricity bill', 'Power Co', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(80000, utilitiesCatId, 'Water bill', 'Water Co', lastWeek, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(500000, salariesCatId, 'December salaries', 'Staff Payroll', lastMonth, 1, userId);
   });
 
   afterAll(() => {
