@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import Database from 'better-sqlite3';
+import fs from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -83,7 +84,7 @@ describe('Student Model', () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE,
         transaction_type TEXT NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         student_id INTEGER,
         transaction_date DATE NOT NULL,
         FOREIGN KEY (student_id) REFERENCES students(id)
@@ -93,7 +94,7 @@ describe('Student Model', () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         student_id INTEGER NOT NULL,
         transaction_id INTEGER NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         payment_date DATE NOT NULL,
         FOREIGN KEY (student_id) REFERENCES students(id),
         FOREIGN KEY (transaction_id) REFERENCES transactions(id)
@@ -114,16 +115,15 @@ describe('Student Model', () => {
       .run('Grade 1', 1, 1);
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     // Close and delete test database
     if (db) {
       db.close();
     }
     try {
-      const fs = require("node:fs");
-      fs.promises.unlink(TEST_DB_PATH);
-      fs.promises.unlink(TEST_DB_PATH + '-wal');
-      fs.promises.unlink(TEST_DB_PATH + '-shm');
+      await fs.promises.unlink(TEST_DB_PATH);
+      await fs.promises.unlink(TEST_DB_PATH + '-wal');
+      await fs.promises.unlink(TEST_DB_PATH + '-shm');
     } catch (e) {
       // Ignore cleanup errors
     }

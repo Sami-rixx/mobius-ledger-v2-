@@ -50,11 +50,11 @@ describe('DailySummary Model', () => {
       CREATE TABLE IF NOT EXISTS daily_summaries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         summary_date DATE NOT NULL UNIQUE,
-        total_income DECIMAL(12, 2) NOT NULL DEFAULT 0,
+        total_income INTEGER NOT NULL DEFAULT 0,
         income_count INTEGER NOT NULL DEFAULT 0,
-        total_expenses DECIMAL(12, 2) NOT NULL DEFAULT 0,
+        total_expenses INTEGER NOT NULL DEFAULT 0,
         expense_count INTEGER NOT NULL DEFAULT 0,
-        net_flow DECIMAL(12, 2) NOT NULL DEFAULT 0,
+        net_flow INTEGER NOT NULL DEFAULT 0,
         transaction_count INTEGER NOT NULL DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
@@ -101,7 +101,7 @@ describe('DailySummary Model', () => {
       CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         transaction_type TEXT NOT NULL,
         description TEXT,
         related_id INTEGER,
@@ -115,7 +115,7 @@ describe('DailySummary Model', () => {
       CREATE TABLE IF NOT EXISTS income (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         income_category_id INTEGER NOT NULL,
         description TEXT,
         payer_name TEXT NOT NULL,
@@ -138,7 +138,7 @@ describe('DailySummary Model', () => {
 
       CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         expense_category_id INTEGER NOT NULL,
         description TEXT,
         vendor_name TEXT NOT NULL,
@@ -190,20 +190,20 @@ describe('DailySummary Model', () => {
     const lastWeek = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
     const lastMonth = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-    // Insert income and expense records
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-001`, 10000.00, incomeCategoryId, 'Test income today', 'Test Payer', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${yesterday}-001`, 8000.00, incomeCategoryId, 'Test income yesterday', 'Test Payer', yesterday, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${twoDaysAgo}-001`, 12000.00, incomeCategoryId, 'Test income 2 days ago', 'Test Payer', twoDaysAgo, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${lastWeek}-001`, 15000.00, incomeCategoryId, 'Test income last week', 'Test Payer', lastWeek, 1, userId);
+    // Insert income and expense records (amounts in cents)
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-001`, 1000000, incomeCategoryId, 'Test income today', 'Test Payer', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${yesterday}-001`, 800000, incomeCategoryId, 'Test income yesterday', 'Test Payer', yesterday, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${twoDaysAgo}-001`, 1200000, incomeCategoryId, 'Test income 2 days ago', 'Test Payer', twoDaysAgo, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${lastWeek}-001`, 1500000, incomeCategoryId, 'Test income last week', 'Test Payer', lastWeek, 1, userId);
 
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(3000.00, expenseCategoryId, 'Test expense today', 'Test Vendor', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(2000.00, expenseCategoryId, 'Test expense yesterday', 'Test Vendor', yesterday, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(4000.00, expenseCategoryId, 'Test expense 2 days ago', 'Test Vendor', twoDaysAgo, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(1000.00, expenseCategoryId, 'Test expense last week', 'Test Vendor', lastWeek, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(300000, expenseCategoryId, 'Test expense today', 'Test Vendor', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(200000, expenseCategoryId, 'Test expense yesterday', 'Test Vendor', yesterday, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(400000, expenseCategoryId, 'Test expense 2 days ago', 'Test Vendor', twoDaysAgo, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(100000, expenseCategoryId, 'Test expense last week', 'Test Vendor', lastWeek, 1, userId);
 
-    // Insert transactions
-    db.prepare('INSERT OR IGNORE INTO transactions (receipt_number, amount, transaction_type, description, transaction_date, created_by) VALUES (?, ?, ?, ?, ?, ?)').run(`TRX-${today}-001`, 1000.00, 'income', 'Transaction today', today, userId);
-    db.prepare('INSERT OR IGNORE INTO transactions (receipt_number, amount, transaction_type, description, transaction_date, created_by) VALUES (?, ?, ?, ?, ?, ?)').run(`TRX-${yesterday}-001`, 2000.00, 'income', 'Transaction yesterday', yesterday, userId);
+    // Insert transactions (amounts in cents)
+    db.prepare('INSERT OR IGNORE INTO transactions (receipt_number, amount, transaction_type, description, transaction_date, created_by) VALUES (?, ?, ?, ?, ?, ?)').run(`TRX-${today}-001`, 100000, 'income', 'Transaction today', today, userId);
+    db.prepare('INSERT OR IGNORE INTO transactions (receipt_number, amount, transaction_type, description, transaction_date, created_by) VALUES (?, ?, ?, ?, ?, ?)').run(`TRX-${yesterday}-001`, 200000, 'income', 'Transaction yesterday', yesterday, userId);
 
     // Clean up any existing test daily summaries
     db.prepare('DELETE FROM daily_summaries WHERE summary_date IN (?, ?, ?, ?, ?)').run(today, yesterday, twoDaysAgo, lastWeek, lastMonth);
@@ -283,18 +283,18 @@ describe('DailySummary Model', () => {
     it('should return a daily summary by date', () => {
       const today = new Date().toISOString().split('T')[0];
 
-      // First insert a test summary
+      // First insert a test summary (monetary values in cents)
       const insertResult = db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(today, 10000.00, 5, 5000.00, 3, 5000.00, 8);
+      `).run(today, 1000000, 5, 500000, 3, 500000, 8);
 
       const result = db.prepare('SELECT * FROM daily_summaries WHERE summary_date = ?').get(today);
 
       expect(result).toBeDefined();
       expect(result.summary_date).toBe(today);
-      expect(result.total_income).toBe(10000.00);
-      expect(result.net_flow).toBe(5000.00);
+      expect(result.total_income).toBe(1000000);
+      expect(result.net_flow).toBe(500000);
     });
 
     it('should return undefined for non-existent date', () => {
@@ -316,14 +316,14 @@ describe('DailySummary Model', () => {
       const insertResult = db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(today, 15000.00, 10, 7000.00, 5, 8000.00, 15);
+      `).run(today, 1500000, 10, 700000, 5, 800000, 15);
 
       const summaryId = insertResult.lastInsertRowid;
       const result = db.prepare('SELECT * FROM daily_summaries WHERE id = ?').get(summaryId);
 
       expect(result).toBeDefined();
       expect(result.id).toBe(summaryId);
-      expect(result.total_income).toBe(15000.00);
+      expect(result.total_income).toBe(15000);
     });
 
     it('should return undefined for non-existent ID', () => {
@@ -344,7 +344,7 @@ describe('DailySummary Model', () => {
       db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(today, 20000.00, 15, 8000.00, 8, 12000.00, 23);
+      `).run(today, 2000000, 15, 800000, 8, 1200000, 23);
 
       const result = db.prepare(`
         SELECT * FROM daily_summaries 
@@ -366,12 +366,12 @@ describe('DailySummary Model', () => {
       db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(yesterday, 8000.00, 5, 3000.00, 2, 5000.00, 7);
+      `).run(yesterday, 800000, 5, 300000, 2, 500000, 7);
 
       db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(today, 10000.00, 8, 4000.00, 3, 6000.00, 11);
+      `).run(today, 1000000, 8, 400000, 3, 600000, 11);
 
       const result = db.prepare(`
         SELECT * FROM daily_summaries 
@@ -414,7 +414,7 @@ describe('DailySummary Model', () => {
       db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(testDate, 12000.00, 10, 5000.00, 5, 7000.00, 15);
+      `).run(testDate, 1200000, 10, 500000, 5, 700000, 15);
 
       const result = db.prepare(`
         SELECT * FROM daily_summaries 
@@ -440,7 +440,7 @@ describe('DailySummary Model', () => {
       db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(startOfWeek, 10000.00, 8, 4000.00, 4, 6000.00, 12);
+      `).run(startOfWeek, 1000000, 8, 400000, 4, 600000, 12);
 
       const result = db.prepare(`
         SELECT * FROM daily_summaries 
@@ -463,16 +463,16 @@ describe('DailySummary Model', () => {
       const insertResult = db.prepare(`
         INSERT INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(testDate, 25000.00, 20, 15000.00, 10, 10000.00, 30);
+      `).run(testDate, 2500000, 20, 1500000, 10, 1000000, 30);
 
       const summaryId = insertResult.lastInsertRowid;
       const result = db.prepare('SELECT * FROM daily_summaries WHERE id = ?').get(summaryId);
 
       expect(result).toBeDefined();
       expect(result.summary_date).toBe(testDate);
-      expect(result.total_income).toBe(25000.00);
-      expect(result.total_expenses).toBe(15000.00);
-      expect(result.net_flow).toBe(10000.00);
+      expect(result.total_income).toBe(2500000);
+      expect(result.total_expenses).toBe(1500000);
+      expect(result.net_flow).toBe(1000000);
     });
 
     it('should require all required fields', () => {
@@ -489,7 +489,7 @@ describe('DailySummary Model', () => {
       const insertResult = db.prepare(`
         INSERT INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(testDate, 30000.00, 25, 18000.00, 12, 12000.00, 37);
+      `).run(testDate, 3000000, 25, 1800000, 12, 1200000, 37);
 
       expect(insertResult.lastInsertRowid).toBeDefined();
       expect(typeof insertResult.lastInsertRowid).toBe('number');
@@ -504,7 +504,7 @@ describe('DailySummary Model', () => {
       const insertResult = db.prepare(`
         INSERT INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(testDate, 20000.00, 15, 10000.00, 8, 10000.00, 23);
+      `).run(testDate, 2000000, 15, 1000000, 8, 1000000, 23);
 
       const summaryId = insertResult.lastInsertRowid;
 
@@ -513,14 +513,14 @@ describe('DailySummary Model', () => {
         UPDATE daily_summaries 
         SET total_income = ?, total_expenses = ?, net_flow = ?
         WHERE id = ?
-      `).run(35000.00, 20000.00, 15000.00, summaryId);
+      `).run(3500000, 2000000, 1500000, summaryId);
 
       const result = db.prepare('SELECT * FROM daily_summaries WHERE id = ?').get(summaryId);
 
       expect(result).toBeDefined();
-      expect(result.total_income).toBe(35000.00);
-      expect(result.total_expenses).toBe(20000.00);
-      expect(result.net_flow).toBe(15000.00);
+      expect(result.total_income).toBe(3500000);
+      expect(result.total_expenses).toBe(2000000);
+      expect(result.net_flow).toBe(1500000);
     });
 
     it('should require ID parameter', () => {
@@ -541,7 +541,7 @@ describe('DailySummary Model', () => {
       const insertResult = db.prepare(`
         INSERT INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(testDate, 18000.00, 12, 8000.00, 6, 10000.00, 18);
+      `).run(testDate, 1800000, 12, 800000, 6, 1000000, 18);
 
       const summaryId = insertResult.lastInsertRowid;
 
@@ -565,7 +565,7 @@ describe('DailySummary Model', () => {
       const insertResult = db.prepare(`
         INSERT INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(testDate, 16000.00, 10, 6000.00, 4, 10000.00, 14);
+      `).run(testDate, 1600000, 10, 600000, 4, 1000000, 14);
 
       const summaryId = insertResult.lastInsertRowid;
 
@@ -589,7 +589,7 @@ describe('DailySummary Model', () => {
       const insertResult = db.prepare(`
         INSERT INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(testDate, 14000.00, 8, 4000.00, 2, 10000.00, 10);
+      `).run(testDate, 1400000, 8, 400000, 2, 1000000, 10);
 
       const summaryId = insertResult.lastInsertRowid;
       const deleteResult = db.prepare('DELETE FROM daily_summaries WHERE id = ?').run(summaryId);
@@ -607,12 +607,12 @@ describe('DailySummary Model', () => {
       db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(yesterday, 10000.00, 10, 5000.00, 5, 5000.00, 15);
+      `).run(yesterday, 1000000, 10, 500000, 5, 500000, 15);
 
       db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(today, 15000.00, 15, 7000.00, 7, 8000.00, 22);
+      `).run(today, 1500000, 15, 700000, 7, 800000, 22);
 
       const result = db.prepare(`
         SELECT 
@@ -746,7 +746,7 @@ describe('DailySummary Model', () => {
           UPDATE daily_summaries 
           SET total_income = ?, total_expenses = ?, net_flow = ?
           WHERE summary_date = ?
-        `).run(40000.00, 25000.00, 15000.00, testDate);
+        `).run(4000000, 2500000, 1500000, testDate);
 
         expect(updateResult.changes).toBeGreaterThanOrEqual(0);
 
@@ -757,7 +757,7 @@ describe('DailySummary Model', () => {
         db.prepare(`
           INSERT INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
           VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).run(testDate, 40000.00, 20, 25000.00, 15, 15000.00, 35);
+        `).run(testDate, 4000000, 20, 2500000, 15, 1500000, 35);
 
         const result = db.prepare('SELECT * FROM daily_summaries WHERE summary_date = ?').get(testDate);
         expect(result).toBeDefined();
@@ -794,12 +794,12 @@ describe('DailySummary Model', () => {
       const insertResult = db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(testDate, 10000.00, 5, 10000.00, 5, 0.00, 10);
+      `).run(testDate, 1000000, 5, 1000000, 5, 0, 10);
 
       const result = db.prepare('SELECT * FROM daily_summaries WHERE summary_date = ?').get(testDate);
 
       expect(result).toBeDefined();
-      expect(result.net_flow).toBe(0.00);
+      expect(result.net_flow).toBe(0);
     });
 
     it('should handle negative net flow', () => {
@@ -809,12 +809,12 @@ describe('DailySummary Model', () => {
       const insertResult = db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(testDate, 5000.00, 3, 15000.00, 8, -10000.00, 11);
+      `).run(testDate, 500000, 3, 1500000, 8, -1000000, 11);
 
       const result = db.prepare('SELECT * FROM daily_summaries WHERE summary_date = ?').get(testDate);
 
       expect(result).toBeDefined();
-      expect(result.net_flow).toBe(-10000.00);
+      expect(result.net_flow).toBe(-1000000);
     });
   });
 });

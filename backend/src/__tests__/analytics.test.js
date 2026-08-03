@@ -89,7 +89,7 @@ describe('Analytics Model', () => {
       CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         transaction_type TEXT NOT NULL,
         description TEXT,
         related_id INTEGER,
@@ -176,7 +176,7 @@ describe('Analytics Model', () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         description TEXT,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         charge_type TEXT NOT NULL,
         frequency TEXT NOT NULL,
         is_recurring BOOLEAN DEFAULT 0,
