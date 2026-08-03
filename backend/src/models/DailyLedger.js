@@ -45,10 +45,7 @@ const FIELDS = {
  * @returns {Promise<Object|null>} - Single ledger record or null if not found
  */
 export async function getById(id) {
-  const row = await db.get(
-    `SELECT * FROM ${TABLE} WHERE ${FIELDS.ID} = ?`,
-    [id]
-  );
+  const row = db.prepare(`SELECT * FROM ${TABLE} WHERE ${FIELDS.ID} = ?`).get(id);
   if (!row) return null;
   return {
     ...row,
@@ -66,10 +63,7 @@ export async function getById(id) {
  * @returns {Promise<Object|null>} - Single ledger record or null if not found
  */
 export async function getByDate(date) {
-  const row = await db.get(
-    `SELECT * FROM ${TABLE} WHERE ${FIELDS.DATE} = ?`,
-    [date]
-  );
+  const row = db.prepare(`SELECT * FROM ${TABLE} WHERE ${FIELDS.DATE} = ?`).get(date);
   if (!row) return null;
   return {
     ...row,
@@ -121,10 +115,7 @@ export async function getAll(options = {}) {
   const safeOrderBy = validOrderFields.includes(orderBy) ? orderBy : FIELDS.DATE;
   const safeOrderDirection = orderDirection === 'ASC' || orderDirection === 'DESC' ? orderDirection : 'DESC';
 
-  const rows = await db.all(
-    `SELECT * FROM ${TABLE} ${whereClause} ORDER BY ${safeOrderBy} ${safeOrderDirection} LIMIT ? OFFSET ?`,
-    [...params, limit, offset]
-  );
+  const rows = db.prepare(`SELECT * FROM ${TABLE} ${whereClause} ORDER BY ${safeOrderBy} ${safeOrderDirection} LIMIT ? OFFSET ?`).all(...params, limit, offset);
   return rows.map(row => ({
     ...row,
     opening_balance: getAmount(row, FIELDS.OPENING_BALANCE),
@@ -199,10 +190,7 @@ export async function count(options = {}) {
     params.push(endDate);
   }
 
-  const result = await db.get(
-    `SELECT COUNT(*) as count FROM ${TABLE} ${whereClause}`,
-    params
-  );
+  const result = db.prepare(`SELECT COUNT(*) as count FROM ${TABLE} ${whereClause}`).get(...params);
   return result.count || 0;
 }
 
@@ -242,10 +230,8 @@ export async function create(data) {
   const closingBalanceCents = toCents(calculatedClosingBalance);
   const netMovementCents = toCents(calculatedNetMovement);
 
-  const result = await db.run(
-    `INSERT INTO ${TABLE} (${FIELDS.DATE}, ${FIELDS.OPENING_BALANCE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.CLOSING_BALANCE}, ${FIELDS.NET_MOVEMENT}, ${FIELDS.TRANSACTION_COUNT}) 
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [
+  const result = db.prepare(`INSERT INTO ${TABLE} (${FIELDS.DATE}, ${FIELDS.OPENING_BALANCE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.CLOSING_BALANCE}, ${FIELDS.NET_MOVEMENT}, ${FIELDS.TRANSACTION_COUNT}) 
+     VALUES (?, ?, ?, ?, ?, ?, ?)`).run(
       date,
       openingBalanceCents,
       totalIncomeCents,
@@ -253,8 +239,7 @@ export async function create(data) {
       closingBalanceCents,
       netMovementCents,
       transaction_count
-    ]
-  );
+    );
 
   return getById(result.lastID);
 }
@@ -292,38 +277,25 @@ export async function update(id, data) {
   const closingBalanceCents = toCents(calculatedClosingBalance);
   const netMovementCents = toCents(calculatedNetMovement);
 
-  await db.run(
-    `UPDATE ${TABLE} SET 
+  db.prepare(`UPDATE ${TABLE} SET 
      ${FIELDS.DATE} = ?,
      ${FIELDS.OPENING_BALANCE} = ?,
-     ${FIELDS.OPENING_BALANCE} = ?,
-     ${FIELDS.TOTAL_INCOME} = ?,
      ${FIELDS.TOTAL_INCOME} = ?,
      ${FIELDS.TOTAL_EXPENSES} = ?,
-     ${FIELDS.TOTAL_EXPENSES} = ?,
      ${FIELDS.CLOSING_BALANCE} = ?,
-     ${FIELDS.CLOSING_BALANCE} = ?,
-     ${FIELDS.NET_MOVEMENT} = ?,
      ${FIELDS.NET_MOVEMENT} = ?,
      ${FIELDS.TRANSACTION_COUNT} = ?,
      ${FIELDS.UPDATED_AT} = CURRENT_TIMESTAMP
-     WHERE ${FIELDS.ID} = ?`,
-    [
+     WHERE ${FIELDS.ID} = ?`).run(
       date,
-      opening_balance,
       openingBalanceCents,
-      total_income,
       totalIncomeCents,
-      total_expenses,
       totalExpensesCents,
-      calculatedClosingBalance,
       closingBalanceCents,
-      calculatedNetMovement,
       netMovementCents,
       transaction_count,
       id
-    ]
-  );
+    );
 
   return getById(id);
 }
@@ -335,10 +307,7 @@ export async function update(id, data) {
  * @returns {Promise<boolean>} - True if deleted, false if not found
  */
 export async function deleteById(id) {
-  const result = await db.run(
-    `DELETE FROM ${TABLE} WHERE ${FIELDS.ID} = ?`,
-    [id]
-  );
+  const result = db.prepare(`DELETE FROM ${TABLE} WHERE ${FIELDS.ID} = ?`).run(id);
   return result.changes > 0;
 }
 
@@ -366,8 +335,7 @@ export async function getStatistics(options = {}) {
     params.push(endDate);
   }
 
-  const stats = await db.get(
-    `SELECT 
+  const stats = db.prepare(`SELECT 
      COUNT(*) as total_days,
      COALESCE(SUM(${FIELDS.TOTAL_INCOME}), SUM(${FIELDS.TOTAL_INCOME} * 100)) as total_income_cents,
      COALESCE(SUM(${FIELDS.TOTAL_EXPENSES}), SUM(${FIELDS.TOTAL_EXPENSES} * 100)) as total_expenses_cents,
@@ -376,9 +344,7 @@ export async function getStatistics(options = {}) {
      COALESCE(AVG(${FIELDS.TRANSACTION_COUNT}), 0) as avg_transactions_per_day,
      MIN(${FIELDS.DATE}) as first_date,
      MAX(${FIELDS.DATE}) as last_date
-     FROM ${TABLE} ${whereClause}`,
-    params
-  );
+     FROM ${TABLE} ${whereClause}`).get(...params);
 
   if (!stats) {
     return {
@@ -423,8 +389,7 @@ export async function getMissingDates(options = {}) {
   }
 
   // Get all dates in the range that are missing from the ledger
-  const rows = await db.all(
-    `WITH date_series AS (
+  const rows = db.prepare(`WITH date_series AS (
       SELECT date(${FIELDS.DATE}, '+' || (n || ' days') || '') as date_value
       FROM (
         SELECT 0 as n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 
@@ -438,9 +403,7 @@ export async function getMissingDates(options = {}) {
     SELECT date_value as missing_date
     FROM date_series
     WHERE date_value NOT IN (SELECT ${FIELDS.DATE} FROM ${TABLE} WHERE ${FIELDS.DATE} BETWEEN ? AND ?)
-    ORDER BY date_value`,
-    [startDate, endDate, startDate, endDate, startDate, endDate]
-  );
+    ORDER BY date_value`).all(startDate, endDate, startDate, endDate, startDate, endDate);
 
   return rows.map(row => row.missing_date);
 }
@@ -466,17 +429,14 @@ export async function generateForDate(date) {
   const openingBalance = previousLedger ? previousLedger.closing_balance : 0;
 
   // Get transactions for the date - use COALESCE to prefer cents columns
-  const transactions = await db.all(
-    `SELECT 
+  const transactions = db.prepare(`SELECT 
      COALESCE(SUM(CASE WHEN transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN amount ELSE 0 END), 
               SUM(CASE WHEN transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN amount * 100 ELSE 0 END)) as total_income_cents,
      COALESCE(SUM(CASE WHEN transaction_type IN ('expense', 'director_withdrawal') THEN amount ELSE 0 END), 
               SUM(CASE WHEN transaction_type IN ('expense', 'director_withdrawal') THEN amount * 100 ELSE 0 END)) as total_expenses_cents,
      COUNT(*) as transaction_count
      FROM ${TRANSACTIONS_TABLE} 
-     WHERE transaction_date = ?`,
-    [date]
-  );
+     WHERE transaction_date = ?`).get(date);
 
   const totalIncome = parseFloat(fromCents(transactions.total_income_cents || 0));
   const totalExpenses = parseFloat(fromCents(transactions.total_expenses_cents || 0));
