@@ -338,7 +338,7 @@ export async function create(data) {
 
   try {
     const result = await db.run(query, params);
-    return await getById(result.lastID);
+    return await getById(result.lastInsertRowid);
   } catch (error) {
     console.error('Error in create expense:', error.message);
     throw error;

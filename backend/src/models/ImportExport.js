@@ -71,7 +71,7 @@ const ImportExport = {
     `;
     const params = [type, action, tableName, fileName, recordCount || 0, status, errorMessage, userId];
     const result = await db.run(query, params);
-    return { id: result.lastID, ...data };
+    return { id: result.lastInsertRowid, ...data };
   },
 
   // Get log by ID

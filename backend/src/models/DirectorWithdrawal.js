@@ -267,7 +267,7 @@ export async function create(data) {
 
   try {
     const result = await db.run(query, params);
-    return getById(result.lastID);
+    return getById(result.lastInsertRowid);
   } catch (error) {
     console.error('Error in create director withdrawal:', error.message);
     throw error;

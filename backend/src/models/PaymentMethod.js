@@ -106,7 +106,7 @@ export async function create(data) {
     VALUES (?, ?, ?, ?, ?)
   `).run(name, description, isActive ? 1 : 0, isSystem ? 1 : 0, createdBy);
 
-  return getById(result.lastID);
+  return getById(result.lastInsertRowid);
 }
 
 /**

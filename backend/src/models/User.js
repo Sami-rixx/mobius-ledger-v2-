@@ -133,7 +133,7 @@ export async function create(data) {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `).run(username, full_name, email, phone, password_hash, role, is_active ? 1 : 0);
 
-  return getById(result.lastID);
+  return getById(result.lastInsertRowid);
 }
 
 /**
