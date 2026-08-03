@@ -241,7 +241,7 @@ export async function create(data) {
       transaction_count
     );
 
-  return getById(result.lastID);
+  return getById(result.lastInsertRowid);
 }
 
 /**
