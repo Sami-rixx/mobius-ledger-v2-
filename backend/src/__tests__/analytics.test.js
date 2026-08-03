@@ -264,6 +264,7 @@ describe('Analytics Model', () => {
   describe('getIncomeVsExpense', () => {
     it('should return income vs expense comparison data', () => {
       const today = new Date().toISOString().split('T')[0];
+      const lastMonth = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
       const stmt = db.prepare(`
         SELECT 
           strftime('%Y-%m', income_date) as period,
