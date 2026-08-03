@@ -19,6 +19,7 @@ describe('Notification Module', () => {
   beforeAll(() => {
     // Create in-memory database for testing
     testDb = new Database(TEST_DB);
+    testDb.pragma('foreign_keys = ON');
     
     // Create users and notifications tables
     testDb.exec(`
@@ -312,7 +313,7 @@ describe('Notification Module', () => {
           type: 'INVALID'
         });
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('Invalid type');
+        expect(result.errors[0]).toContain('Invalid type. Must be one of:');
       });
 
       it('should reject invalid priority', () => {
@@ -322,7 +323,7 @@ describe('Notification Module', () => {
           priority: 'INVALID'
         });
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('Invalid priority');
+        expect(result.errors[0]).toContain('Invalid priority. Must be one of:');
       });
     });
 
