@@ -209,6 +209,11 @@ describe('DailySummary Model', () => {
     db.prepare('DELETE FROM daily_summaries WHERE summary_date IN (?, ?, ?, ?, ?)').run(today, yesterday, twoDaysAgo, lastWeek, lastMonth);
   });
 
+  beforeEach(() => {
+    // Clean up all daily summaries before each test to avoid UNIQUE constraint violations
+    db.prepare('DELETE FROM daily_summaries').run();
+  });
+
   afterAll(() => {
     // Clean up test data
     try {

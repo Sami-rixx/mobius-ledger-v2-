@@ -200,6 +200,11 @@ describe('Student Charge Models', () => {
       paymentMethodId
     };
 
+    // Clean up assignments before each test to avoid UNIQUE constraint violations
+    beforeEach(() => {
+      db.prepare('DELETE FROM student_charge_assignments').run();
+    });
+
     // Create test model implementations that use the test database
     StudentChargeModel = {
       getAllStudentCharges: (options = {}) => {

@@ -206,6 +206,12 @@ describe('Reports & Analytics Models', () => {
     db.prepare('DELETE FROM daily_summaries').run();
   });
 
+  beforeEach(() => {
+    // Clean up before each test to avoid UNIQUE constraint violations
+    db.prepare('DELETE FROM daily_summaries').run();
+    db.prepare('DELETE FROM reports WHERE title LIKE ?').run('%Test%');
+  });
+
   afterAll(() => {
     // Clean up test data
     try {
