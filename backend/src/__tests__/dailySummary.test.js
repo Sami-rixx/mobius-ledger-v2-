@@ -328,7 +328,7 @@ describe('DailySummary Model', () => {
 
       expect(result).toBeDefined();
       expect(result.id).toBe(summaryId);
-      expect(result.total_income).toBe(15000);
+      expect(result.total_income).toBe(1500000);
     });
 
     it('should return undefined for non-existent ID', () => {
