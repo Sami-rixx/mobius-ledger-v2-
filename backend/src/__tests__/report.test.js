@@ -405,7 +405,7 @@ describe('Reports & Analytics Models', () => {
       // Query for comparison
       const result = db.prepare(`
         SELECT 
-          income_date as date,
+          date,
           SUM(CASE WHEN source = 'income' THEN amount ELSE 0 END) as total_income,
           SUM(CASE WHEN source = 'expense' THEN amount ELSE 0 END) as total_expenses
         FROM (
