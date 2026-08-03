@@ -25,6 +25,12 @@ let StudentChargeAssignmentModel;
 let testData = {};
 
 describe('Student Charge Models', () => {
+  // Clean up assignments before each test to avoid UNIQUE constraint violations
+  beforeEach(() => {
+    if (db) {
+      db.prepare('DELETE FROM student_charge_assignments').run();
+    }
+  });
   beforeAll(() => {
     // Create test database
     db = new Database(TEST_DB_PATH);
@@ -199,11 +205,6 @@ describe('Student Charge Models', () => {
       studentId2,
       paymentMethodId
     };
-
-    // Clean up assignments before each test to avoid UNIQUE constraint violations
-    beforeEach(() => {
-      db.prepare('DELETE FROM student_charge_assignments').run();
-    });
 
     // Create test model implementations that use the test database
     StudentChargeModel = {
