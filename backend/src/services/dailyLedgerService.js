@@ -222,11 +222,12 @@ export async function getPaginatedDailyLedgers(params = {}) {
  * @returns {Promise<Object>} - Ledger record
  */
 export async function getDailyLedgerById(id) {
-  if (!id || typeof id !== 'number' && typeof id !== 'string') {
-    throw new Error('id must be a number');
+  const idNum = parseInt(id);
+  if (isNaN(idNum) || idNum < 1) {
+    throw new Error('id must be a valid positive number');
   }
   
-  const ledger = await getById(parseInt(id));
+  const ledger = await getById(idNum);
   if (!ledger) {
     throw new Error(`Daily ledger record with id ${id} not found`);
   }
@@ -375,11 +376,12 @@ export async function updateDailyLedger(id, data) {
  * @returns {Promise<Object>} - Deletion result
  */
 export async function deleteDailyLedger(id) {
-  if (!id || typeof id !== 'number' && typeof id !== 'string') {
-    throw new Error('id must be a number');
+  const idNum = parseInt(id);
+  if (isNaN(idNum) || idNum < 1) {
+    throw new Error('id must be a valid positive number');
   }
   
-  const success = await deleteById(parseInt(id));
+  const success = await deleteById(idNum);
   if (!success) {
     throw new Error(`Daily ledger record with id ${id} not found`);
   }
