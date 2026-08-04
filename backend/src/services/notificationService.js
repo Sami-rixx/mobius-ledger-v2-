@@ -36,18 +36,22 @@ const DEFAULT_PAGE_SIZE = 20;
  * @param {Object} data - Notification data to validate
  * @returns {Object} - Validation result with isValid and errors
  */
-export const validateNotification = (data) => {
+export const validateNotification = (data, isUpdate = false) => {
   const errors = [];
 
-  // Required fields
-  if (!data.title || data.title.trim() === '') {
-    errors.push('Title is required');
-  } else if (data.title.length > 255) {
-    errors.push('Title must be 255 characters or less');
+  // Required fields for create; optional for update
+  if (!isUpdate || data.title !== undefined) {
+    if (!data.title || data.title.trim() === '') {
+      errors.push('Title is required');
+    } else if (data.title.length > 255) {
+      errors.push('Title must be 255 characters or less');
+    }
   }
 
-  if (!data.message || data.message.trim() === '') {
-    errors.push('Message is required');
+  if (!isUpdate || data.message !== undefined) {
+    if (!data.message || data.message.trim() === '') {
+      errors.push('Message is required');
+    }
   }
 
   // Validate type
@@ -213,7 +217,7 @@ export const updateNotification = (id, updateData) => {
   }
 
   // Validate update data
-  const validation = validateNotification(updateData);
+  const validation = validateNotification(updateData, true);
   if (!validation.isValid) {
     throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
   }

@@ -476,16 +476,16 @@ describe('DailyLedger Module', () => {
     });
 
     describe('deleteDailyLedger', () => {
-      it('should delete a ledger', () => {
+      it('should delete a ledger', async () => {
         // Create a ledger first
-        const newLedger = dailyLedgerService.createDailyLedger({
+        const newLedger = await dailyLedgerService.createDailyLedger({
           date: '2026-07-25',
           opening_balance: 0,
           total_income: 0,
           total_expenses: 0
         });
         
-        const deleted = dailyLedgerService.deleteDailyLedger(newLedger.id);
+        const deleted = await dailyLedgerService.deleteDailyLedger(newLedger.id);
         expect(deleted).toBeTruthy();
       });
     });
