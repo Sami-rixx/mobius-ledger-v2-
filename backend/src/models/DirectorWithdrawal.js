@@ -148,6 +148,20 @@ export function getAll(options = {}) {
     return rows.map(row => ({
       ...row,
       amount: getAmount(row, FIELDS.AMOUNT),
+      recipientName: row.recipient_name,
+      recipientContact: row.recipient_contact,
+      paymentMethodId: row.payment_method_id,
+      transactionId: row.transaction_id,
+      withdrawalDate: row.withdrawal_date,
+      createdBy: row.created_by,
+      updatedBy: row.updated_by,
+      approvedBy: row.approved_by,
+      rejectedBy: row.rejected_by,
+      rejectionReason: row.rejection_reason,
+      paymentMethodName: row.payment_method_name,
+      createdByUsername: row.created_by_username,
+      approvedByUsername: row.approved_by_username,
+      rejectedByUsername: row.rejected_by_username,
       is_approved: row.status === WITHDRAWAL_STATUS.APPROVED,
       is_pending: row.status === WITHDRAWAL_STATUS.PENDING,
       is_rejected: row.status === WITHDRAWAL_STATUS.REJECTED,
@@ -187,6 +201,20 @@ export function getById(id) {
     return {
       ...row,
       amount: getAmount(row, FIELDS.AMOUNT),
+      recipientName: row.recipient_name,
+      recipientContact: row.recipient_contact,
+      paymentMethodId: row.payment_method_id,
+      transactionId: row.transaction_id,
+      withdrawalDate: row.withdrawal_date,
+      createdBy: row.created_by,
+      updatedBy: row.updated_by,
+      approvedBy: row.approved_by,
+      rejectedBy: row.rejected_by,
+      rejectionReason: row.rejection_reason,
+      paymentMethodName: row.payment_method_name,
+      createdByUsername: row.created_by_username,
+      approvedByUsername: row.approved_by_username,
+      rejectedByUsername: row.rejected_by_username,
       is_approved: row.status === WITHDRAWAL_STATUS.APPROVED,
       is_pending: row.status === WITHDRAWAL_STATUS.PENDING,
       is_rejected: row.status === WITHDRAWAL_STATUS.REJECTED,
@@ -306,43 +334,66 @@ export function update(id, data) {
     updatedBy
   } = data;
 
-  // Calculate amount if amount is being updated
-  let amountCents = undefined;
+  const updates = [];
+  const params = [];
+
   if (amount !== undefined) {
-    amountCents = toCents(amount);
+    updates.push(`${FIELDS.AMOUNT} = ?`);
+    params.push(toCents(amount));
+  }
+  if (label !== undefined) {
+    updates.push(`${FIELDS.LABEL} = ?`);
+    params.push(label);
+  }
+  if (purpose !== undefined) {
+    updates.push(`${FIELDS.PURPOSE} = ?`);
+    params.push(purpose);
+  }
+  if (description !== undefined) {
+    updates.push(`${FIELDS.DESCRIPTION} = ?`);
+    params.push(description);
+  }
+  if (recipientName !== undefined) {
+    updates.push(`${FIELDS.RECIPIENT_NAME} = ?`);
+    params.push(recipientName);
+  }
+  if (recipientContact !== undefined) {
+    updates.push(`${FIELDS.RECIPIENT_CONTACT} = ?`);
+    params.push(recipientContact);
+  }
+  if (paymentMethodId !== undefined) {
+    updates.push(`${FIELDS.PAYMENT_METHOD_ID} = ?`);
+    params.push(paymentMethodId || null);
+  }
+  if (withdrawalDate !== undefined) {
+    updates.push(`${FIELDS.WITHDRAWAL_DATE} = ?`);
+    params.push(withdrawalDate);
+  }
+  if (status !== undefined) {
+    updates.push(`${FIELDS.STATUS} = ?`);
+    params.push(status);
+  }
+  if (notes !== undefined) {
+    updates.push(`${FIELDS.NOTES} = ?`);
+    params.push(notes || null);
+  }
+  if (updatedBy !== undefined) {
+    updates.push(`${FIELDS.UPDATED_BY} = ?`);
+    params.push(updatedBy);
   }
 
+  if (updates.length === 0) {
+    return getById(id);
+  }
+
+  updates.push(`${FIELDS.UPDATED_AT} = CURRENT_TIMESTAMP`);
+  params.push(id);
+
   const query = `
-    UPDATE ${TABLE} SET
-      ${FIELDS.AMOUNT} = ?,
-      ${FIELDS.LABEL} = ?,
-      ${FIELDS.PURPOSE} = ?,
-      ${FIELDS.DESCRIPTION} = ?,
-      ${FIELDS.RECIPIENT_NAME} = ?,
-      ${FIELDS.RECIPIENT_CONTACT} = ?,
-      ${FIELDS.PAYMENT_METHOD_ID} = ?,
-      ${FIELDS.WITHDRAWAL_DATE} = ?,
-      ${FIELDS.STATUS} = ?,
-      ${FIELDS.NOTES} = ?,
-      ${FIELDS.UPDATED_BY} = ?,
-      ${FIELDS.UPDATED_AT} = CURRENT_TIMESTAMP
+    UPDATE ${TABLE} 
+    SET ${updates.join(', ')}
     WHERE ${FIELDS.ID} = ?
   `;
-
-  const params = [
-    amountCents,
-    label,
-    purpose,
-    description,
-    recipientName,
-    recipientContact,
-    paymentMethodId || null,
-    withdrawalDate,
-    status,
-    notes || null,
-    updatedBy,
-    id
-  ];
 
   try {
     db.prepare(query).run(...params);
@@ -553,7 +604,7 @@ export function getStatistics() {
       COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as total_amount,
       COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as pending_amount,
       COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as approved_amount,
-      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as rejected_amount,
+      COALESCE(SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} ELSE 0 END), SUM(CASE WHEN ${FIELDS.STATUS} = ? THEN ${FIELDS.AMOUNT} * 100 ELSE 0 END)) as rejected_amount
     FROM ${TABLE}
   `;
 
