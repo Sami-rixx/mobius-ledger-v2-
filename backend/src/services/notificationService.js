@@ -39,15 +39,19 @@ const DEFAULT_PAGE_SIZE = 20;
 export const validateNotification = (data) => {
   const errors = [];
 
-  // Required fields
-  if (!data.title || data.title.trim() === '') {
-    errors.push('Title is required');
-  } else if (data.title.length > 255) {
-    errors.push('Title must be 255 characters or less');
+  // Required fields - only validate if present in data (for partial updates)
+  if (data.title !== undefined) {
+    if (!data.title || data.title.trim() === '') {
+      errors.push('Title is required');
+    } else if (data.title.length > 255) {
+      errors.push('Title must be 255 characters or less');
+    }
   }
 
-  if (!data.message || data.message.trim() === '') {
-    errors.push('Message is required');
+  if (data.message !== undefined) {
+    if (!data.message || data.message.trim() === '') {
+      errors.push('Message is required');
+    }
   }
 
   // Validate type
