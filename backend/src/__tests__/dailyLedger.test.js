@@ -10,15 +10,15 @@ import Database from 'better-sqlite3';
 const TEST_DB = ':memory:';
 let testDb;
 
-// Mock the database module
-jest.mock('../config/database.js', () => ({
-  default: testDb
-}));
-
 describe('DailyLedger Module', () => {
   beforeAll(() => {
     // Create in-memory database for testing
     testDb = new Database(TEST_DB);
+    
+    // Mock the database module after testDb is initialized
+    jest.mock('../config/database.js', () => ({
+      default: testDb
+    }));
     
     // Create users, transactions, and daily_ledger tables
     testDb.exec(`
