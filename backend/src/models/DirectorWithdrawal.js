@@ -69,9 +69,9 @@ const FIELDS = {
  * @param {number} options.offset - Offset for pagination
  * @param {string} options.orderBy - Field to order by
  * @param {string} options.orderDirection - ASC or DESC
- * @returns {Promise<Array>} - Array of director withdrawal records
+ * @returns {Array} - Array of director withdrawal records
  */
-export async function getAll(options = {}) {
+export function getAll(options = {}) {
   const {
     label,
     status,
@@ -144,7 +144,7 @@ export async function getAll(options = {}) {
   params.push(limit, offset);
 
   try {
-    const rows = await db.all(query, params);
+    const rows = db.prepare(query).all(...params);
     return rows.map(row => ({
       ...row,
       amount: getAmount(row, FIELDS.AMOUNT),
@@ -163,9 +163,9 @@ export async function getAll(options = {}) {
 /**
  * Get director withdrawal by ID
  * @param {number} id - Director withdrawal record ID
- * @returns {Promise<Object|null>} - Director withdrawal record or null
+ * @returns {Object|null} - Director withdrawal record or null
  */
-export async function getById(id) {
+export function getById(id) {
   const query = `
     SELECT ${TABLE}.*, 
            ${PAYMENT_METHODS_TABLE}.name as payment_method_name,
@@ -181,7 +181,7 @@ export async function getById(id) {
   `;
 
   try {
-    const row = await db.get(query, [id]);
+    const row = db.prepare(query).get(id);
     if (!row) return null;
     
     return {
@@ -212,9 +212,9 @@ export async function getById(id) {
  * @param {string} data.withdrawalDate - Date of withdrawal (YYYY-MM-DD)
  * @param {string} data.notes - Additional notes
  * @param {number} data.createdBy - ID of user creating the withdrawal
- * @returns {Promise<Object>} - Created director withdrawal record
+ * @returns {Object} - Created director withdrawal record
  */
-export async function create(data) {
+export function create(data) {
   const {
     amount,
     label,
@@ -266,7 +266,7 @@ export async function create(data) {
   ];
 
   try {
-    const result = await db.run(query, params);
+    const result = db.prepare(query).run(...params);
     return getById(result.lastInsertRowid);
   } catch (error) {
     console.error('Error in create director withdrawal:', error.message);
@@ -289,9 +289,9 @@ export async function create(data) {
  * @param {string} data.status - Status (pending, approved, rejected, completed, cancelled)
  * @param {string} data.notes - Additional notes
  * @param {number} data.updatedBy - ID of user updating the withdrawal
- * @returns {Promise<Object>} - Updated director withdrawal record
+ * @returns {Object} - Updated director withdrawal record
  */
-export async function update(id, data) {
+export function update(id, data) {
   const {
     amount,
     label,
@@ -315,7 +315,6 @@ export async function update(id, data) {
   const query = `
     UPDATE ${TABLE} SET
       ${FIELDS.AMOUNT} = ?,
-      ${FIELDS.AMOUNT} = ?,
       ${FIELDS.LABEL} = ?,
       ${FIELDS.PURPOSE} = ?,
       ${FIELDS.DESCRIPTION} = ?,
@@ -331,7 +330,6 @@ export async function update(id, data) {
   `;
 
   const params = [
-    amount,
     amountCents,
     label,
     purpose,
@@ -347,7 +345,7 @@ export async function update(id, data) {
   ];
 
   try {
-    await db.run(query, params);
+    db.prepare(query).run(...params);
     return getById(id);
   } catch (error) {
     console.error('Error in update director withdrawal:', error.message);
@@ -358,13 +356,13 @@ export async function update(id, data) {
 /**
  * Delete a director withdrawal
  * @param {number} id - Director withdrawal ID
- * @returns {Promise<boolean>} - True if deleted, false otherwise
+ * @returns {boolean} - True if deleted, false otherwise
  */
-export async function deleteById(id) {
+export function deleteById(id) {
   const query = `DELETE FROM ${TABLE} WHERE ${FIELDS.ID} = ?`;
 
   try {
-    const result = await db.run(query, [id]);
+    const result = db.prepare(query).run(id);
     return result.changes > 0;
   } catch (error) {
     console.error('Error in deleteById director withdrawal:', error.message);
@@ -376,36 +374,36 @@ export async function deleteById(id) {
  * Get director withdrawals by status
  * @param {string} status - Status to filter by
  * @param {Object} options - Additional filter options
- * @returns {Promise<Array>} - Array of director withdrawal records
+ * @returns {Array} - Array of director withdrawal records
  */
-export async function getByStatus(status, options = {}) {
+export function getByStatus(status, options = {}) {
   return getAll({ ...options, status });
 }
 
 /**
  * Get pending director withdrawals (awaiting approval)
  * @param {Object} options - Filter options
- * @returns {Promise<Array>} - Array of pending director withdrawal records
+ * @returns {Array} - Array of pending director withdrawal records
  */
-export async function getPending(options = {}) {
+export function getPending(options = {}) {
   return getByStatus(WITHDRAWAL_STATUS.PENDING, options);
 }
 
 /**
  * Get approved director withdrawals
  * @param {Object} options - Filter options
- * @returns {Promise<Array>} - Array of approved director withdrawal records
+ * @returns {Array} - Array of approved director withdrawal records
  */
-export async function getApproved(options = {}) {
+export function getApproved(options = {}) {
   return getByStatus(WITHDRAWAL_STATUS.APPROVED, options);
 }
 
 /**
  * Get rejected director withdrawals
  * @param {Object} options - Filter options
- * @returns {Promise<Array>} - Array of rejected director withdrawal records
+ * @returns {Array} - Array of rejected director withdrawal records
  */
-export async function getRejected(options = {}) {
+export function getRejected(options = {}) {
   return getByStatus(WITHDRAWAL_STATUS.REJECTED, options);
 }
 
@@ -414,9 +412,9 @@ export async function getRejected(options = {}) {
  * @param {number} id - Director withdrawal ID
  * @param {number} approvedBy - ID of user approving
  * @param {string} notes - Approval notes
- * @returns {Promise<Object>} - Updated director withdrawal record
+ * @returns {Object} - Updated director withdrawal record
  */
-export async function approve(id, approvedBy, notes = null) {
+export function approve(id, approvedBy, notes = null) {
   const query = `
     UPDATE ${TABLE} SET
       ${FIELDS.STATUS} = ?,
@@ -429,13 +427,13 @@ export async function approve(id, approvedBy, notes = null) {
   `;
 
   try {
-    await db.run(query, [
+    db.prepare(query).run(
       WITHDRAWAL_STATUS.APPROVED,
       approvedBy,
       notes ? `\nApproval note: ${notes}` : '',
       approvedBy,
       id
-    ]);
+    );
     return getById(id);
   } catch (error) {
     console.error('Error in approve director withdrawal:', error.message);
@@ -448,9 +446,9 @@ export async function approve(id, approvedBy, notes = null) {
  * @param {number} id - Director withdrawal ID
  * @param {number} rejectedBy - ID of user rejecting
  * @param {string} reason - Reason for rejection
- * @returns {Promise<Object>} - Updated director withdrawal record
+ * @returns {Object} - Updated director withdrawal record
  */
-export async function reject(id, rejectedBy, reason) {
+export function reject(id, rejectedBy, reason) {
   const query = `
     UPDATE ${TABLE} SET
       ${FIELDS.STATUS} = ?,
@@ -463,13 +461,13 @@ export async function reject(id, rejectedBy, reason) {
   `;
 
   try {
-    await db.run(query, [
+    db.prepare(query).run(
       WITHDRAWAL_STATUS.REJECTED,
       rejectedBy,
       reason,
       rejectedBy,
       id
-    ]);
+    );
     return getById(id);
   } catch (error) {
     console.error('Error in reject director withdrawal:', error.message);
@@ -482,9 +480,9 @@ export async function reject(id, rejectedBy, reason) {
  * @param {number} id - Director withdrawal ID
  * @param {number} updatedBy - ID of user marking as completed
  * @param {number} transactionId - Optional transaction ID
- * @returns {Promise<Object>} - Updated director withdrawal record
+ * @returns {Object} - Updated director withdrawal record
  */
-export async function markAsCompleted(id, updatedBy, transactionId = null) {
+export function markAsCompleted(id, updatedBy, transactionId = null) {
   const query = `
     UPDATE ${TABLE} SET
       ${FIELDS.STATUS} = ?,
@@ -495,12 +493,12 @@ export async function markAsCompleted(id, updatedBy, transactionId = null) {
   `;
 
   try {
-    await db.run(query, [
+    db.prepare(query).run(
       WITHDRAWAL_STATUS.COMPLETED,
       transactionId || null,
       updatedBy,
       id
-    ]);
+    );
     return getById(id);
   } catch (error) {
     console.error('Error in markAsCompleted director withdrawal:', error.message);
@@ -513,9 +511,9 @@ export async function markAsCompleted(id, updatedBy, transactionId = null) {
  * @param {number} id - Director withdrawal ID
  * @param {number} updatedBy - ID of user cancelling
  * @param {string} reason - Reason for cancellation
- * @returns {Promise<Object>} - Updated director withdrawal record
+ * @returns {Object} - Updated director withdrawal record
  */
-export async function cancel(id, updatedBy, reason = null) {
+export function cancel(id, updatedBy, reason = null) {
   const query = `
     UPDATE ${TABLE} SET
       ${FIELDS.STATUS} = ?,
@@ -526,12 +524,12 @@ export async function cancel(id, updatedBy, reason = null) {
   `;
 
   try {
-    await db.run(query, [
+    db.prepare(query).run(
       WITHDRAWAL_STATUS.CANCELLED,
       reason ? `\nCancellation reason: ${reason}` : '',
       updatedBy,
       id
-    ]);
+    );
     return getById(id);
   } catch (error) {
     console.error('Error in cancel director withdrawal:', error.message);
@@ -541,9 +539,9 @@ export async function cancel(id, updatedBy, reason = null) {
 
 /**
  * Get withdrawal statistics
- * @returns {Promise<Object>} - Statistics object
+ * @returns {Object} - Statistics object
  */
-export async function getStatistics() {
+export function getStatistics() {
   const query = `
     SELECT 
       COUNT(*) as total,
@@ -574,7 +572,7 @@ export async function getStatistics() {
   ];
 
   try {
-    const row = await db.get(query, params);
+    const row = db.prepare(query).get(...params);
     return {
       total: row.total || 0,
       by_status: {
@@ -599,9 +597,9 @@ export async function getStatistics() {
 
 /**
  * Get all unique labels
- * @returns {Promise<Array>} - Array of unique labels
+ * @returns {Array} - Array of unique labels
  */
-export async function getAllLabels() {
+export function getAllLabels() {
   const query = `
     SELECT DISTINCT ${FIELDS.LABEL} 
     FROM ${TABLE} 
@@ -610,7 +608,7 @@ export async function getAllLabels() {
   `;
 
   try {
-    const rows = await db.all(query);
+    const rows = db.prepare(query).all();
     return rows.map(row => row.label);
   } catch (error) {
     console.error('Error in getAllLabels director withdrawals:', error.message);
@@ -623,18 +621,18 @@ export async function getAllLabels() {
  * @param {string} startDate - Start date (inclusive)
  * @param {string} endDate - End date (inclusive)
  * @param {Object} options - Additional filter options
- * @returns {Promise<Array>} - Array of director withdrawal records
+ * @returns {Array} - Array of director withdrawal records
  */
-export async function getByDateRange(startDate, endDate, options = {}) {
+export function getByDateRange(startDate, endDate, options = {}) {
   return getAll({ ...options, startDate, endDate });
 }
 
 /**
  * Get count of director withdrawals
  * @param {Object} options - Filter options
- * @returns {Promise<number>} - Count of records
+ * @returns {number} - Count of records
  */
-export async function getCount(options = {}) {
+export function getCount(options = {}) {
   const {
     label,
     status,
@@ -674,7 +672,7 @@ export async function getCount(options = {}) {
   const query = `SELECT COUNT(*) as count FROM ${TABLE} WHERE 1=1 ${whereClause}`;
 
   try {
-    const row = await db.get(query, params);
+    const row = db.prepare(query).get(...params);
     return row.count || 0;
   } catch (error) {
     console.error('Error in getCount director withdrawals:', error.message);
