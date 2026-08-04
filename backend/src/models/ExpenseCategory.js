@@ -47,9 +47,9 @@ const FIELDS = {
  * @param {number} options.offset - Offset for pagination
  * @param {string} options.orderBy - Field to order by
  * @param {string} options.orderDirection - ASC or DESC
- * @returns {Promise<Array>} - Array of expense categories
+ * @returns {Array} - Array of expense categories
  */
-export async function getAll(options = {}) {
+export function getAll(options = {}) {
   const {
     isActive,
     isSystem,
@@ -115,7 +115,7 @@ export async function getAll(options = {}) {
   params.push(limit, offset);
 
   try {
-    const rows = await db.all(query, params);
+    const rows = db.prepare(query).all(...params);
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -130,9 +130,9 @@ export async function getAll(options = {}) {
 
 /**
  * Get all active expense categories
- * @returns {Promise<Array>} - Array of active expense categories
+ * @returns {Array} - Array of active expense categories
  */
-export async function getAllActive() {
+export function getAllActive() {
   const query = `
     SELECT *
     FROM ${TABLE}
@@ -141,7 +141,7 @@ export async function getAllActive() {
   `;
 
   try {
-    const rows = await db.all(query);
+    const rows = db.prepare(query).all();
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -156,9 +156,9 @@ export async function getAllActive() {
 
 /**
  * Get all kitchen expense categories
- * @returns {Promise<Array>} - Array of kitchen expense categories
+ * @returns {Array} - Array of kitchen expense categories
  */
-export async function getAllKitchen() {
+export function getAllKitchen() {
   const query = `
     SELECT *
     FROM ${TABLE}
@@ -168,7 +168,7 @@ export async function getAllKitchen() {
   `;
 
   try {
-    const rows = await db.all(query);
+    const rows = db.prepare(query).all();
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -184,9 +184,9 @@ export async function getAllKitchen() {
 /**
  * Get all root categories (no parent)
  * @param {Object} options - Filter options
- * @returns {Promise<Array>} - Array of root categories
+ * @returns {Array} - Array of root categories
  */
-export async function getRootCategories(options = {}) {
+export function getRootCategories(options = {}) {
   const { isActive = true } = options;
 
   let whereClause = ` WHERE ${TABLE}.${FIELDS.PARENT_ID} IS NULL`;
@@ -205,7 +205,7 @@ export async function getRootCategories(options = {}) {
   `;
 
   try {
-    const rows = await db.all(query, params);
+    const rows = db.prepare(query).all(...params);
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -221,9 +221,9 @@ export async function getRootCategories(options = {}) {
 /**
  * Get child categories for a parent
  * @param {number} parentId - Parent category ID
- * @returns {Promise<Array>} - Array of child categories
+ * @returns {Array} - Array of child categories
  */
-export async function getChildren(parentId) {
+export function getChildren(parentId) {
   const query = `
     SELECT *
     FROM ${TABLE}
@@ -232,7 +232,7 @@ export async function getChildren(parentId) {
   `;
 
   try {
-    const rows = await db.all(query, [parentId]);
+    const rows = db.prepare(query).all(parentId);
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -248,13 +248,13 @@ export async function getChildren(parentId) {
 /**
  * Get expense category by ID
  * @param {number} id - Expense category ID
- * @returns {Promise<Object|null>} - Expense category or null
+ * @returns {Object|null} - Expense category or null
  */
-export async function getById(id) {
+export function getById(id) {
   const query = `SELECT * FROM ${TABLE} WHERE ${FIELDS.ID} = ?`;
 
   try {
-    const row = await db.get(query, [id]);
+    const row = db.prepare(query).get(id);
     if (row) {
       return {
         ...row,
@@ -273,13 +273,13 @@ export async function getById(id) {
 /**
  * Get expense category by name
  * @param {string} name - Category name
- * @returns {Promise<Object|null>} - Expense category or null
+ * @returns {Object|null} - Expense category or null
  */
-export async function getByName(name) {
+export function getByName(name) {
   const query = `SELECT * FROM ${TABLE} WHERE ${FIELDS.NAME} = ?`;
 
   try {
-    const row = await db.get(query, [name]);
+    const row = db.prepare(query).get(name);
     if (row) {
       return {
         ...row,
@@ -298,9 +298,9 @@ export async function getByName(name) {
 /**
  * Create a new expense category
  * @param {Object} data - Expense category data
- * @returns {Promise<Object>} - Created expense category
+ * @returns {Object} - Created expense category
  */
-export async function create(data) {
+export function create(data) {
   const {
     name,
     parentId,
@@ -337,8 +337,8 @@ export async function create(data) {
   ];
 
   try {
-    const result = await db.run(query, params);
-    return await getById(result.lastInsertRowid);
+    const result = db.prepare(query).run(...params);
+    return getById(result.lastInsertRowid);
   } catch (error) {
     console.error('Error in create expense category:', error.message);
     throw error;
@@ -349,9 +349,9 @@ export async function create(data) {
  * Update an expense category
  * @param {number} id - Expense category ID
  * @param {Object} data - Updated expense category data
- * @returns {Promise<Object>} - Updated expense category
+ * @returns {Object} - Updated expense category
  */
-export async function update(id, data) {
+export function update(id, data) {
   const {
     name,
     parentId,
@@ -395,7 +395,7 @@ export async function update(id, data) {
   }
 
   if (updates.length === 0) {
-    return await getById(id);
+    return getById(id);
   }
 
   updates.push(`${FIELDS.UPDATED_AT} = CURRENT_TIMESTAMP`);
@@ -408,8 +408,8 @@ export async function update(id, data) {
   `;
 
   try {
-    await db.run(query, params);
-    return await getById(id);
+    db.prepare(query).run(...params);
+    return getById(id);
   } catch (error) {
     console.error('Error in update expense category:', error.message);
     throw error;
@@ -419,17 +419,17 @@ export async function update(id, data) {
 /**
  * Delete an expense category
  * @param {number} id - Expense category ID
- * @returns {Promise<Object>} - Deleted expense category
+ * @returns {Object} - Deleted expense category
  */
-export async function deleteById(id) {
+export function deleteById(id) {
   const query = `DELETE FROM ${TABLE} WHERE ${FIELDS.ID} = ?`;
 
   try {
-    const row = await getById(id);
+    const row = getById(id);
     if (!row) {
       return null;
     }
-    await db.run(query, [id]);
+    db.prepare(query).run(id);
     return row;
   } catch (error) {
     console.error('Error in deleteById expense category:', error.message);
@@ -440,9 +440,9 @@ export async function deleteById(id) {
 /**
  * Get total count of expense categories
  * @param {Object} options - Filter options (same as getAll)
- * @returns {Promise<number>} - Total count
+ * @returns {number} - Total count
  */
-export async function count(options = {}) {
+export function count(options = {}) {
   const { isActive, isSystem, isKitchen, parentId, search } = options;
 
   let whereClause = '';
@@ -477,7 +477,7 @@ export async function count(options = {}) {
   const query = `SELECT COUNT(*) as count FROM ${TABLE} WHERE 1=1 ${whereClause}`;
 
   try {
-    const result = await db.get(query, params);
+    const result = db.prepare(query).get(...params);
     return result.count;
   } catch (error) {
     console.error('Error in count expense categories:', error.message);
@@ -489,9 +489,9 @@ export async function count(options = {}) {
  * Check if a category name already exists
  * @param {string} name - Category name to check
  * @param {number} excludeId - Optional ID to exclude from check (for updates)
- * @returns {Promise<boolean>} - True if name exists
+ * @returns {boolean} - True if name exists
  */
-export async function nameExists(name, excludeId = null) {
+export function nameExists(name, excludeId = null) {
   let query = `SELECT COUNT(*) as count FROM ${TABLE} WHERE ${FIELDS.NAME} = ?`;
   const params = [name];
 
@@ -501,7 +501,7 @@ export async function nameExists(name, excludeId = null) {
   }
 
   try {
-    const result = await db.get(query, params);
+    const result = db.prepare(query).get(...params);
     return result.count > 0;
   } catch (error) {
     console.error('Error in nameExists expense category:', error.message);
@@ -511,12 +511,12 @@ export async function nameExists(name, excludeId = null) {
 
 /**
  * Get hierarchical category tree
- * @returns {Promise<Array>} - Array of categories with nested children
+ * @returns {Array} - Array of categories with nested children
  */
-export async function getTree() {
+export function getTree() {
   try {
     // Get all active categories
-    const categories = await getAll({ isActive: true, limit: 1000 });
+    const categories = getAll({ isActive: true, limit: 1000 });
     
     // Build parent-child relationships
     const categoryMap = new Map();
@@ -548,9 +548,9 @@ export async function getTree() {
 
 /**
  * Get expense categories with usage count (how many expenses use each category)
- * @returns {Promise<Array>} - Array of categories with usage count
+ * @returns {Array} - Array of categories with usage count
  */
-export async function getWithUsageCount() {
+export function getWithUsageCount() {
   const query = `
     SELECT 
       ${TABLE}.*,
@@ -565,7 +565,7 @@ export async function getWithUsageCount() {
   `;
 
   try {
-    const rows = await db.all(query);
+    const rows = db.prepare(query).all();
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),

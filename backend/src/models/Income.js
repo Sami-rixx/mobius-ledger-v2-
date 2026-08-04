@@ -56,9 +56,9 @@ const FIELDS = {
  * @param {number} options.offset - Offset for pagination
  * @param {string} options.orderBy - Field to order by
  * @param {string} options.orderDirection - ASC or DESC
- * @returns {Promise<Array>} - Array of income records
+ * @returns {Array} - Array of income records
  */
-export async function getAll(options = {}) {
+export function getAll(options = {}) {
   const {
     categoryId,
     receiptNumber,
@@ -132,7 +132,7 @@ export async function getAll(options = {}) {
   params.push(limit, offset);
 
   try {
-    const rows = await db.all(query, params);
+    const rows = db.prepare(query).all(...params);
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
@@ -147,9 +147,9 @@ export async function getAll(options = {}) {
 /**
  * Get income record by ID
  * @param {number} id - Income record ID
- * @returns {Promise<Object|null>} - Income record or null
+ * @returns {Object|null} - Income record or null
  */
-export async function getById(id) {
+export function getById(id) {
   const query = `
     SELECT ${TABLE}.*, 
            ${INCOME_CATEGORIES_TABLE}.name as category_name,
@@ -161,7 +161,7 @@ export async function getById(id) {
   `;
 
   try {
-    const row = await db.get(query, [id]);
+    const row = db.prepare(query).get(id);
     if (row) {
       return {
         ...row,
@@ -179,9 +179,9 @@ export async function getById(id) {
 /**
  * Get income record by receipt number
  * @param {string} receiptNumber - Receipt number
- * @returns {Promise<Object|null>} - Income record or null
+ * @returns {Object|null} - Income record or null
  */
-export async function getByReceiptNumber(receiptNumber) {
+export function getByReceiptNumber(receiptNumber) {
   const query = `
     SELECT ${TABLE}.*, 
            ${INCOME_CATEGORIES_TABLE}.name as category_name,
@@ -193,7 +193,7 @@ export async function getByReceiptNumber(receiptNumber) {
   `;
 
   try {
-    const row = await db.get(query, [receiptNumber]);
+    const row = db.prepare(query).get(receiptNumber);
     if (row) {
       return {
         ...row,
@@ -212,9 +212,9 @@ export async function getByReceiptNumber(receiptNumber) {
  * Get income records by category
  * @param {number} categoryId - Income category ID
  * @param {Object} options - Additional filter options
- * @returns {Promise<Array>} - Array of income records
+ * @returns {Array} - Array of income records
  */
-export async function getByCategory(categoryId, options = {}) {
+export function getByCategory(categoryId, options = {}) {
   const { limit = 100, offset = 0 } = options;
   
   const query = `
@@ -230,7 +230,7 @@ export async function getByCategory(categoryId, options = {}) {
   `;
 
   try {
-    const rows = await db.all(query, [categoryId, limit, offset]);
+    const rows = db.prepare(query).all(categoryId, limit, offset);
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
@@ -246,9 +246,9 @@ export async function getByCategory(categoryId, options = {}) {
  * Get income records by date range
  * @param {string} startDate - Start date (inclusive)
  * @param {string} endDate - End date (inclusive)
- * @returns {Promise<Array>} - Array of income records
+ * @returns {Array} - Array of income records
  */
-export async function getByDateRange(startDate, endDate) {
+export function getByDateRange(startDate, endDate) {
   const query = `
     SELECT ${TABLE}.*, 
            ${INCOME_CATEGORIES_TABLE}.name as category_name,
@@ -261,7 +261,7 @@ export async function getByDateRange(startDate, endDate) {
   `;
 
   try {
-    const rows = await db.all(query, [startDate, endDate]);
+    const rows = db.prepare(query).all(startDate, endDate);
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
@@ -276,9 +276,9 @@ export async function getByDateRange(startDate, endDate) {
 /**
  * Create a new income record
  * @param {Object} data - Income data
- * @returns {Promise<Object>} - Created income record
+ * @returns {Object} - Created income record
  */
-export async function create(data) {
+export function create(data) {
   const {
     receiptNumber,
     amount,
@@ -333,8 +333,8 @@ export async function create(data) {
   ];
 
   try {
-    const result = await db.run(query, params);
-    return await getById(result.lastInsertRowid);
+    const result = db.prepare(query).run(...params);
+    return getById(result.lastInsertRowid);
   } catch (error) {
     console.error('Error in create income:', error.message);
     throw error;
@@ -345,9 +345,9 @@ export async function create(data) {
  * Update an income record
  * @param {number} id - Income record ID
  * @param {Object} data - Updated income data
- * @returns {Promise<Object>} - Updated income record
+ * @returns {Object} - Updated income record
  */
-export async function update(id, data) {
+export function update(id, data) {
   const {
     receiptNumber,
     amount,
@@ -372,8 +372,6 @@ export async function update(id, data) {
   }
   if (amount !== undefined) {
     updates.push(`${FIELDS.AMOUNT} = ?`);
-    updates.push(`${FIELDS.AMOUNT} = ?`);
-    params.push(amount);
     params.push(toCents(amount));
   }
   if (incomeCategoryId !== undefined) {
@@ -418,7 +416,7 @@ export async function update(id, data) {
   }
 
   if (updates.length === 0) {
-    return await getById(id);
+    return getById(id);
   }
 
   updates.push(`${FIELDS.UPDATED_AT} = CURRENT_TIMESTAMP`);
@@ -431,8 +429,8 @@ export async function update(id, data) {
   `;
 
   try {
-    await db.run(query, params);
-    return await getById(id);
+    db.prepare(query).run(...params);
+    return getById(id);
   } catch (error) {
     console.error('Error in update income:', error.message);
     throw error;
@@ -442,17 +440,17 @@ export async function update(id, data) {
 /**
  * Delete an income record
  * @param {number} id - Income record ID
- * @returns {Promise<Object>} - Deleted income record
+ * @returns {Object} - Deleted income record
  */
-export async function deleteById(id) {
+export function deleteById(id) {
   const query = `DELETE FROM ${TABLE} WHERE ${FIELDS.ID} = ?`;
 
   try {
-    const row = await getById(id);
+    const row = getById(id);
     if (!row) {
       return null;
     }
-    await db.run(query, [id]);
+    db.prepare(query).run(id);
     return row;
   } catch (error) {
     console.error('Error in deleteById income:', error.message);
@@ -463,9 +461,9 @@ export async function deleteById(id) {
 /**
  * Get total count of income records
  * @param {Object} options - Filter options (same as getAll)
- * @returns {Promise<number>} - Total count
+ * @returns {number} - Total count
  */
-export async function count(options = {}) {
+export function count(options = {}) {
   const {
     categoryId,
     receiptNumber,
@@ -511,7 +509,7 @@ export async function count(options = {}) {
   const query = `SELECT COUNT(*) as count FROM ${TABLE} WHERE 1=1 ${whereClause}`;
 
   try {
-    const result = await db.get(query, params);
+    const result = db.prepare(query).get(...params);
     return result.count;
   } catch (error) {
     console.error('Error in count income:', error.message);
@@ -521,40 +519,40 @@ export async function count(options = {}) {
 
 /**
  * Get income statistics (total, count by category, etc.)
- * @returns {Promise<Object>} - Statistics object
+ * @returns {Object} - Statistics object
  */
-export async function getStatistics() {
+export function getStatistics() {
   try {
     // Total income - use COALESCE to prefer cents column, fall back to decimal
     const totalQuery = `SELECT COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as totalAmountCents, COUNT(*) as totalCount FROM ${TABLE}`;
-    const totalResult = await db.get(totalQuery);
+    const totalResult = db.prepare(totalQuery).get();
 
     // Income by category
     const byCategoryQuery = `
       SELECT 
         ${INCOME_CATEGORIES_TABLE}.id,
         ${INCOME_CATEGORIES_TABLE}.name as category_name,
-        COALESCE(SUM(${TABLE}.${FIELDS.AMOUNT}), SUM(${TABLE}.${FIELDS.AMOUNT} * 100)) as 
+        COALESCE(SUM(${TABLE}.${FIELDS.AMOUNT}), SUM(${TABLE}.${FIELDS.AMOUNT} * 100)) as amount,
         COUNT(${TABLE}.${FIELDS.ID}) as count
       FROM ${INCOME_CATEGORIES_TABLE}
       LEFT JOIN ${TABLE} ON ${TABLE}.${FIELDS.INCOME_CATEGORY_ID} = ${INCOME_CATEGORIES_TABLE}.id
       GROUP BY ${INCOME_CATEGORIES_TABLE}.id, ${INCOME_CATEGORIES_TABLE}.name
     `;
-    const byCategoryResult = await db.all(byCategoryQuery);
+    const byCategoryResult = db.prepare(byCategoryQuery).all();
 
     // Monthly income for current year
     const currentYear = new Date().getFullYear();
     const monthlyQuery = `
       SELECT 
         strftime('%Y-%m', ${FIELDS.INCOME_DATE}) as month,
-        COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as 
+        COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as amount,
         COUNT(*) as count
       FROM ${TABLE}
       WHERE strftime('%Y', ${FIELDS.INCOME_DATE}) = ?
       GROUP BY strftime('%Y-%m', ${FIELDS.INCOME_DATE})
       ORDER BY month
     `;
-    const monthlyResult = await db.all(monthlyQuery, [currentYear.toString()]);
+    const monthlyResult = db.prepare(monthlyQuery).all(currentYear.toString());
 
     return {
       total: {
@@ -583,9 +581,9 @@ export async function getStatistics() {
  * Search income records by receipt number, payer name, or description
  * @param {string} searchTerm - Search term
  * @param {Object} options - Additional filter options
- * @returns {Promise<Array>} - Array of matching income records
+ * @returns {Array} - Array of matching income records
  */
-export async function search(searchTerm, options = {}) {
+export function search(searchTerm, options = {}) {
   const { limit = 100, offset = 0 } = options;
 
   const query = `
@@ -606,9 +604,9 @@ export async function search(searchTerm, options = {}) {
   const searchPattern = `%${searchTerm}%`;
 
   try {
-    const rows = await db.all(query, [
+    const rows = db.prepare(query).all(
       searchPattern, searchPattern, searchPattern, searchPattern, limit, offset
-    ]);
+    );
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified),
