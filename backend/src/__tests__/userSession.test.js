@@ -8,19 +8,17 @@ import Database from 'better-sqlite3';
 import UserSession from '../models/UserSession.js';
 import userSessionService from '../services/userSessionService.js';
 
-// Test database setup
+// Test database setup - must be at top level for ESM mocking to work
 const TEST_DB = ':memory:';
-let testDb;
+const testDb = new Database(TEST_DB);
 
-// Mock the database module
+// Mock the database module at top level so all dynamic imports get the mock
 jest.mock('../config/database.js', () => ({
   default: testDb
 }));
 
 describe('UserSession Module', () => {
   beforeAll(() => {
-    // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
     
     // Create users and user_sessions tables
     testDb.exec(`

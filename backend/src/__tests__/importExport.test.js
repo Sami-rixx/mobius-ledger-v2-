@@ -10,19 +10,17 @@ import fs from 'fs';
 import ImportExport from '../models/ImportExport.js';
 import importExportService from '../services/importExportService.js';
 
-// Test database setup
+// Test database setup - must be at top level for ESM mocking to work
 const TEST_DB = ':memory:';
-let testDb;
+const testDb = new Database(TEST_DB);
 
-// Mock the database module
+// Mock the database module at top level so all dynamic imports get the mock
 jest.mock('../config/database.js', () => ({
   default: testDb
 }));
 
 describe('ImportExport Module', () => {
   beforeAll(() => {
-    // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
     
     // Create users and import_export_log tables
     testDb.exec(`
