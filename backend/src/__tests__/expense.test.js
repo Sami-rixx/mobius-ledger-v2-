@@ -60,7 +60,7 @@ describe('Expense Management - Backend Tests', () => {
       CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         transaction_type TEXT NOT NULL,
         description TEXT,
         related_id INTEGER,
@@ -90,7 +90,7 @@ describe('Expense Management - Backend Tests', () => {
 
       CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         expense_category_id INTEGER NOT NULL,
         description TEXT,
         vendor_name TEXT NOT NULL,
@@ -137,12 +137,12 @@ describe('Expense Management - Backend Tests', () => {
     db.prepare(`
       INSERT INTO expenses (amount, expense_category_id, description, vendor_name, vendor_contact, payment_method_id, expense_date, receipt_number, notes, is_verified, created_by)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(100.00, categoryId, 'Test expense 1', 'Vendor 1', '123-456', paymentMethodId, '2026-01-01', 'REC-001', 'Test note', 0, userId);
+    `).run(10000, categoryId, 'Test expense 1', 'Vendor 1', '123-456', paymentMethodId, '2026-01-01', 'REC-001', 'Test note', 0, userId);
 
     db.prepare(`
       INSERT INTO expenses (amount, expense_category_id, description, vendor_name, vendor_contact, payment_method_id, expense_date, receipt_number, notes, is_verified, created_by)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(200.00, categoryId, 'Test expense 2', 'Vendor 2', '987-654', paymentMethodId, '2026-01-02', 'REC-002', 'Test note 2', 1, userId);
+    `).run(20000, categoryId, 'Test expense 2', 'Vendor 2', '987-654', paymentMethodId, '2026-01-02', 'REC-002', 'Test note 2', 1, userId);
   });
 
   afterAll(() => {
@@ -161,7 +161,7 @@ describe('Expense Management - Backend Tests', () => {
   describe('Expense Model', () => {
     it('should create a new expense', () => {
       const newExpense = {
-        amount: 150.00,
+        amount: 15000,
         expense_category_id: 1,
         description: 'Test model expense',
         vendor_name: 'Test Vendor',
@@ -177,14 +177,14 @@ describe('Expense Management - Backend Tests', () => {
       const result = Expense.create(newExpense);
       expect(result).toBeDefined();
       expect(result.id).toBeDefined();
-      expect(result.amount).toBe(150.00);
+      expect(result.amount).toBe(15000);
       expect(result.description).toBe('Test model expense');
     });
 
     it('should get an expense by ID', () => {
       const expense = Expense.getById(1);
       expect(expense).toBeDefined();
-      expect(expense.amount).toBe(100.00);
+      expect(expense.amount).toBe(10000);
     });
 
     it('should get all expenses', () => {
@@ -193,7 +193,7 @@ describe('Expense Management - Backend Tests', () => {
     });
 
     it('should update an expense', () => {
-      const updated = Expense.update(1, { description: 'Updated description', amount: 150.00 });
+      const updated = Expense.update(1, { description: 'Updated description', amount: 15000 });
       expect(updated).toBeDefined();
       expect(updated.description).toBe('Updated description');
     });
@@ -201,7 +201,7 @@ describe('Expense Management - Backend Tests', () => {
     it('should delete an expense', () => {
       // First create one to delete
       const newExpense = Expense.create({
-        amount: 50.00,
+        amount: 5000,
         expense_category_id: 1,
         description: 'To be deleted',
         vendor_name: 'Test Vendor',
@@ -306,7 +306,7 @@ describe('Expense Management - Backend Tests', () => {
 
     it('should create an expense via service', () => {
       const newExpense = {
-        amount: 250.00,
+        amount: 25000,
         expense_category_id: 1,
         description: 'Service test expense',
         vendor_name: 'Service Vendor',
@@ -323,7 +323,7 @@ describe('Expense Management - Backend Tests', () => {
     it('should update an expense via service', () => {
       const updated = ExpenseService.updateExpense(1, {
         description: 'Updated via service',
-        amount: 175.00
+        amount: 17500
       });
       expect(updated).toBeDefined();
     });
@@ -331,7 +331,7 @@ describe('Expense Management - Backend Tests', () => {
     it('should delete an expense via service', () => {
       // Create one to delete
       const newExpense = ExpenseService.createExpense({
-        amount: 99.99,
+        amount: 9999,
         expense_category_id: 1,
         description: 'To be deleted via service',
         vendor_name: 'Delete Vendor',
@@ -355,7 +355,7 @@ describe('Expense Management - Backend Tests', () => {
     it('should handle invalid expense category', () => {
       expect(() => {
         Expense.create({
-          amount: 100,
+          amount: 10000,
           expense_category_id: 99999, // Non-existent
           description: 'Test',
           vendor_name: 'Test',

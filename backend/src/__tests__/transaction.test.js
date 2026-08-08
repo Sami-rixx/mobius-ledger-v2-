@@ -3,6 +3,7 @@
  * Comprehensive tests for Transaction module
  */
 
+import Database from 'better-sqlite3';
 import {
   getAllTransactions,
   getTransactionCount,
@@ -29,6 +30,8 @@ import {
 } from '../services/transactionService.js';
 
 import db from '../config/database.js';
+import * as TransactionModel from '../models/Transaction.js';
+import * as TransactionService from '../services/transactionService.js';
 
 // Test database setup
 const TEST_DB = ':memory:';
@@ -36,7 +39,7 @@ let testDb;
 
 beforeAll(() => {
   // Create in-memory database for testing
-  testDb = new (require('better-sqlite3'))(TEST_DB);
+  testDb = new Database(TEST_DB);
   
   // Create transactions table
   testDb.exec(`
@@ -44,7 +47,7 @@ beforeAll(() => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       receipt_number TEXT UNIQUE,
       transaction_type TEXT NOT NULL,
-      amount DECIMAL(10,2) NOT NULL,
+      amount INTEGER NOT NULL,
       category_id INTEGER,
       income_category_id INTEGER,
       expense_category_id INTEGER,
@@ -123,7 +126,7 @@ describe('Transaction Service', () => {
     test('should validate valid transaction', () => {
       const validData = {
         transactionType: 'income',
-        amount: 100.00
+        amount: 10000
       };
       const result = validateTransaction(validData);
       expect(result.isValid).toBe(true);
@@ -132,7 +135,7 @@ describe('Transaction Service', () => {
 
     test('should reject missing transaction type', () => {
       const invalidData = {
-        amount: 100.00
+        amount: 10000
       };
       const result = validateTransaction(invalidData);
       expect(result.isValid).toBe(false);
@@ -142,7 +145,7 @@ describe('Transaction Service', () => {
     test('should reject invalid transaction type', () => {
       const invalidData = {
         transactionType: 'invalid_type',
-        amount: 100.00
+        amount: 10000
       };
       const result = validateTransaction(invalidData);
       expect(result.isValid).toBe(false);
@@ -161,7 +164,7 @@ describe('Transaction Service', () => {
     test('should reject negative amount', () => {
       const invalidData = {
         transactionType: 'income',
-        amount: -100.00
+        amount: -10000
       };
       const result = validateTransaction(invalidData);
       expect(result.isValid).toBe(false);
@@ -171,7 +174,7 @@ describe('Transaction Service', () => {
     test('should accept all valid transaction types', () => {
       const validTypes = ['income', 'expense', 'school_fee', 'lunch_fee', 'student_charge', 'director_withdrawal'];
       validTypes.forEach(type => {
-        const result = validateTransaction({ transactionType: type, amount: 100 });
+        const result = validateTransaction({ transactionType: type, amount: 10000 });
         expect(result.isValid).toBe(true);
       });
     });
@@ -232,14 +235,14 @@ describe('Transaction Service', () => {
     test('should generate receipt number if not provided', () => {
       // This test would need a mock database
       // For now, just verify the function exists and returns proper structure
-      const result = createTransactionRecord({ transactionType: 'income', amount: 100 });
+      const result = createTransactionRecord({ transactionType: 'income', amount: 10000 });
       expect(result).toHaveProperty('success');
     });
   });
 
   describe('updateTransactionRecord', () => {
     test('should reject invalid ID', () => {
-      const result = updateTransactionRecord(null, { transactionType: 'income', amount: 100 });
+      const result = updateTransactionRecord(null, { transactionType: 'income', amount: 10000 });
       expect(result.success).toBe(false);
       expect(result.error).toContain('Invalid transaction ID');
     });
@@ -288,47 +291,43 @@ describe('Transaction Service', () => {
 
 describe('Transaction Module Exports', () => {
   test('should export all required functions from model', () => {
-    const model = require('../models/Transaction.js');
-    expect(model.getAllTransactions).toBeDefined();
-    expect(model.getTransactionCount).toBeDefined();
-    expect(model.getTransactionById).toBeDefined();
-    expect(model.getTransactionByReceiptNumber).toBeDefined();
-    expect(model.createTransaction).toBeDefined();
-    expect(model.updateTransaction).toBeDefined();
-    expect(model.deleteTransaction).toBeDefined();
-    expect(model.getTransactionsByStudent).toBeDefined();
-    expect(model.getTransactionsByDateRange).toBeDefined();
+    expect(TransactionModel.getAllTransactions).toBeDefined();
+    expect(TransactionModel.getTransactionCount).toBeDefined();
+    expect(TransactionModel.getTransactionById).toBeDefined();
+    expect(TransactionModel.getTransactionByReceiptNumber).toBeDefined();
+    expect(TransactionModel.createTransaction).toBeDefined();
+    expect(TransactionModel.updateTransaction).toBeDefined();
+    expect(TransactionModel.deleteTransaction).toBeDefined();
+    expect(TransactionModel.getTransactionsByStudent).toBeDefined();
+    expect(TransactionModel.getTransactionsByDateRange).toBeDefined();
   });
 
   test('should export all required functions from service', () => {
-    const service = require('../services/transactionService.js');
-    expect(service.validateTransaction).toBeDefined();
-    expect(service.getPaginatedTransactions).toBeDefined();
-    expect(service.getTransaction).toBeDefined();
-    expect(service.getTransactionByReceipt).toBeDefined();
-    expect(service.createTransactionRecord).toBeDefined();
-    expect(service.updateTransactionRecord).toBeDefined();
-    expect(service.deleteTransactionRecord).toBeDefined();
-    expect(service.searchTransactions).toBeDefined();
-    expect(service.getTransactionStatistics).toBeDefined();
-    expect(service.getTransactionCountByFilter).toBeDefined();
+    expect(TransactionService.validateTransaction).toBeDefined();
+    expect(TransactionService.getPaginatedTransactions).toBeDefined();
+    expect(TransactionService.getTransaction).toBeDefined();
+    expect(TransactionService.getTransactionByReceipt).toBeDefined();
+    expect(TransactionService.createTransactionRecord).toBeDefined();
+    expect(TransactionService.updateTransactionRecord).toBeDefined();
+    expect(TransactionService.deleteTransactionRecord).toBeDefined();
+    expect(TransactionService.searchTransactions).toBeDefined();
+    expect(TransactionService.getTransactionStatistics).toBeDefined();
+    expect(TransactionService.getTransactionCountByFilter).toBeDefined();
   });
 });
 
 describe('Transaction Types Validation', () => {
   test('should have valid transaction types constant', () => {
-    const service = require('../services/transactionService.js');
     // The constant is not exported, but we can test through validation
     const validTypes = ['income', 'expense', 'school_fee', 'lunch_fee', 'student_charge', 'director_withdrawal'];
     validTypes.forEach(type => {
-      const result = service.validateTransaction({ transactionType: type, amount: 100 });
+      const result = TransactionService.validateTransaction({ transactionType: type, amount: 100 });
       expect(result.isValid).toBe(true);
     });
   });
 
   test('should reject invalid transaction type', () => {
-    const service = require('../services/transactionService.js');
-    const result = service.validateTransaction({ 
+    const result = TransactionService.validateTransaction({ 
       transactionType: 'invalid', 
       amount: 100 
     });

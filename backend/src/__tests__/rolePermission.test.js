@@ -3,22 +3,22 @@
  * Comprehensive tests for RolePermission model, service, and functionality
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
+import RolePermission from '../models/RolePermission.js';
+import rolePermissionService from '../services/rolePermissionService.js';
 
-// Test database setup
+// Test database setup - must be at top level for ESM mocking to work
 const TEST_DB = ':memory:';
-let testDb;
+const testDb = new Database(TEST_DB);
 
-// Mock the database module
+// Mock the database module at top level so all dynamic imports get the mock
 jest.mock('../config/database.js', () => ({
   default: testDb
 }));
 
 describe('RolePermission Module', () => {
   beforeAll(() => {
-    // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
     
     // Create permissions and roles tables
     testDb.exec(`
@@ -116,21 +116,18 @@ describe('RolePermission Module', () => {
   describe('RolePermission Model', () => {
     describe('Constants', () => {
       it('should export ROLE_PERMISSIONS_TABLE constant', () => {
-        const { ROLE_PERMISSIONS_TABLE } = require('../models/RolePermission.js');
-        expect(ROLE_PERMISSIONS_TABLE).toBe('role_permissions');
+        expect(RolePermission.ROLE_PERMISSIONS_TABLE).toBe('role_permissions');
       });
 
       it('should export ROLE_PERMISSION_FIELDS constant', () => {
-        const { ROLE_PERMISSION_FIELDS } = require('../models/RolePermission.js');
-        expect(ROLE_PERMISSION_FIELDS).toBeInstanceOf(Array);
-        expect(ROLE_PERMISSION_FIELDS.length).toBeGreaterThan(0);
+        expect(RolePermission.ROLE_PERMISSION_FIELDS).toBeInstanceOf(Array);
+        expect(RolePermission.ROLE_PERMISSION_FIELDS.length).toBeGreaterThan(0);
       });
     });
 
     describe('Model Functions', () => {
       it('should create a new role-permission assignment', () => {
-        const { createRolePermission } = require('../models/RolePermission.js');
-        const newRolePermission = createRolePermission({
+        const newRolePermission = RolePermission.createRolePermission({
           role_id: 2,
           permission_id: 6
         });
@@ -141,8 +138,7 @@ describe('RolePermission Module', () => {
       });
 
       it('should get role-permission by ID', () => {
-        const { getRolePermissionById } = require('../models/RolePermission.js');
-        const rolePermission = getRolePermissionById(1);
+        const rolePermission = RolePermission.getRolePermissionById(1);
         
         expect(rolePermission).toBeDefined();
         expect(rolePermission.role_id).toBe(1);
@@ -150,8 +146,7 @@ describe('RolePermission Module', () => {
       });
 
       it('should get role-permission by role and permission', () => {
-        const { getRolePermissionByRoleAndPermission } = require('../models/RolePermission.js');
-        const rolePermission = getRolePermissionByRoleAndPermission(1, 1);
+        const rolePermission = RolePermission.getRolePermissionByRoleAndPermission(1, 1);
         
         expect(rolePermission).toBeDefined();
         expect(rolePermission.role_id).toBe(1);
@@ -159,8 +154,7 @@ describe('RolePermission Module', () => {
       });
 
       it('should get all permissions for a role', () => {
-        const { getPermissionsForRole } = require('../models/RolePermission.js');
-        const permissions = getPermissionsForRole(1);
+        const permissions = RolePermission.getPermissionsForRole(1);
         
         expect(permissions).toBeInstanceOf(Array);
         expect(permissions.length).toBe(6); // Admin has all 6 permissions
@@ -168,8 +162,7 @@ describe('RolePermission Module', () => {
       });
 
       it('should get permission IDs for a role', () => {
-        const { getPermissionIdsForRole } = require('../models/RolePermission.js');
-        const permissionIds = getPermissionIdsForRole(1);
+        const permissionIds = RolePermission.getPermissionIdsForRole(1);
         
         expect(permissionIds).toBeInstanceOf(Array);
         expect(permissionIds.length).toBe(6);
@@ -178,8 +171,7 @@ describe('RolePermission Module', () => {
       });
 
       it('should get all roles for a permission', () => {
-        const { getRolesForPermission } = require('../models/RolePermission.js');
-        const roles = getRolesForPermission(2);
+        const roles = RolePermission.getRolesForPermission(2);
         
         expect(roles).toBeInstanceOf(Array);
         expect(roles.length).toBeGreaterThanOrEqual(3); // All roles have read_student
@@ -187,85 +179,75 @@ describe('RolePermission Module', () => {
       });
 
       it('should check if role has permission', () => {
-        const { roleHasPermission } = require('../models/RolePermission.js');
-        const hasPermission = roleHasPermission(1, 1);
-        const noPermission = roleHasPermission(3, 1);
+        const hasPermission = RolePermission.roleHasPermission(1, 1);
+        const noPermission = RolePermission.roleHasPermission(3, 1);
         
         expect(hasPermission).toBe(true);
         expect(noPermission).toBe(false);
       });
 
       it('should check if role has any of the given permissions', () => {
-        const { roleHasAnyPermission } = require('../models/RolePermission.js');
-        const hasAny = roleHasAnyPermission(2, [1, 2, 3]);
-        const hasNone = roleHasAnyPermission(3, [1, 3, 4, 6]);
+        const hasAny = RolePermission.roleHasAnyPermission(2, [1, 2, 3]);
+        const hasNone = RolePermission.roleHasAnyPermission(3, [1, 3, 4, 6]);
         
         expect(hasAny).toBe(true);
         expect(hasNone).toBe(false);
       });
 
       it('should get permission count for a role', () => {
-        const { getPermissionCountForRole } = require('../models/RolePermission.js');
-        const count = getPermissionCountForRole(1);
+        const count = RolePermission.getPermissionCountForRole(1);
         
         expect(typeof count).toBe('number');
         expect(count).toBe(6);
       });
 
       it('should get role count for a permission', () => {
-        const { getRoleCountForPermission } = require('../models/RolePermission.js');
-        const count = getRoleCountForPermission(2);
+        const count = RolePermission.getRoleCountForPermission(2);
         
         expect(typeof count).toBe('number');
         expect(count).toBeGreaterThanOrEqual(3);
       });
 
       it('should get all role-permissions', () => {
-        const { getAllRolePermissions } = require('../models/RolePermission.js');
-        const rolePermissions = getAllRolePermissions();
+        const rolePermissions = RolePermission.getAllRolePermissions();
         
         expect(rolePermissions).toBeInstanceOf(Array);
         expect(rolePermissions.length).toBeGreaterThan(0);
       });
 
       it('should get role-permission statistics', () => {
-        const { getRolePermissionStatistics } = require('../models/RolePermission.js');
-        const stats = getRolePermissionStatistics();
+        const stats = RolePermission.getRolePermissionStatistics();
         
         expect(stats).toBeDefined();
         expect(stats.total).toBeDefined();
       });
 
       it('should remove permission from role', () => {
-        const { removePermissionFromRole, getRolePermissionByRoleAndPermission } = require('../models/RolePermission.js');
-        const removed = removePermissionFromRole(2, 5);
-        const rolePermission = getRolePermissionByRoleAndPermission(2, 5);
+        const removed = RolePermission.removePermissionFromRole(2, 5);
+        const rolePermission = RolePermission.getRolePermissionByRoleAndPermission(2, 5);
         
         expect(removed).toBe(true);
         expect(rolePermission).toBeUndefined();
       });
 
       it('should remove all permissions from role', () => {
-        const { removeAllPermissionsFromRole, getPermissionsForRole } = require('../models/RolePermission.js');
-        const removed = removeAllPermissionsFromRole(3);
-        const permissions = getPermissionsForRole(3);
+        const removed = RolePermission.removeAllPermissionsFromRole(3);
+        const permissions = RolePermission.getPermissionsForRole(3);
         
         expect(removed).toBe(true);
         expect(permissions.length).toBe(0);
       });
 
       it('should replace all permissions for a role', () => {
-        const { replaceRolePermissions, getPermissionsForRole } = require('../models/RolePermission.js');
-        replaceRolePermissions(3, [1, 2, 3]);
-        const permissions = getPermissionsForRole(3);
+        RolePermission.replaceRolePermissions(3, [1, 2, 3]);
+        const permissions = RolePermission.getPermissionsForRole(3);
         
         expect(permissions).toBeInstanceOf(Array);
         expect(permissions.length).toBe(3);
       });
 
       it('should get role-permission count', () => {
-        const { getRolePermissionCount } = require('../models/RolePermission.js');
-        const count = getRolePermissionCount();
+        const count = RolePermission.getRolePermissionCount();
         
         expect(typeof count).toBe('number');
         expect(count).toBeGreaterThan(0);
@@ -274,8 +256,6 @@ describe('RolePermission Module', () => {
 
     describe('Model Exports', () => {
       it('should export all expected functions and constants', () => {
-        const RolePermission = require('../models/RolePermission.js');
-        
         expect(RolePermission).toBeDefined();
         expect(RolePermission.ROLE_PERMISSIONS_TABLE).toBe('role_permissions');
         expect(RolePermission.ROLE_PERMISSION_FIELDS).toBeInstanceOf(Array);
@@ -306,35 +286,26 @@ describe('RolePermission Module', () => {
   describe('RolePermission Service', () => {
     describe('Service Functions', () => {
       it('should validate role-permission data', () => {
-        const { validateRolePermission } = require('../services/rolePermissionService.js');
-        
-        const validData = {
+        const result = rolePermissionService.validateRolePermission({
           role_id: 1,
           permission_id: 1
-        };
-        
-        const result = validateRolePermission(validData);
+        });
         expect(result).toBeDefined();
         expect(result.isValid).toBe(true);
       });
 
       it('should reject invalid role-permission data', () => {
-        const { validateRolePermission } = require('../services/rolePermissionService.js');
-        
-        const invalidData = {
+        const result = rolePermissionService.validateRolePermission({
           role_id: null,
           permission_id: null
-        };
-        
-        const result = validateRolePermission(invalidData);
+        });
         expect(result.isValid).toBe(false);
         expect(result.errors).toBeInstanceOf(Array);
         expect(result.errors.length).toBeGreaterThan(0);
       });
 
       it('should get paginated role-permissions', () => {
-        const { getPaginatedRolePermissions } = require('../services/rolePermissionService.js');
-        const result = getPaginatedRolePermissions({ page: 1, pageSize: 5 });
+        const result = rolePermissionService.getPaginatedRolePermissions({ page: 1, pageSize: 5 });
         
         expect(result).toBeDefined();
         expect(result.data).toBeInstanceOf(Array);
@@ -344,8 +315,7 @@ describe('RolePermission Module', () => {
       });
 
       it('should create a role-permission with service', () => {
-        const { createRolePermission } = require('../services/rolePermissionService.js');
-        const newRolePermission = createRolePermission({
+        const newRolePermission = rolePermissionService.createRolePermission({
           role_id: 3,
           permission_id: 6
         });
@@ -356,34 +326,30 @@ describe('RolePermission Module', () => {
       });
 
       it('should get permissions for role from service', () => {
-        const { getPermissionsForRole } = require('../services/rolePermissionService.js');
-        const permissions = getPermissionsForRole(1);
+        const permissions = rolePermissionService.getPermissionsForRole(1);
         
         expect(permissions).toBeInstanceOf(Array);
         expect(permissions.length).toBeGreaterThan(0);
       });
 
       it('should remove permission from role with service', () => {
-        const { removePermissionFromRole, getRolePermissionByRoleAndPermission } = require('../services/rolePermissionService.js');
-        const removed = removePermissionFromRole(1, 6);
-        const rolePermission = getRolePermissionByRoleAndPermission(1, 6);
+        const removed = rolePermissionService.removePermissionFromRole(1, 6);
+        const rolePermission = rolePermissionService.getRolePermissionByRoleAndPermission(1, 6);
         
         expect(removed).toBe(true);
         expect(rolePermission).toBeUndefined();
       });
 
       it('should get role-permission statistics from service', () => {
-        const { getRolePermissionStatistics } = require('../services/rolePermissionService.js');
-        const stats = getRolePermissionStatistics();
+        const stats = rolePermissionService.getRolePermissionStatistics();
         
         expect(stats).toBeDefined();
         expect(stats.total).toBeDefined();
       });
 
       it('should check if role has permission via service', () => {
-        const { roleHasPermission } = require('../services/rolePermissionService.js');
-        const hasPermission = roleHasPermission(1, 2);
-        const noPermission = roleHasPermission(3, 4);
+        const hasPermission = rolePermissionService.roleHasPermission(1, 2);
+        const noPermission = rolePermissionService.roleHasPermission(3, 4);
         
         expect(hasPermission).toBe(true);
         expect(noPermission).toBe(false);
@@ -392,8 +358,6 @@ describe('RolePermission Module', () => {
 
     describe('Service Exports', () => {
       it('should export all expected service functions', () => {
-        const rolePermissionService = require('../services/rolePermissionService.js');
-        
         expect(rolePermissionService).toBeDefined();
         expect(typeof rolePermissionService.validateRolePermission).toBe('function');
         expect(typeof rolePermissionService.getPaginatedRolePermissions).toBe('function');

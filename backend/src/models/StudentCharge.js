@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { toCents, fromCents, getAmount } from '../utils/money.js';
 
 /**
  * Student Charge Model
@@ -129,7 +130,11 @@ export const getAllStudentCharges = (options = {}) => {
   params.push(limit, offset);
 
   const stmt = db.prepare(query);
-  return stmt.all(...params);
+  const rows = stmt.all(...params);
+  return rows.map(row => ({
+    ...row,
+    amount: getAmount(row, FIELDS.AMOUNT)
+  }));
 };
 
 /**
@@ -143,8 +148,8 @@ export const getStudentChargeById = (id) => {
       sc.*,
       c.name as class_name,
       COUNT(sca.id) as assignment_count,
-      SUM(CASE WHEN sca.paid = 1 THEN sca.amount ELSE 0 END) as total_paid,
-      SUM(sca.amount) as total_assigned
+      COALESCE(SUM(CASE WHEN sca.paid = 1 THEN sca.amount ELSE 0 END), SUM(CASE WHEN sca.paid = 1 THEN sca.amount * 100 ELSE 0 END)) as total_paid_cents,
+      COALESCE(SUM(sca.amount), SUM(sca.amount * 100)) as total_assigned_cents
     FROM ${TABLE} sc
     LEFT JOIN ${CLASSES_TABLE} c ON sc.class_id = c.id
     LEFT JOIN ${ASSIGNMENTS_TABLE} sca ON sc.id = sca.charge_id
@@ -153,7 +158,14 @@ export const getStudentChargeById = (id) => {
   `;
 
   const stmt = db.prepare(query);
-  return stmt.get(id) || null;
+  const row = stmt.get(id);
+  if (!row) return null;
+  return {
+    ...row,
+    amount: getAmount(row, FIELDS.AMOUNT),
+    total_paid: parseFloat(fromCents(row.total_paid_cents || 0)),
+    total_assigned: parseFloat(fromCents(row.total_assigned_cents || 0))
+  };
 };
 
 /**
@@ -170,8 +182,8 @@ export const getStudentChargesByClass = (classId, options = {}) => {
       sc.*,
       c.name as class_name,
       COUNT(sca.id) as assignment_count,
-      SUM(CASE WHEN sca.paid = 1 THEN sca.amount ELSE 0 END) as total_paid,
-      SUM(sca.amount) as total_assigned
+      COALESCE(SUM(CASE WHEN sca.paid = 1 THEN sca.amount ELSE 0 END), SUM(CASE WHEN sca.paid = 1 THEN sca.amount * 100 ELSE 0 END)) as total_paid_cents,
+      COALESCE(SUM(sca.amount), SUM(sca.amount * 100)) as total_assigned_cents
     FROM ${TABLE} sc
     LEFT JOIN ${CLASSES_TABLE} c ON sc.class_id = c.id
     LEFT JOIN ${ASSIGNMENTS_TABLE} sca ON sc.id = sca.charge_id
@@ -181,7 +193,13 @@ export const getStudentChargesByClass = (classId, options = {}) => {
   `;
 
   const stmt = db.prepare(query);
-  return stmt.all(classId, isActive ? 1 : 0);
+  const rows = stmt.all(classId, isActive ? 1 : 0);
+  return rows.map(row => ({
+    ...row,
+    amount: getAmount(row, FIELDS.AMOUNT),
+    total_paid: parseFloat(fromCents(row.total_paid_cents || 0)),
+    total_assigned: parseFloat(fromCents(row.total_assigned_cents || 0))
+  }));
 };
 
 /**
@@ -221,17 +239,20 @@ export const createStudentCharge = (chargeData) => {
     throw new Error(`Invalid charge type: ${chargeType}. Must be one of: ${VALID_CHARGE_TYPES.join(', ')}`);
   }
 
+  // Convert amount to cents
+  const amountCents = toCents(amount);
+
   const query = `
     INSERT INTO ${TABLE} 
-      (name, description, amount, charge_type, class_id, due_date, created_by, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (name, description, amount,  charge_type, class_id, due_date, created_by, updated_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const stmt = db.prepare(query);
   const result = stmt.run(
     name,
     description,
-    amount,
+    amountCents,
     chargeType,
     classId || null,
     dueDate || null,
@@ -278,7 +299,9 @@ export const updateStudentCharge = (id, chargeData, updatedBy) => {
   }
   if (amount !== undefined) {
     updates.push(`amount = ?`);
+    updates.push(`amount = ?`);
     params.push(amount);
+    params.push(toCents(amount));
   }
   if (chargeType !== undefined) {
     updates.push(`charge_type = ?`);
@@ -417,8 +440,8 @@ export const getStudentChargeStatistics = () => {
       COUNT(*) as total_charges,
       COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_charges,
       COUNT(CASE WHEN is_active = 0 THEN 1 END) as inactive_charges,
-      SUM(amount) as total_amount,
-      AVG(amount) as average_amount,
+      COALESCE(SUM(amount), SUM(amount * 100)) as total_
+      COALESCE(AVG(amount), AVG(amount * 100)) as average_
       COUNT(CASE WHEN charge_type = 'individual' THEN 1 END) as individual_charges,
       COUNT(CASE WHEN charge_type = 'class' THEN 1 END) as class_charges,
       COUNT(CASE WHEN charge_type = 'all' THEN 1 END) as all_students_charges,
@@ -428,17 +451,25 @@ export const getStudentChargeStatistics = () => {
   `;
 
   const stmt = db.prepare(query);
-  return stmt.get() || {
-    total_charges: 0,
-    active_charges: 0,
-    inactive_charges: 0,
-    total_amount: 0,
-    average_amount: 0,
-    individual_charges: 0,
-    class_charges: 0,
-    all_students_charges: 0,
-    grade_charges: 0,
-    custom_charges: 0
+  const row = stmt.get();
+  if (!row) {
+    return {
+      total_charges: 0,
+      active_charges: 0,
+      inactive_charges: 0,
+      total_amount: 0,
+      average_amount: 0,
+      individual_charges: 0,
+      class_charges: 0,
+      all_students_charges: 0,
+      grade_charges: 0,
+      custom_charges: 0
+    };
+  }
+  return {
+    ...row,
+    total_amount: parseFloat(fromCents(row.total_amount || 0)),
+    average_amount: parseFloat(fromCents(row.average_amount || 0))
   };
 };
 

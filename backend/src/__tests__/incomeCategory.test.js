@@ -57,7 +57,7 @@ describe('Income Category Service', () => {
       CREATE TABLE IF NOT EXISTS income (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         income_category_id INTEGER NOT NULL,
         description TEXT,
         payer_name TEXT NOT NULL,

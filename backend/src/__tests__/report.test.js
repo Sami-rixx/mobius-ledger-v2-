@@ -63,11 +63,11 @@ describe('Reports & Analytics Models', () => {
       CREATE TABLE IF NOT EXISTS daily_summaries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         summary_date DATE NOT NULL UNIQUE,
-        total_income DECIMAL(12, 2) NOT NULL DEFAULT 0,
+        total_income INTEGER NOT NULL DEFAULT 0,
         income_count INTEGER NOT NULL DEFAULT 0,
-        total_expenses DECIMAL(12, 2) NOT NULL DEFAULT 0,
+        total_expenses INTEGER NOT NULL DEFAULT 0,
         expense_count INTEGER NOT NULL DEFAULT 0,
-        net_flow DECIMAL(12, 2) NOT NULL DEFAULT 0,
+        net_flow INTEGER NOT NULL DEFAULT 0,
         transaction_count INTEGER NOT NULL DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
@@ -106,7 +106,7 @@ describe('Reports & Analytics Models', () => {
       CREATE TABLE IF NOT EXISTS income (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         income_category_id INTEGER NOT NULL,
         description TEXT,
         payer_name TEXT NOT NULL,
@@ -129,7 +129,7 @@ describe('Reports & Analytics Models', () => {
 
       CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         expense_category_id INTEGER NOT NULL,
         description TEXT,
         vendor_name TEXT NOT NULL,
@@ -162,7 +162,7 @@ describe('Reports & Analytics Models', () => {
       CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         transaction_type TEXT NOT NULL,
         description TEXT,
         related_id INTEGER,
@@ -198,12 +198,18 @@ describe('Reports & Analytics Models', () => {
 
     // Insert test income and expense records
     const today = new Date().toISOString().split('T')[0];
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-001`, 1000.00, incomeCategoryId, 'Test income', 'Test Payer', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(500.00, expenseCategoryId, 'Test expense', 'Test Vendor', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-001`, 100000, incomeCategoryId, 'Test income', 'Test Payer', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(50000, expenseCategoryId, 'Test expense', 'Test Vendor', today, 1, userId);
     
     // Clean up any existing test data
     db.prepare('DELETE FROM reports WHERE title LIKE ?').run('%Test%');
     db.prepare('DELETE FROM daily_summaries').run();
+  });
+
+  beforeEach(() => {
+    // Clean up before each test to avoid UNIQUE constraint violations
+    db.prepare('DELETE FROM daily_summaries').run();
+    db.prepare('DELETE FROM reports WHERE title LIKE ?').run('%Test%');
   });
 
   afterAll(() => {
@@ -317,7 +323,7 @@ describe('Reports & Analytics Models', () => {
       const insertResult = db.prepare(`
         INSERT INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(today, 1000.00, 5, 500.00, 3, 500.00, 8);
+      `).run(today, 100000, 5, 50000, 3, 50000, 8);
       
       const summaryId = insertResult.lastInsertRowid;
       
@@ -326,8 +332,8 @@ describe('Reports & Analytics Models', () => {
       
       expect(summary).toBeDefined();
       expect(summary.summary_date).toBe(today);
-      expect(summary.total_income).toBe('1000.00');
-      expect(summary.net_flow).toBe('500.00');
+      expect(summary.total_income).toBe(100000);
+      expect(summary.net_flow).toBe(50000);
     });
 
     it('should retrieve summaries by date range', () => {
@@ -335,8 +341,8 @@ describe('Reports & Analytics Models', () => {
       const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
       
       // Insert test summaries
-      db.prepare(`INSERT INTO daily_summaries (summary_date, total_income, total_expenses, net_flow) VALUES (?, ?, ?, ?)`).run(yesterday, 800.00, 400.00, 400.00);
-      db.prepare(`INSERT INTO daily_summaries (summary_date, total_income, total_expenses, net_flow) VALUES (?, ?, ?, ?)`).run(today, 1000.00, 500.00, 500.00);
+      db.prepare(`INSERT INTO daily_summaries (summary_date, total_income, total_expenses, net_flow) VALUES (?, ?, ?, ?)`).run(yesterday, 80000, 40000, 40000);
+      db.prepare(`INSERT INTO daily_summaries (summary_date, total_income, total_expenses, net_flow) VALUES (?, ?, ?, ?)`).run(today, 100000, 50000, 50000);
       
       // Get summaries by date range
       const summaries = db.prepare(`SELECT * FROM daily_summaries WHERE summary_date BETWEEN ? AND ?`).all(yesterday, today);
@@ -348,7 +354,7 @@ describe('Reports & Analytics Models', () => {
       const testDate = '2026-01-01';
       
       // Insert a summary with known values
-      db.prepare(`INSERT INTO daily_summaries (summary_date, total_income, total_expenses, net_flow) VALUES (?, ?, ?, ?)`).run(testDate, 2000.00, 1000.00, 1000.00);
+      db.prepare(`INSERT INTO daily_summaries (summary_date, total_income, total_expenses, net_flow) VALUES (?, ?, ?, ?)`).run(testDate, 200000, 100000, 100000);
       
       const summary = db.prepare('SELECT * FROM daily_summaries WHERE summary_date = ?').get(testDate);
       
@@ -393,13 +399,13 @@ describe('Reports & Analytics Models', () => {
       const expenseCategoryId = db.prepare('SELECT id FROM expense_categories WHERE name = ?').get('Test Expense Category').id;
       
       // Insert test data
-      db.prepare('INSERT INTO income (receipt_number, amount, income_category_id, payer_name, income_date, created_by) VALUES (?, ?, ?, ?, ?, ?)').run(`INC-${today}-002`, 2000.00, incomeCategoryId, 'Test Payer 2', today, userId);
-      db.prepare('INSERT INTO expenses (amount, expense_category_id, vendor_name, expense_date, created_by) VALUES (?, ?, ?, ?, ?)').run(1000.00, expenseCategoryId, 'Test Vendor 2', today, userId);
+      db.prepare('INSERT INTO income (receipt_number, amount, income_category_id, payer_name, income_date, created_by) VALUES (?, ?, ?, ?, ?, ?)').run(`INC-${today}-002`, 200000, incomeCategoryId, 'Test Payer 2', today, userId);
+      db.prepare('INSERT INTO expenses (amount, expense_category_id, vendor_name, expense_date, created_by) VALUES (?, ?, ?, ?, ?)').run(100000, expenseCategoryId, 'Test Vendor 2', today, userId);
       
       // Query for comparison
       const result = db.prepare(`
         SELECT 
-          income_date as date,
+          date,
           SUM(CASE WHEN source = 'income' THEN amount ELSE 0 END) as total_income,
           SUM(CASE WHEN source = 'expense' THEN amount ELSE 0 END) as total_expenses
         FROM (
@@ -422,7 +428,7 @@ describe('Reports & Analytics Models', () => {
       
       // Insert more test data
       const today = new Date().toISOString().split('T')[0];
-      db.prepare('INSERT INTO income (receipt_number, amount, income_category_id, payer_name, income_date, created_by) VALUES (?, ?, ?, ?, ?, ?)').run(`INC-${today}-003`, 3000.00, incomeCategoryId, 'Test Payer 3', today, userId);
+      db.prepare('INSERT INTO income (receipt_number, amount, income_category_id, payer_name, income_date, created_by) VALUES (?, ?, ?, ?, ?, ?)').run(`INC-${today}-003`, 300000, incomeCategoryId, 'Test Payer 3', today, userId);
       
       // Get statistics
       const incomeStats = db.prepare(`SELECT COUNT(*) as count, SUM(amount) as total FROM income`).get();

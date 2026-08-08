@@ -3,22 +3,20 @@
  * Comprehensive tests for DailyLedger model, service, and functionality
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
 
-// Test database setup
+// Test database setup - must be at top level for ESM mocking to work
 const TEST_DB = ':memory:';
-let testDb;
+const testDb = new Database(TEST_DB);
 
-// Mock the database module
+// Mock the database module at top level so all dynamic imports get the mock
 jest.mock('../config/database.js', () => ({
   default: testDb
 }));
 
 describe('DailyLedger Module', () => {
   beforeAll(() => {
-    // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
     
     // Create users, transactions, and daily_ledger tables
     testDb.exec(`
@@ -38,7 +36,7 @@ describe('DailyLedger Module', () => {
       CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         transaction_type TEXT NOT NULL,
         description TEXT,
         related_id INTEGER,
@@ -52,11 +50,11 @@ describe('DailyLedger Module', () => {
       CREATE TABLE IF NOT EXISTS daily_ledger (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date DATE NOT NULL UNIQUE,
-        opening_balance DECIMAL(10, 2) NOT NULL DEFAULT 0,
-        total_income DECIMAL(10, 2) NOT NULL DEFAULT 0,
-        total_expenses DECIMAL(10, 2) NOT NULL DEFAULT 0,
-        closing_balance DECIMAL(10, 2) NOT NULL DEFAULT 0,
-        net_movement DECIMAL(10, 2) NOT NULL DEFAULT 0,
+        opening_balance INTEGER NOT NULL DEFAULT 0,
+        total_income INTEGER NOT NULL DEFAULT 0,
+        total_expenses INTEGER NOT NULL DEFAULT 0,
+        closing_balance INTEGER NOT NULL DEFAULT 0,
+        net_movement INTEGER NOT NULL DEFAULT 0,
         transaction_count INTEGER NOT NULL DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -78,17 +76,17 @@ describe('DailyLedger Module', () => {
     `);
     
     // Transactions for 2026-07-01
-    insertTransaction.run(1, 'TRX-001', 1000.00, 'income', '2026-07-01', 'School fees payment');
-    insertTransaction.run(2, 'TRX-002', 200.00, 'expense', '2026-07-01', 'Salaries');
-    insertTransaction.run(3, 'TRX-003', 500.00, 'income', '2026-07-01', 'Donation');
+    insertTransaction.run(1, 'TRX-001', 100000, 'income', '2026-07-01', 'School fees payment');
+    insertTransaction.run(2, 'TRX-002', 20000, 'expense', '2026-07-01', 'Salaries');
+    insertTransaction.run(3, 'TRX-003', 50000, 'income', '2026-07-01', 'Donation');
     
     // Transactions for 2026-07-02
-    insertTransaction.run(4, 'TRX-004', 1500.00, 'income', '2026-07-02', 'School fees');
-    insertTransaction.run(5, 'TRX-005', 300.00, 'expense', '2026-07-02', 'Supplies');
+    insertTransaction.run(4, 'TRX-004', 150000, 'income', '2026-07-02', 'School fees');
+    insertTransaction.run(5, 'TRX-005', 30000, 'expense', '2026-07-02', 'Supplies');
     
     // Transactions for 2026-07-03
-    insertTransaction.run(6, 'TRX-006', 800.00, 'income', '2026-07-03', 'Lunch payment');
-    insertTransaction.run(7, 'TRX-007', 150.00, 'expense', '2026-07-03', 'Utilities');
+    insertTransaction.run(6, 'TRX-006', 80000, 'income', '2026-07-03', 'Lunch payment');
+    insertTransaction.run(7, 'TRX-007', 15000, 'expense', '2026-07-03', 'Utilities');
     
     // Insert initial daily ledger records
     const insertLedger = testDb.prepare(`
@@ -96,10 +94,10 @@ describe('DailyLedger Module', () => {
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
     
-    insertLedger.run('2026-07-01', 0, 1500.00, 200.00, 1300.00, 1300.00, 3);
-    insertLedger.run('2026-07-02', 1300.00, 1500.00, 300.00, 2500.00, 1200.00, 2);
-    insertLedger.run('2026-07-03', 2500.00, 800.00, 150.00, 3150.00, 650.00, 2);
-    insertLedger.run('2026-07-05', 3150.00, 2000.00, 500.00, 4650.00, 1500.00, 3);
+    insertLedger.run('2026-07-01', 0, 150000, 20000, 130000, 130000, 3);
+    insertLedger.run('2026-07-02', 130000, 150000, 30000, 250000, 120000, 2);
+    insertLedger.run('2026-07-03', 250000, 80000, 15000, 315000, 65000, 2);
+    insertLedger.run('2026-07-05', 315000, 200000, 50000, 465000, 150000, 3);
   });
 
   afterAll(() => {
@@ -251,11 +249,11 @@ describe('DailyLedger Module', () => {
       it('should create a new daily ledger record', () => {
         const newLedger = {
           date: '2026-07-04',
-          opening_balance: 3150.00,
-          total_income: 1000.00,
-          total_expenses: 200.00,
-          closing_balance: 3950.00,
-          net_movement: 800.00,
+          opening_balance: 315000,
+          total_income: 100000,
+          total_expenses: 20000,
+          closing_balance: 395000,
+          net_movement: 80000,
           transaction_count: 2
         };
         
@@ -282,9 +280,9 @@ describe('DailyLedger Module', () => {
 
     describe('update', () => {
       it('should update an existing daily ledger record', () => {
-        const updated = dailyLedgerModel.update(1, { total_income: 2000.00 });
+        const updated = dailyLedgerModel.update(1, { total_income: 200000 });
         expect(updated).toBeTruthy();
-        expect(updated.total_income).toBe(2000.00);
+        expect(updated.total_income).toBe(200000);
       });
     });
 
@@ -345,11 +343,11 @@ describe('DailyLedger Module', () => {
       it('should validate valid ledger data', () => {
         const validData = {
           date: '2026-07-15',
-          opening_balance: 1000.00,
-          total_income: 500.00,
-          total_expenses: 200.00,
-          closing_balance: 1300.00,
-          net_movement: 300.00,
+          opening_balance: 100000,
+          total_income: 50000,
+          total_expenses: 20000,
+          closing_balance: 130000,
+          net_movement: 30000,
           transaction_count: 2
         };
         
@@ -360,11 +358,11 @@ describe('DailyLedger Module', () => {
       it('should reject invalid date format', () => {
         const invalidData = {
           date: 'invalid-date',
-          opening_balance: 1000.00,
-          total_income: 500.00,
-          total_expenses: 200.00,
-          closing_balance: 1300.00,
-          net_movement: 300.00,
+          opening_balance: 100000,
+          total_income: 50000,
+          total_expenses: 20000,
+          closing_balance: 130000,
+          net_movement: 30000,
           transaction_count: 2
         };
         
@@ -374,11 +372,11 @@ describe('DailyLedger Module', () => {
       it('should reject negative amounts', () => {
         const invalidData = {
           date: '2026-07-15',
-          opening_balance: -1000.00,
-          total_income: 500.00,
-          total_expenses: 200.00,
-          closing_balance: 1300.00,
-          net_movement: 300.00,
+          opening_balance: -100000,
+          total_income: 50000,
+          total_expenses: 20000,
+          closing_balance: 130000,
+          net_movement: 30000,
           transaction_count: 2
         };
         
@@ -458,9 +456,9 @@ describe('DailyLedger Module', () => {
       it('should create a new ledger', () => {
         const ledger = dailyLedgerService.createDailyLedger({
           date: '2026-07-20',
-          opening_balance: 5000.00,
-          total_income: 1000.00,
-          total_expenses: 500.00
+          opening_balance: 500000,
+          total_income: 100000,
+          total_expenses: 50000
         });
         expect(ledger).toBeTruthy();
         expect(ledger.date).toBe('2026-07-20');
@@ -469,23 +467,23 @@ describe('DailyLedger Module', () => {
 
     describe('updateDailyLedger', () => {
       it('should update an existing ledger', () => {
-        const updated = dailyLedgerService.updateDailyLedger(2, { total_income: 2000.00 });
+        const updated = dailyLedgerService.updateDailyLedger(2, { total_income: 200000 });
         expect(updated).toBeTruthy();
-        expect(updated.total_income).toBe(2000.00);
+        expect(updated.total_income).toBe(200000);
       });
     });
 
     describe('deleteDailyLedger', () => {
-      it('should delete a ledger', () => {
+      it('should delete a ledger', async () => {
         // Create a ledger first
-        const newLedger = dailyLedgerService.createDailyLedger({
+        const newLedger = await dailyLedgerService.createDailyLedger({
           date: '2026-07-25',
           opening_balance: 0,
           total_income: 0,
           total_expenses: 0
         });
         
-        const deleted = dailyLedgerService.deleteDailyLedger(newLedger.id);
+        const deleted = await dailyLedgerService.deleteDailyLedger(newLedger.id);
         expect(deleted).toBeTruthy();
       });
     });

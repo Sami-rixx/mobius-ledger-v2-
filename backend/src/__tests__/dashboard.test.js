@@ -104,7 +104,7 @@ describe('Dashboard Module', () => {
       CREATE TABLE IF NOT EXISTS income (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         income_category_id INTEGER NOT NULL,
         income_date DATE NOT NULL,
         payer_name TEXT NOT NULL,
@@ -127,7 +127,7 @@ describe('Dashboard Module', () => {
       CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         expense_category_id INTEGER NOT NULL,
         expense_date DATE NOT NULL,
         vendor_name TEXT NOT NULL,
@@ -150,9 +150,9 @@ describe('Dashboard Module', () => {
       CREATE TABLE IF NOT EXISTS school_fees (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         student_id INTEGER NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
-        amount_paid DECIMAL(10, 2) DEFAULT 0,
-        balance DECIMAL(10, 2) DEFAULT 0,
+        amount INTEGER NOT NULL,
+        amount_paid INTEGER DEFAULT 0,
+        balance INTEGER DEFAULT 0,
         payment_date DATE NOT NULL,
         academic_year TEXT NOT NULL,
         term TEXT NOT NULL,
@@ -167,7 +167,7 @@ describe('Dashboard Module', () => {
       CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         transaction_type TEXT NOT NULL,
         description TEXT,
         related_id INTEGER,
@@ -180,7 +180,7 @@ describe('Dashboard Module', () => {
 
       CREATE TABLE IF NOT EXISTS director_withdrawals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         recipient_name TEXT NOT NULL,
         label TEXT,
         description TEXT,
@@ -222,24 +222,24 @@ describe('Dashboard Module', () => {
         (2, 'Supplies');
 
       INSERT OR IGNORE INTO income (id, receipt_number, amount, income_category_id, income_date, payer_name, payment_method) VALUES 
-        (1, 'INC-001', 1000.00, 1, '2026-07-01', 'John Doe', 'Cash'),
-        (2, 'INC-002', 1500.00, 1, '2026-07-02', 'Jane Smith', 'Bank Transfer'),
-        (3, 'INC-003', 500.00, 2, '2026-07-03', 'Donor One', 'Cash');
+        (1, 'INC-001', 100000, 1, '2026-07-01', 'John Doe', 'Cash'),
+        (2, 'INC-002', 150000, 1, '2026-07-02', 'Jane Smith', 'Bank Transfer'),
+        (3, 'INC-003', 50000, 2, '2026-07-03', 'Donor One', 'Cash');
 
       INSERT OR IGNORE INTO expenses (id, receipt_number, amount, expense_category_id, expense_date, vendor_name, payment_method) VALUES 
-        (1, 'EXP-001', 200.00, 1, '2026-07-01', 'Vendor One', 'Bank Transfer'),
-        (2, 'EXP-002', 300.00, 2, '2026-07-02', 'Vendor Two', 'Cash');
+        (1, 'EXP-001', 20000, 1, '2026-07-01', 'Vendor One', 'Bank Transfer'),
+        (2, 'EXP-002', 30000, 2, '2026-07-02', 'Vendor Two', 'Cash');
 
       INSERT OR IGNORE INTO school_fees (id, student_id, amount, amount_paid, balance, payment_date, academic_year, term) VALUES 
-        (1, 1, 1000.00, 500.00, 500.00, '2026-07-01', '2025-2026', 'Term 1'),
-        (2, 2, 1500.00, 1500.00, 0, '2026-07-02', '2025-2026', 'Term 1');
+        (1, 1, 100000, 50000, 50000, '2026-07-01', '2025-2026', 'Term 1'),
+        (2, 2, 150000, 150000, 0, '2026-07-02', '2025-2026', 'Term 1');
 
       INSERT OR IGNORE INTO transactions (id, receipt_number, amount, transaction_type, transaction_date) VALUES 
-        (1, 'TRX-001', 1000.00, 'income', '2026-07-01'),
-        (2, 'TRX-002', 200.00, 'expense', '2026-07-01');
+        (1, 'TRX-001', 100000, 'income', '2026-07-01'),
+        (2, 'TRX-002', 20000, 'expense', '2026-07-01');
 
       INSERT OR IGNORE INTO director_withdrawals (id, amount, recipient_name, status, withdrawal_date) VALUES 
-        (1, 500.00, 'Director One', 'completed', '2026-07-01');
+        (1, 50000, 'Director One', 'completed', '2026-07-01');
     `);
   });
 

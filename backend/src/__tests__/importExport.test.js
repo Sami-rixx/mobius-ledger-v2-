@@ -3,24 +3,24 @@
  * Comprehensive tests for ImportExport model, service, and functionality
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import ImportExport from '../models/ImportExport.js';
+import importExportService from '../services/importExportService.js';
 
-// Test database setup
+// Test database setup - must be at top level for ESM mocking to work
 const TEST_DB = ':memory:';
-let testDb;
+const testDb = new Database(TEST_DB);
 
-// Mock the database module
+// Mock the database module at top level so all dynamic imports get the mock
 jest.mock('../config/database.js', () => ({
   default: testDb
 }));
 
 describe('ImportExport Module', () => {
   beforeAll(() => {
-    // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
     
     // Create users and import_export_log tables
     testDb.exec(`
@@ -55,7 +55,7 @@ describe('ImportExport Module', () => {
       CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         transaction_type TEXT NOT NULL,
         description TEXT,
         related_id INTEGER,
@@ -77,7 +77,7 @@ describe('ImportExport Module', () => {
       CREATE TABLE IF NOT EXISTS school_fees (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         student_id INTEGER NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         payment_date DATE,
         status TEXT DEFAULT 'pending',
         FOREIGN KEY (student_id) REFERENCES students(id)
@@ -93,17 +93,17 @@ describe('ImportExport Module', () => {
       INSERT INTO transactions (receipt_number, amount, transaction_type, description, transaction_date, created_by)
       VALUES (?, ?, ?, ?, ?, ?)
     `);
-    insertTransaction.run('ML-2026-000001', 5000.00, 'income', 'School fees payment', '2026-01-15', user1.lastInsertRowid);
-    insertTransaction.run('ML-2026-000002', 2000.00, 'expense', 'Stationery purchase', '2026-01-16', user1.lastInsertRowid);
-    insertTransaction.run('ML-2026-000003', 3000.00, 'income', 'Lunch fees', '2026-01-17', user2.lastInsertRowid);
+    insertTransaction.run('ML-2026-000001', 500000, 'income', 'School fees payment', '2026-01-15', user1.lastInsertRowid);
+    insertTransaction.run('ML-2026-000002', 200000, 'expense', 'Stationery purchase', '2026-01-16', user1.lastInsertRowid);
+    insertTransaction.run('ML-2026-000003', 300000, 'income', 'Lunch fees', '2026-01-17', user2.lastInsertRowid);
 
     const insertStudent = testDb.prepare('INSERT INTO students (admission_number, first_name, last_name) VALUES (?, ?, ?)');
     insertStudent.run('STU-001', 'John', 'Doe');
     insertStudent.run('STU-002', 'Jane', 'Smith');
 
     const insertSchoolFee = testDb.prepare('INSERT INTO school_fees (student_id, amount, payment_date, status) VALUES (?, ?, ?, ?)');
-    insertSchoolFee.run(1, 5000.00, '2026-01-15', 'paid');
-    insertSchoolFee.run(2, 5000.00, '2026-01-16', 'pending');
+    insertSchoolFee.run(1, 500000, '2026-01-15', 'paid');
+    insertSchoolFee.run(2, 500000, '2026-01-16', 'pending');
   });
 
   afterAll(() => {
@@ -132,11 +132,6 @@ describe('ImportExport Module', () => {
 
   // Test ImportExport Model
   describe('ImportExport Model', () => {
-    let ImportExport;
-
-    beforeAll(() => {
-      ImportExport = require('../models/ImportExport.js');
-    });
 
     describe('Constants', () => {
       it('should have IMPORT_EXPORT_TYPES constant', () => {
@@ -311,11 +306,6 @@ describe('ImportExport Module', () => {
 
   // Test ImportExport Service
   describe('ImportExport Service', () => {
-    let importExportService;
-
-    beforeAll(() => {
-      importExportService = require('../services/importExportService.js');
-    });
 
     describe('validateParams', () => {
       it('should validate valid params', () => {
@@ -350,7 +340,6 @@ describe('ImportExport Module', () => {
 
     describe('getPaginatedLogs', () => {
       it('should return paginated logs', () => {
-        const ImportExport = require('../models/ImportExport.js');
         ImportExport.createLog({ type: 'export', action: 'database_export', user_id: 1 });
         ImportExport.createLog({ type: 'import', action: 'csv_import', user_id: 1 });
 
@@ -364,7 +353,6 @@ describe('ImportExport Module', () => {
 
     describe('getLogById', () => {
       it('should retrieve log by ID', () => {
-        const ImportExport = require('../models/ImportExport.js');
         const created = ImportExport.createLog({ type: 'export', action: 'database_export', user_id: 1 });
 
         const log = importExportService.getLogById(created.id);
@@ -403,7 +391,6 @@ describe('ImportExport Module', () => {
   // Test Module Exports
   describe('Module Exports', () => {
     it('should export ImportExport model', () => {
-      const ImportExport = require('../models/ImportExport.js');
       expect(ImportExport).toBeDefined();
       expect(typeof ImportExport.createLog).toBe('function');
       expect(typeof ImportExport.getLogById).toBe('function');
@@ -414,7 +401,6 @@ describe('ImportExport Module', () => {
     });
 
     it('should export importExportService', () => {
-      const importExportService = require('../services/importExportService.js');
       expect(importExportService).toBeDefined();
       expect(typeof importExportService.validateParams).toBe('function');
       expect(typeof importExportService.getPaginatedLogs).toBe('function');
@@ -422,8 +408,8 @@ describe('ImportExport Module', () => {
       expect(typeof importExportService.getStatistics).toBe('function');
     });
 
-    it('should export importExportController', () => {
-      const importExportController = require('../controllers/importExportController.js');
+    it('should export importExportController', async () => {
+      const importExportController = await import('../controllers/importExportController.js');
       expect(importExportController).toBeDefined();
       expect(typeof importExportController.listLogs).toBe('function');
       expect(typeof importExportController.countLogs).toBe('function');
@@ -442,8 +428,8 @@ describe('ImportExport Module', () => {
       expect(typeof importExportController.getSupportedTables).toBe('function');
     });
 
-    it('should export importExportRoutes', () => {
-      const importExportRoutes = require('../routes/importExportRoutes.js');
+    it('should export importExportRoutes', async () => {
+      const importExportRoutes = await import('../routes/importExportRoutes.js');
       expect(importExportRoutes).toBeDefined();
       expect(importExportRoutes.default).toBeDefined();
     });

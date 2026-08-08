@@ -7,6 +7,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import Database from 'better-sqlite3';
+import { promises as fsPromises } from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -24,6 +25,12 @@ let StudentChargeAssignmentModel;
 let testData = {};
 
 describe('Student Charge Models', () => {
+  // Clean up assignments before each test to avoid UNIQUE constraint violations
+  beforeEach(() => {
+    if (db) {
+      db.prepare('DELETE FROM student_charge_assignments').run();
+    }
+  });
   beforeAll(() => {
     // Create test database
     db = new Database(TEST_DB_PATH);
@@ -100,7 +107,7 @@ describe('Student Charge Models', () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE,
         transaction_type TEXT NOT NULL CHECK(transaction_type IN ('income', 'expense', 'school_fee', 'lunch_fee', 'student_charge', 'director_withdrawal')),
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         category_id INTEGER,
         income_category_id INTEGER,
         expense_category_id INTEGER,
@@ -125,7 +132,7 @@ describe('Student Charge Models', () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         description TEXT,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         charge_type TEXT DEFAULT 'individual' CHECK(charge_type IN ('individual', 'all', 'class', 'grade', 'custom')),
         class_id INTEGER,
         is_active BOOLEAN DEFAULT 1,
@@ -143,7 +150,7 @@ describe('Student Charge Models', () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         charge_id INTEGER NOT NULL,
         student_id INTEGER NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         assigned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         paid BOOLEAN DEFAULT 0,
         paid_at DATETIME,
@@ -387,14 +394,14 @@ describe('Student Charge Models', () => {
     };
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     if (db) {
       db.close();
     }
     try {
-      require('fs').unlinkSync(TEST_DB_PATH);
-      require('fs').unlinkSync(TEST_DB_PATH + '-wal');
-      require('fs').unlinkSync(TEST_DB_PATH + '-shm');
+      await fsPromises.unlink(TEST_DB_PATH);
+      await fsPromises.unlink(TEST_DB_PATH + '-wal');
+      await fsPromises.unlink(TEST_DB_PATH + '-shm');
     } catch (e) {
       // Ignore
     }
@@ -405,14 +412,14 @@ describe('Student Charge Models', () => {
       const charge = StudentChargeModel.createStudentCharge({
         name: 'Test Charge',
         description: 'Test Description',
-        amount: 100.00,
+        amount: 10000,
         chargeType: 'individual',
         createdBy: testData.userId
       });
 
       expect(charge).toBeDefined();
       expect(charge.name).toBe('Test Charge');
-      expect(charge.amount).toBe(100.00);
+      expect(charge.amount).toBe(10000);
       expect(charge.charge_type).toBe('individual');
       expect(charge.is_active).toBe(1);
     });
@@ -420,7 +427,7 @@ describe('Student Charge Models', () => {
     it('should get a student charge by ID', () => {
       const charge = StudentChargeModel.createStudentCharge({
         name: 'Get By ID Test',
-        amount: 200.00,
+        amount: 20000,
         createdBy: testData.userId
       });
 
@@ -450,7 +457,7 @@ describe('Student Charge Models', () => {
     it('should get assignment count for a charge', () => {
       const charge = StudentChargeModel.createStudentCharge({
         name: 'Assignment Count Test',
-        amount: 300.00,
+        amount: 30000,
         createdBy: testData.userId
       });
 
@@ -466,7 +473,7 @@ describe('Student Charge Models', () => {
     beforeAll(() => {
       testChargeId = StudentChargeModel.createStudentCharge({
         name: 'Assignment Test Charge',
-        amount: 500.00,
+        amount: 50000,
         createdBy: testData.userId
       }).id;
     });
@@ -475,14 +482,14 @@ describe('Student Charge Models', () => {
       const assignment = StudentChargeAssignmentModel.createStudentChargeAssignment({
         chargeId: testChargeId,
         studentId: testData.studentId1,
-        amount: 500.00,
+        amount: 50000,
         notes: 'Test assignment'
       });
 
       expect(assignment).toBeDefined();
       expect(assignment.charge_id).toBe(testChargeId);
       expect(assignment.student_id).toBe(testData.studentId1);
-      expect(assignment.amount).toBe(500.00);
+      expect(assignment.amount).toBe(50000);
       expect(assignment.paid).toBe(0);
     });
 
@@ -490,7 +497,7 @@ describe('Student Charge Models', () => {
       const assignment = StudentChargeAssignmentModel.createStudentChargeAssignment({
         chargeId: testChargeId,
         studentId: testData.studentId1,
-        amount: 600.00
+        amount: 60000
       });
 
       const retrieved = StudentChargeAssignmentModel.getStudentChargeAssignmentById(assignment.id);

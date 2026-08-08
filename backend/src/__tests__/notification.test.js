@@ -3,23 +3,21 @@
  * Comprehensive tests for Notification model, service, and functionality
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
 
-// Test database setup
+// Test database setup - must be at top level for ESM mocking to work
 const TEST_DB = ':memory:';
-let testDb;
+const testDb = new Database(TEST_DB);
+testDb.pragma('foreign_keys = ON');
 
-// Mock the database module
+// Mock the database module at top level so all dynamic imports get the mock
 jest.mock('../config/database.js', () => ({
   default: testDb
 }));
 
 describe('Notification Module', () => {
   beforeAll(() => {
-    // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
-    
     // Create users and notifications tables
     testDb.exec(`
       CREATE TABLE IF NOT EXISTS users (
@@ -49,7 +47,7 @@ describe('Notification Module', () => {
         scheduled_at DATETIME,
         sent_at DATETIME,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME NOT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       );
 
@@ -312,7 +310,7 @@ describe('Notification Module', () => {
           type: 'INVALID'
         });
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('Invalid type');
+        expect(result.errors[0]).toContain('Invalid type. Must be one of:');
       });
 
       it('should reject invalid priority', () => {
@@ -322,7 +320,7 @@ describe('Notification Module', () => {
           priority: 'INVALID'
         });
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('Invalid priority');
+        expect(result.errors[0]).toContain('Invalid priority. Must be one of:');
       });
     });
 

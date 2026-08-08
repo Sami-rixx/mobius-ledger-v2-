@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { toCents, fromCents, getAmount } from '../utils/money.js';
 
 /**
  * Student Charge Assignment Model
@@ -132,7 +133,12 @@ export const getAllStudentChargeAssignments = (options = {}) => {
   params.push(limit, offset);
 
   const stmt = db.prepare(query);
-  return stmt.all(...params);
+  const rows = stmt.all(...params);
+  return rows.map(row => ({
+    ...row,
+    amount: getAmount(row, FIELDS.AMOUNT),
+    charge_amount: getAmount(row, 'charge_amount', 'charge_amount')
+  }));
 };
 
 /**
@@ -147,6 +153,7 @@ export const getStudentChargeAssignmentById = (id) => {
       sc.name as charge_name,
       sc.description as charge_description,
       sc.amount as charge_amount,
+      sc.amount as charge_
       sc.charge_type,
       sc.due_date,
       s.id as student_id,
@@ -167,7 +174,13 @@ export const getStudentChargeAssignmentById = (id) => {
   `;
 
   const stmt = db.prepare(query);
-  return stmt.get(id) || null;
+  const row = stmt.get(id);
+  if (!row) return null;
+  return {
+    ...row,
+    amount: getAmount(row, FIELDS.AMOUNT),
+    charge_amount: getAmount(row, 'charge_amount', 'charge_amount')
+  };
 };
 
 /**
@@ -236,21 +249,24 @@ export const createStudentChargeAssignment = (assignmentData) => {
   // Get charge amount if not provided
   let finalAmount = amount;
   if (finalAmount === undefined) {
-    const charge = db.prepare(`SELECT amount FROM ${STUDENT_CHARGES_TABLE} WHERE id = ?`).get(chargeId);
+    const charge = db.prepare(`SELECT amount, amount FROM ${STUDENT_CHARGES_TABLE} WHERE id = ?`).get(chargeId);
     if (!charge) {
       throw new Error(`Charge with ID ${chargeId} not found`);
     }
     finalAmount = charge.amount;
   }
 
+  // Convert amount to cents
+  const finalAmountCents = toCents(finalAmount);
+
   const query = `
     INSERT INTO ${TABLE} 
-      (charge_id, student_id, amount, notes)
-    VALUES (?, ?, ?, ?)
+      (charge_id, student_id, amount,  notes)
+    VALUES (?, ?, ?, ?, ?)
   `;
 
   const stmt = db.prepare(query);
-  const result = stmt.run(chargeId, studentId, finalAmount, notes || null);
+  const result = stmt.run(chargeId, studentId, finalAmountCents, notes || null);
 
   return getStudentChargeAssignmentById(result.lastInsertRowid);
 };
@@ -303,7 +319,9 @@ export const updateStudentChargeAssignment = (id, assignmentData) => {
 
   if (amount !== undefined) {
     updates.push(`amount = ?`);
+    updates.push(`amount = ?`);
     params.push(amount);
+    params.push(toCents(amount));
   }
   if (paid !== undefined) {
     updates.push(`paid = ?`);
@@ -482,9 +500,9 @@ export const getStudentChargeAssignmentStatistics = (chargeId = null) => {
       COUNT(*) as total_assignments,
       COUNT(CASE WHEN paid = 1 THEN 1 END) as paid_count,
       COUNT(CASE WHEN paid = 0 THEN 1 END) as unpaid_count,
-      SUM(amount) as total_amount,
-      SUM(CASE WHEN paid = 1 THEN amount ELSE 0 END) as total_paid,
-      SUM(CASE WHEN paid = 0 THEN amount ELSE 0 END) as total_outstanding
+      COALESCE(SUM(amount), SUM(amount * 100)) as total_
+      COALESCE(SUM(CASE WHEN paid = 1 THEN amount ELSE 0 END), SUM(CASE WHEN paid = 1 THEN amount * 100 ELSE 0 END)) as total_paid_cents,
+      COALESCE(SUM(CASE WHEN paid = 0 THEN amount ELSE 0 END), SUM(CASE WHEN paid = 0 THEN amount * 100 ELSE 0 END)) as total_outstanding_cents
     FROM ${TABLE}
   `;
 
@@ -497,13 +515,24 @@ export const getStudentChargeAssignmentStatistics = (chargeId = null) => {
   const stmt = db.prepare(query);
   const result = stmt.get(...params);
 
-  return result || {
-    total_assignments: 0,
-    paid_count: 0,
-    unpaid_count: 0,
-    total_amount: 0,
-    total_paid: 0,
-    total_outstanding: 0
+  if (!result) {
+    return {
+      total_assignments: 0,
+      paid_count: 0,
+      unpaid_count: 0,
+      total_amount: 0,
+      total_paid: 0,
+      total_outstanding: 0
+    };
+  }
+  
+  return {
+    total_assignments: result.total_assignments || 0,
+    paid_count: result.paid_count || 0,
+    unpaid_count: result.unpaid_count || 0,
+    total_amount: parseFloat(fromCents(result.total_amount || 0)),
+    total_paid: parseFloat(fromCents(result.total_paid_cents || 0)),
+    total_outstanding: parseFloat(fromCents(result.total_outstanding_cents || 0))
   };
 };
 
@@ -532,7 +561,7 @@ export const isStudentAssignedToCharge = (chargeId, studentId) => {
  */
 export const getStudentOutstandingChargeAmount = (studentId) => {
   const query = `
-    SELECT SUM(sca.amount) as total_outstanding
+    SELECT COALESCE(SUM(sca.amount), SUM(sca.amount * 100)) as total_outstanding_cents
     FROM ${TABLE} sca
     JOIN ${STUDENT_CHARGES_TABLE} sc ON sca.charge_id = sc.id
     WHERE sca.student_id = ? AND sca.paid = 0 AND sc.is_active = 1
@@ -540,7 +569,7 @@ export const getStudentOutstandingChargeAmount = (studentId) => {
 
   const stmt = db.prepare(query);
   const result = stmt.get(studentId);
-  return result ? (result.total_outstanding || 0) : 0;
+  return result ? parseFloat(fromCents(result.total_outstanding_cents || 0)) : 0;
 };
 
 // Export field constants

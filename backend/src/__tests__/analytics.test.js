@@ -89,7 +89,7 @@ describe('Analytics Model', () => {
       CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         transaction_type TEXT NOT NULL,
         description TEXT,
         related_id INTEGER,
@@ -103,7 +103,7 @@ describe('Analytics Model', () => {
       CREATE TABLE IF NOT EXISTS income (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         income_category_id INTEGER NOT NULL,
         description TEXT,
         payer_name TEXT NOT NULL,
@@ -126,7 +126,7 @@ describe('Analytics Model', () => {
 
       CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         expense_category_id INTEGER NOT NULL,
         description TEXT,
         vendor_name TEXT NOT NULL,
@@ -176,7 +176,7 @@ describe('Analytics Model', () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         description TEXT,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         charge_type TEXT NOT NULL,
         frequency TEXT NOT NULL,
         is_recurring BOOLEAN DEFAULT 0,
@@ -232,19 +232,19 @@ describe('Analytics Model', () => {
     const lastWeek = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
     const lastMonth = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-    // Insert income records
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-001`, 10000.00, schoolFeesCatId, 'Term 1 fees', 'Parent A', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-002`, 5000.00, donationsCatId, 'Annual donation', 'Donor B', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${yesterday}-001`, 8000.00, schoolFeesCatId, 'Term 1 fees', 'Parent C', yesterday, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${lastWeek}-001`, 15000.00, schoolFeesCatId, 'Term 1 fees', 'Parent D', lastWeek, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${lastMonth}-001`, 12000.00, donationsCatId, 'Monthly donation', 'Donor C', lastMonth, 1, userId);
+    // Insert income records (amounts in cents)
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-001`, 1000000, schoolFeesCatId, 'Term 1 fees', 'Parent A', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${today}-002`, 500000, donationsCatId, 'Annual donation', 'Donor B', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${yesterday}-001`, 800000, schoolFeesCatId, 'Term 1 fees', 'Parent C', yesterday, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${lastWeek}-001`, 1500000, schoolFeesCatId, 'Term 1 fees', 'Parent D', lastWeek, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO income (receipt_number, amount, income_category_id, description, payer_name, income_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(`INC-${lastMonth}-001`, 1200000, donationsCatId, 'Monthly donation', 'Donor C', lastMonth, 1, userId);
 
-    // Insert expense records
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(3000.00, salariesCatId, 'January salaries', 'Staff Payroll', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(2000.00, salariesCatId, 'January salaries', 'Staff Payroll', yesterday, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(1500.00, utilitiesCatId, 'Electricity bill', 'Power Co', today, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(800.00, utilitiesCatId, 'Water bill', 'Water Co', lastWeek, 1, userId);
-    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(5000.00, salariesCatId, 'December salaries', 'Staff Payroll', lastMonth, 1, userId);
+    // Insert expense records (amounts in cents)
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(300000, salariesCatId, 'January salaries', 'Staff Payroll', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(200000, salariesCatId, 'January salaries', 'Staff Payroll', yesterday, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(150000, utilitiesCatId, 'Electricity bill', 'Power Co', today, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(80000, utilitiesCatId, 'Water bill', 'Water Co', lastWeek, 1, userId);
+    db.prepare('INSERT OR IGNORE INTO expenses (amount, expense_category_id, description, vendor_name, expense_date, is_verified, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(500000, salariesCatId, 'December salaries', 'Staff Payroll', lastMonth, 1, userId);
   });
 
   afterAll(() => {
@@ -264,9 +264,10 @@ describe('Analytics Model', () => {
   describe('getIncomeVsExpense', () => {
     it('should return income vs expense comparison data', () => {
       const today = new Date().toISOString().split('T')[0];
+      const lastMonth = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", income_date) as period,
+          strftime('%Y-%m', income_date) as period,
           SUM(CASE WHEN source = 'income' THEN amount ELSE 0 END) as total_income,
           COUNT(CASE WHEN source = 'income' THEN 1 END) as income_count,
           SUM(CASE WHEN source = 'expense' THEN amount ELSE 0 END) as total_expenses,
@@ -299,7 +300,7 @@ describe('Analytics Model', () => {
     it('should group by month correctly', () => {
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", income_date) as period,
+          strftime('%Y-%m', income_date) as period,
           SUM(CASE WHEN source = 'income' THEN amount ELSE 0 END) as total_income,
           SUM(CASE WHEN source = 'expense' THEN amount ELSE 0 END) as total_expenses
         FROM (
@@ -546,7 +547,7 @@ describe('Analytics Model', () => {
 
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", income_date) as period,
+          strftime('%Y-%m', income_date) as period,
           COUNT(*) as count,
           COALESCE(SUM(amount), 0) as total_amount,
           AVG(amount) as avg_amount
@@ -578,7 +579,7 @@ describe('Analytics Model', () => {
 
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", expense_date) as period,
+          strftime('%Y-%m', expense_date) as period,
           COUNT(*) as count,
           COALESCE(SUM(amount), 0) as total_amount,
           AVG(amount) as avg_amount
@@ -600,7 +601,7 @@ describe('Analytics Model', () => {
 
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", date) as period,
+          strftime('%Y-%m', date) as period,
           SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
           SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expenses,
           SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END) as net_flow,

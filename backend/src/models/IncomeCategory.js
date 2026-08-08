@@ -40,9 +40,9 @@ const FIELDS = {
  * @param {number} options.offset - Offset for pagination
  * @param {string} options.orderBy - Field to order by
  * @param {string} options.orderDirection - ASC or DESC
- * @returns {Promise<Array>} - Array of income categories
+ * @returns {Array} - Array of income categories
  */
-export async function getAll(options = {}) {
+export function getAll(options = {}) {
   const {
     isActive,
     isSystem,
@@ -94,7 +94,7 @@ export async function getAll(options = {}) {
   params.push(limit, offset);
 
   try {
-    const rows = await db.all(query, params);
+    const rows = db.prepare(query).all(...params);
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -108,9 +108,9 @@ export async function getAll(options = {}) {
 
 /**
  * Get all active income categories
- * @returns {Promise<Array>} - Array of active income categories
+ * @returns {Array} - Array of active income categories
  */
-export async function getAllActive() {
+export function getAllActive() {
   const query = `
     SELECT *
     FROM ${TABLE}
@@ -119,7 +119,7 @@ export async function getAllActive() {
   `;
 
   try {
-    const rows = await db.all(query);
+    const rows = db.prepare(query).all();
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -134,13 +134,13 @@ export async function getAllActive() {
 /**
  * Get income category by ID
  * @param {number} id - Income category ID
- * @returns {Promise<Object|null>} - Income category or null
+ * @returns {Object|null} - Income category or null
  */
-export async function getById(id) {
+export function getById(id) {
   const query = `SELECT * FROM ${TABLE} WHERE ${FIELDS.ID} = ?`;
 
   try {
-    const row = await db.get(query, [id]);
+    const row = db.prepare(query).get(id);
     if (row) {
       return {
         ...row,
@@ -158,13 +158,13 @@ export async function getById(id) {
 /**
  * Get income category by name
  * @param {string} name - Category name
- * @returns {Promise<Object|null>} - Income category or null
+ * @returns {Object|null} - Income category or null
  */
-export async function getByName(name) {
+export function getByName(name) {
   const query = `SELECT * FROM ${TABLE} WHERE ${FIELDS.NAME} = ?`;
 
   try {
-    const row = await db.get(query, [name]);
+    const row = db.prepare(query).get(name);
     if (row) {
       return {
         ...row,
@@ -182,9 +182,9 @@ export async function getByName(name) {
 /**
  * Create a new income category
  * @param {Object} data - Income category data
- * @returns {Promise<Object>} - Created income category
+ * @returns {Object} - Created income category
  */
-export async function create(data) {
+export function create(data) {
   const {
     name,
     description,
@@ -215,8 +215,8 @@ export async function create(data) {
   ];
 
   try {
-    const result = await db.run(query, params);
-    return await getById(result.lastID);
+    const result = db.prepare(query).run(...params);
+    return getById(result.lastInsertRowid);
   } catch (error) {
     console.error('Error in create income category:', error.message);
     throw error;
@@ -227,9 +227,9 @@ export async function create(data) {
  * Update an income category
  * @param {number} id - Income category ID
  * @param {Object} data - Updated income category data
- * @returns {Promise<Object>} - Updated income category
+ * @returns {Object} - Updated income category
  */
-export async function update(id, data) {
+export function update(id, data) {
   const {
     name,
     description,
@@ -263,7 +263,7 @@ export async function update(id, data) {
   }
 
   if (updates.length === 0) {
-    return await getById(id);
+    return getById(id);
   }
 
   updates.push(`${FIELDS.UPDATED_AT} = CURRENT_TIMESTAMP`);
@@ -276,8 +276,8 @@ export async function update(id, data) {
   `;
 
   try {
-    await db.run(query, params);
-    return await getById(id);
+    db.prepare(query).run(...params);
+    return getById(id);
   } catch (error) {
     console.error('Error in update income category:', error.message);
     throw error;
@@ -287,17 +287,17 @@ export async function update(id, data) {
 /**
  * Delete an income category
  * @param {number} id - Income category ID
- * @returns {Promise<Object>} - Deleted income category
+ * @returns {Object} - Deleted income category
  */
-export async function deleteById(id) {
+export function deleteById(id) {
   const query = `DELETE FROM ${TABLE} WHERE ${FIELDS.ID} = ?`;
 
   try {
-    const row = await getById(id);
+    const row = getById(id);
     if (!row) {
       return null;
     }
-    await db.run(query, [id]);
+    db.prepare(query).run(id);
     return row;
   } catch (error) {
     console.error('Error in deleteById income category:', error.message);
@@ -308,9 +308,9 @@ export async function deleteById(id) {
 /**
  * Get total count of income categories
  * @param {Object} options - Filter options (same as getAll)
- * @returns {Promise<number>} - Total count
+ * @returns {number} - Total count
  */
-export async function count(options = {}) {
+export function count(options = {}) {
   const { isActive, isSystem, search } = options;
 
   let whereClause = '';
@@ -335,7 +335,7 @@ export async function count(options = {}) {
   const query = `SELECT COUNT(*) as count FROM ${TABLE} WHERE 1=1 ${whereClause}`;
 
   try {
-    const result = await db.get(query, params);
+    const result = db.prepare(query).get(...params);
     return result.count;
   } catch (error) {
     console.error('Error in count income categories:', error.message);
@@ -347,9 +347,9 @@ export async function count(options = {}) {
  * Check if a category name already exists
  * @param {string} name - Category name to check
  * @param {number} excludeId - Optional ID to exclude from check (for updates)
- * @returns {Promise<boolean>} - True if name exists
+ * @returns {boolean} - True if name exists
  */
-export async function nameExists(name, excludeId = null) {
+export function nameExists(name, excludeId = null) {
   let query = `SELECT COUNT(*) as count FROM ${TABLE} WHERE ${FIELDS.NAME} = ?`;
   const params = [name];
 
@@ -359,7 +359,7 @@ export async function nameExists(name, excludeId = null) {
   }
 
   try {
-    const result = await db.get(query, params);
+    const result = db.prepare(query).get(...params);
     return result.count > 0;
   } catch (error) {
     console.error('Error in nameExists income category:', error.message);
@@ -369,9 +369,9 @@ export async function nameExists(name, excludeId = null) {
 
 /**
  * Get income categories with usage count (how many income records use each category)
- * @returns {Promise<Array>} - Array of categories with usage count
+ * @returns {Array} - Array of categories with usage count
  */
-export async function getWithUsageCount() {
+export function getWithUsageCount() {
   const query = `
     SELECT 
       ${TABLE}.*,
@@ -386,7 +386,7 @@ export async function getWithUsageCount() {
   `;
 
   try {
-    const rows = await db.all(query);
+    const rows = db.prepare(query).all();
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
