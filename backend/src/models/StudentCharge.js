@@ -148,8 +148,8 @@ export const getStudentChargeById = (id) => {
       sc.*,
       c.name as class_name,
       COUNT(sca.id) as assignment_count,
-      COALESCE(SUM(CASE WHEN sca.paid = 1 THEN sca.amount ELSE 0 END), SUM(CASE WHEN sca.paid = 1 THEN sca.amount * 100 ELSE 0 END)) as total_paid_cents,
-      COALESCE(SUM(sca.amount), SUM(sca.amount * 100)) as total_assigned_cents
+      SUM(CASE WHEN sca.paid = 1 THEN sca.amount ELSE 0 END) as total_paid_cents,
+      COALESCE(SUM(sca.amount), 0) as total_assigned_cents
     FROM ${TABLE} sc
     LEFT JOIN ${CLASSES_TABLE} c ON sc.class_id = c.id
     LEFT JOIN ${ASSIGNMENTS_TABLE} sca ON sc.id = sca.charge_id
@@ -182,8 +182,8 @@ export const getStudentChargesByClass = (classId, options = {}) => {
       sc.*,
       c.name as class_name,
       COUNT(sca.id) as assignment_count,
-      COALESCE(SUM(CASE WHEN sca.paid = 1 THEN sca.amount ELSE 0 END), SUM(CASE WHEN sca.paid = 1 THEN sca.amount * 100 ELSE 0 END)) as total_paid_cents,
-      COALESCE(SUM(sca.amount), SUM(sca.amount * 100)) as total_assigned_cents
+      SUM(CASE WHEN sca.paid = 1 THEN sca.amount ELSE 0 END) as total_paid_cents,
+      COALESCE(SUM(sca.amount), 0) as total_assigned_cents
     FROM ${TABLE} sc
     LEFT JOIN ${CLASSES_TABLE} c ON sc.class_id = c.id
     LEFT JOIN ${ASSIGNMENTS_TABLE} sca ON sc.id = sca.charge_id
@@ -440,8 +440,8 @@ export const getStudentChargeStatistics = () => {
       COUNT(*) as total_charges,
       COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_charges,
       COUNT(CASE WHEN is_active = 0 THEN 1 END) as inactive_charges,
-      COALESCE(SUM(amount), SUM(amount * 100)) as total_
-      COALESCE(AVG(amount), AVG(amount * 100)) as average_
+      COALESCE(SUM(amount), 0) as total_amount_cents,
+      COALESCE(AVG(amount), 0) as average_amount_cents,
       COUNT(CASE WHEN charge_type = 'individual' THEN 1 END) as individual_charges,
       COUNT(CASE WHEN charge_type = 'class' THEN 1 END) as class_charges,
       COUNT(CASE WHEN charge_type = 'all' THEN 1 END) as all_students_charges,

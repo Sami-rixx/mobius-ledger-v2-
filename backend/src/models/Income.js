@@ -523,8 +523,8 @@ export function count(options = {}) {
  */
 export function getStatistics() {
   try {
-    // Total income - use COALESCE to prefer cents column, fall back to decimal
-    const totalQuery = `SELECT COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as totalAmountCents, COUNT(*) as totalCount FROM ${TABLE}`;
+    // Total income
+    const totalQuery = `SELECT COALESCE(SUM(${FIELDS.AMOUNT}), 0) as totalAmountCents, COUNT(*) as totalCount FROM ${TABLE}`;
     const totalResult = db.prepare(totalQuery).get();
 
     // Income by category
@@ -532,7 +532,7 @@ export function getStatistics() {
       SELECT 
         ${INCOME_CATEGORIES_TABLE}.id,
         ${INCOME_CATEGORIES_TABLE}.name as category_name,
-        COALESCE(SUM(${TABLE}.${FIELDS.AMOUNT}), SUM(${TABLE}.${FIELDS.AMOUNT} * 100)) as amount,
+        COALESCE(SUM(${TABLE}.${FIELDS.AMOUNT}), 0) as amount,
         COUNT(${TABLE}.${FIELDS.ID}) as count
       FROM ${INCOME_CATEGORIES_TABLE}
       LEFT JOIN ${TABLE} ON ${TABLE}.${FIELDS.INCOME_CATEGORY_ID} = ${INCOME_CATEGORIES_TABLE}.id
@@ -545,7 +545,7 @@ export function getStatistics() {
     const monthlyQuery = `
       SELECT 
         strftime('%Y-%m', ${FIELDS.INCOME_DATE}) as month,
-        COALESCE(SUM(${FIELDS.AMOUNT}), SUM(${FIELDS.AMOUNT} * 100)) as amount,
+        COALESCE(SUM(${FIELDS.AMOUNT}), 0) as amount,
         COUNT(*) as count
       FROM ${TABLE}
       WHERE strftime('%Y', ${FIELDS.INCOME_DATE}) = ?

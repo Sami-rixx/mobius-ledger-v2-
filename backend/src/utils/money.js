@@ -130,9 +130,9 @@ export function isValidMoney(value) {
 /**
  * Get currency symbol from database or use default
  * @param {import('better-sqlite3').Database} db - Database instance
- * @returns {Promise<string>} Currency symbol
+ * @returns {string} Currency symbol
  */
-export async function getCurrencySymbol(db) {
+export function getCurrencySymbol(db) {
   try {
     const result = db.prepare('SELECT value FROM system_settings WHERE key = ?').get('currency');
     return result?.value || DEFAULT_CURRENCY;

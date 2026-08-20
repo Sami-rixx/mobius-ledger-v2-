@@ -239,9 +239,9 @@ export const getSchoolFeePaymentsByStudent = (studentId) => {
  * @returns {Object} - Balance information
  */
 export const getStudentSchoolFeeBalance = (studentId) => {
-  // Get total paid - use COALESCE to prefer cents
+  // Get total paid
   const paidStmt = db.prepare(`
-    SELECT COALESCE(SUM(amount), SUM(amount * 100)) as total_paid_cents 
+    SELECT COALESCE(SUM(amount), 0) as total_paid_cents 
     FROM ${TABLE} 
     WHERE student_id = ?
   `);
@@ -276,7 +276,7 @@ export const getStudentsInArrears = (academicYear, term) => {
       s.last_name,
       s.class_id,
       c.name as class_name,
-      COALESCE(SUM(sfp.amount), SUM(sfp.amount * 100)) as total_paid_cents,
+      COALESCE(SUM(sfp.amount), 0) as total_paid_cents,
       0 as expected_fees, -- Would be from fee structure
       0 as balance -- Would be calculated
     FROM ${STUDENTS_TABLE} s
@@ -446,7 +446,7 @@ export const getSchoolFeeStatistics = (academicYear, term) => {
   let query = `
     SELECT 
       COUNT(*) as total_payments,
-      COALESCE(SUM(amount), SUM(amount * 100)) as total_
+      COALESCE(SUM(amount), 0) as total_paid_cents,
       COUNT(DISTINCT student_id) as unique_students
     FROM ${TABLE}
   `;
@@ -485,7 +485,7 @@ export const getSchoolFeeSummary = () => {
   // Get today's payments
   const today = new Date().toISOString().split('T')[0];
   const todayPayments = db.prepare(`
-    SELECT COUNT(*) as count, COALESCE(SUM(amount), SUM(amount * 100)) as total_cents 
+    SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total_cents 
     FROM ${TABLE} 
     WHERE payment_date = ?
   `).get(today);
@@ -493,14 +493,14 @@ export const getSchoolFeeSummary = () => {
   // Get this month's payments
   const thisMonth = today.substring(0, 7);
   const monthPayments = db.prepare(`
-    SELECT COUNT(*) as count, COALESCE(SUM(amount), SUM(amount * 100)) as total_cents 
+    SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total_cents 
     FROM ${TABLE} 
     WHERE payment_date LIKE ?
   `).get(`${thisMonth}%`);
 
   // Get total
   const total = db.prepare(`
-    SELECT COUNT(*) as count, COALESCE(SUM(amount), SUM(amount * 100)) as total_cents 
+    SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total_cents 
     FROM ${TABLE}
   `).get();
 

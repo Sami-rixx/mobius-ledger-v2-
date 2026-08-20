@@ -458,15 +458,15 @@ export async function getStatistics(options = {}) {
   const query = `
     SELECT 
       COUNT(*) as total_days,
-      COALESCE(SUM(${FIELDS.TOTAL_INCOME}), SUM(${FIELDS.TOTAL_INCOME} * 100)) as total_income_cents,
+      COALESCE(SUM(${FIELDS.TOTAL_INCOME}), 0) as total_income_cents,
       SUM(${FIELDS.INCOME_COUNT}) as total_income_records,
-      COALESCE(SUM(${FIELDS.TOTAL_EXPENSES}), SUM(${FIELDS.TOTAL_EXPENSES} * 100)) as total_expenses_cents,
+      COALESCE(SUM(${FIELDS.TOTAL_EXPENSES}), 0) as total_expenses_cents,
       SUM(${FIELDS.EXPENSE_COUNT}) as total_expense_records,
-      COALESCE(SUM(${FIELDS.NET_FLOW}), SUM(${FIELDS.NET_FLOW} * 100)) as net_flow_cents,
+      COALESCE(SUM(${FIELDS.NET_FLOW}), 0) as net_flow_cents,
       SUM(${FIELDS.TRANSACTION_COUNT}) as total_transactions,
-      COALESCE(AVG(${FIELDS.TOTAL_INCOME}), AVG(${FIELDS.TOTAL_INCOME} * 100)) as avg_daily_income_cents,
-      COALESCE(AVG(${FIELDS.TOTAL_EXPENSES}), AVG(${FIELDS.TOTAL_EXPENSES} * 100)) as avg_daily_expenses_cents,
-      COALESCE(AVG(${FIELDS.NET_FLOW}), AVG(${FIELDS.NET_FLOW} * 100)) as avg_daily_net_flow_cents
+      COALESCE(AVG(${FIELDS.TOTAL_INCOME}), 0) as avg_daily_income_cents,
+      COALESCE(AVG(${FIELDS.TOTAL_EXPENSES}), 0) as avg_daily_expenses_cents,
+      COALESCE(AVG(${FIELDS.NET_FLOW}), 0) as avg_daily_net_flow_cents
     FROM ${TABLE}
     ${whereClause}
   `;
@@ -509,18 +509,18 @@ export async function generateForDate(date) {
     throw new Error('Date is required');
   }
 
-  // Get income data for the date - use COALESCE to prefer cents
+  // Get income data for the date
   const incomeStmt = db.prepare(`
-    SELECT COUNT(*) as count, COALESCE(SUM(amount), SUM(amount * 100)) as total_cents 
+    SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total_cents 
     FROM ${INCOME_TABLE} 
     WHERE income_date = ?
   `);
   
   const income = incomeStmt.get(date);
 
-  // Get expense data for the date - use COALESCE to prefer cents
+  // Get expense data for the date
   const expenseStmt = db.prepare(`
-    SELECT COUNT(*) as count, COALESCE(SUM(amount), SUM(amount * 100)) as total_cents 
+    SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total_cents 
     FROM ${EXPENSES_TABLE} 
     WHERE expense_date = ?
   `);

@@ -500,9 +500,9 @@ export const getStudentChargeAssignmentStatistics = (chargeId = null) => {
       COUNT(*) as total_assignments,
       COUNT(CASE WHEN paid = 1 THEN 1 END) as paid_count,
       COUNT(CASE WHEN paid = 0 THEN 1 END) as unpaid_count,
-      COALESCE(SUM(amount), SUM(amount * 100)) as total_
-      COALESCE(SUM(CASE WHEN paid = 1 THEN amount ELSE 0 END), SUM(CASE WHEN paid = 1 THEN amount * 100 ELSE 0 END)) as total_paid_cents,
-      COALESCE(SUM(CASE WHEN paid = 0 THEN amount ELSE 0 END), SUM(CASE WHEN paid = 0 THEN amount * 100 ELSE 0 END)) as total_outstanding_cents
+      COALESCE(SUM(amount), 0) as total_amount_cents,
+      SUM(CASE WHEN paid = 1 THEN amount ELSE 0 END) as total_paid_cents,
+      SUM(CASE WHEN paid = 0 THEN amount ELSE 0 END) as total_outstanding_cents
     FROM ${TABLE}
   `;
 
@@ -561,7 +561,7 @@ export const isStudentAssignedToCharge = (chargeId, studentId) => {
  */
 export const getStudentOutstandingChargeAmount = (studentId) => {
   const query = `
-    SELECT COALESCE(SUM(sca.amount), SUM(sca.amount * 100)) as total_outstanding_cents
+    SELECT COALESCE(SUM(sca.amount), 0) as total_outstanding_cents
     FROM ${TABLE} sca
     JOIN ${STUDENT_CHARGES_TABLE} sc ON sca.charge_id = sc.id
     WHERE sca.student_id = ? AND sca.paid = 0 AND sc.is_active = 1

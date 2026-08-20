@@ -337,9 +337,9 @@ export async function getStatistics(options = {}) {
 
   const stats = db.prepare(`SELECT 
      COUNT(*) as total_days,
-     COALESCE(SUM(${FIELDS.TOTAL_INCOME}), SUM(${FIELDS.TOTAL_INCOME} * 100)) as total_income_cents,
-     COALESCE(SUM(${FIELDS.TOTAL_EXPENSES}), SUM(${FIELDS.TOTAL_EXPENSES} * 100)) as total_expenses_cents,
-     COALESCE(SUM(${FIELDS.NET_MOVEMENT}), SUM(${FIELDS.NET_MOVEMENT} * 100)) as net_movement_cents,
+     COALESCE(SUM(${FIELDS.TOTAL_INCOME}), 0) as total_income_cents,
+     COALESCE(SUM(${FIELDS.TOTAL_EXPENSES}), 0) as total_expenses_cents,
+     COALESCE(SUM(${FIELDS.NET_MOVEMENT}), 0) as net_movement_cents,
      COALESCE(SUM(${FIELDS.TRANSACTION_COUNT}), 0) as total_transactions,
      COALESCE(AVG(${FIELDS.TRANSACTION_COUNT}), 0) as avg_transactions_per_day,
      MIN(${FIELDS.DATE}) as first_date,
