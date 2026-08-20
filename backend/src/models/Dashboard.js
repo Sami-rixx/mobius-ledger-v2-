@@ -67,24 +67,24 @@ const STUDENT_FIELDS = {
 export async function getFinancialSummary() {
   try {
     // Get total income
-    const totalIncomeResult = await db.prepare(`
+    const totalIncomeResult = db.prepare(`
       SELECT COALESCE(SUM(amount), 0) as total FROM ${INCOME_TABLE} WHERE is_verified = 1
     `).get();
     
     // Get total expenses
-    const totalExpensesResult = await db.prepare(`
+    const totalExpensesResult = db.prepare(`
       SELECT COALESCE(SUM(amount), 0) as total FROM ${EXPENSES_TABLE} WHERE is_verified = 1
     `).get();
     
     // Get current month income
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
-    const currentMonthIncomeResult = await db.prepare(`
+    const currentMonthIncomeResult = db.prepare(`
       SELECT COALESCE(SUM(amount), 0) as total FROM ${INCOME_TABLE} 
       WHERE strftime('%Y-%m', income_date) = ? AND is_verified = 1
     `).get(currentMonth);
     
     // Get current month expenses
-    const currentMonthExpensesResult = await db.prepare(`
+    const currentMonthExpensesResult = db.prepare(`
       SELECT COALESCE(SUM(amount), 0) as total FROM ${EXPENSES_TABLE} 
       WHERE strftime('%Y-%m', expense_date) = ? AND is_verified = 1
     `).get(currentMonth);
@@ -114,12 +114,12 @@ export async function getFinancialSummary() {
 export async function getStudentStatistics() {
   try {
     // Total students
-    const totalStudentsResult = await db.prepare(`
+    const totalStudentsResult = db.prepare(`
       SELECT COUNT(*) as count FROM ${STUDENTS_TABLE} WHERE is_active = 1
     `).get();
     
     // Students by class
-    const studentsByClassResult = await db.prepare(`
+    const studentsByClassResult = db.prepare(`
       SELECT 
         c.name as class_name,
         COUNT(s.id) as student_count
@@ -130,7 +130,7 @@ export async function getStudentStatistics() {
     `).all();
     
     // Active vs inactive
-    const activeStudentsResult = await db.prepare(`
+    const activeStudentsResult = db.prepare(`
       SELECT 
         is_active,
         COUNT(*) as count
@@ -160,24 +160,24 @@ export async function getStudentStatistics() {
 export async function getSchoolFeesSummary() {
   try {
     // Total fees paid
-    const totalPaidResult = await db.prepare(`
+    const totalPaidResult = db.prepare(`
       SELECT COALESCE(SUM(amount_paid), 0) as total FROM ${SCHOOL_FEES_TABLE}
     `).get();
     
     // Total fees outstanding
-    const totalOutstandingResult = await db.prepare(`
+    const totalOutstandingResult = db.prepare(`
       SELECT COALESCE(SUM(balance), 0) as total FROM ${SCHOOL_FEES_TABLE} WHERE balance > 0
     `).get();
     
     // Students in arrears
-    const arrearsCountResult = await db.prepare(`
+    const arrearsCountResult = db.prepare(`
       SELECT COUNT(DISTINCT student_id) as count 
       FROM ${SCHOOL_FEES_TABLE} 
       WHERE balance > 0
     `).get();
     
     // Recent fee payments
-    const recentPaymentsResult = await db.prepare(`
+    const recentPaymentsResult = db.prepare(`
       SELECT * FROM ${SCHOOL_FEES_TABLE}
       ORDER BY payment_date DESC
       LIMIT 5
@@ -202,7 +202,7 @@ export async function getSchoolFeesSummary() {
  */
 export async function getRecentTransactions(limit = 10) {
   try {
-    const result = await db.prepare(`
+    const result = db.prepare(`
       SELECT * FROM ${TRANSACTIONS_TABLE}
       ORDER BY transaction_date DESC, created_at DESC
       LIMIT ?
@@ -250,7 +250,7 @@ export async function getIncomeVsExpenseOverTime(options = {}) {
       ORDER BY period DESC
       LIMIT ?
     `;
-    const incomeResult = await db.prepare(incomeQuery).all(limit);
+    const incomeResult = db.prepare(incomeQuery).all(limit);
     
     // Get expenses over time
     const expenseQuery = `
@@ -263,7 +263,7 @@ export async function getIncomeVsExpenseOverTime(options = {}) {
       ORDER BY period DESC
       LIMIT ?
     `;
-    const expenseResult = await db.prepare(expenseQuery).all(limit);
+    const expenseResult = db.prepare(expenseQuery).all(limit);
     
     // Merge data
     const periods = [];
@@ -296,7 +296,7 @@ export async function getIncomeVsExpenseOverTime(options = {}) {
  */
 export async function getIncomeByCategory() {
   try {
-    const result = await db.prepare(`
+    const result = db.prepare(`
       SELECT 
         ic.name as category_name,
         COALESCE(SUM(i.amount), 0) as total_amount,
@@ -320,7 +320,7 @@ export async function getIncomeByCategory() {
  */
 export async function getExpensesByCategory() {
   try {
-    const result = await db.prepare(`
+    const result = db.prepare(`
       SELECT 
         ec.name as category_name,
         COALESCE(SUM(e.amount), 0) as total_amount,
@@ -344,19 +344,11 @@ export async function getExpensesByCategory() {
  */
 export async function getQuickStats() {
   try {
-    const [
-      totalStudentsResult,
-      totalIncomeResult,
-      totalExpensesResult,
-      totalWithdrawalsResult,
-      recentTransactionsResult
-    ] = await Promise.all([
-      db.prepare(`SELECT COUNT(*) as count FROM ${STUDENTS_TABLE} WHERE is_active = 1`).get(),
-      db.prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM ${INCOME_TABLE} WHERE is_verified = 1`).get(),
-      db.prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM ${EXPENSES_TABLE} WHERE is_verified = 1`).get(),
-      db.prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM ${DIRECTOR_WITHDRAWALS_TABLE}`).get(),
-      db.prepare(`SELECT COUNT(*) as count FROM ${TRANSACTIONS_TABLE}`).get()
-    ]);
+    const totalStudentsResult = db.prepare(`SELECT COUNT(*) as count FROM ${STUDENTS_TABLE} WHERE is_active = 1`).get();
+    const totalIncomeResult = db.prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM ${INCOME_TABLE} WHERE is_verified = 1`).get();
+    const totalExpensesResult = db.prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM ${EXPENSES_TABLE} WHERE is_verified = 1`).get();
+    const totalWithdrawalsResult = db.prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM ${DIRECTOR_WITHDRAWALS_TABLE}`).get();
+    const recentTransactionsResult = db.prepare(`SELECT COUNT(*) as count FROM ${TRANSACTIONS_TABLE}`).get();
     
     const netBalance = (totalIncomeResult.total || 0) - (totalExpensesResult.total || 0);
     

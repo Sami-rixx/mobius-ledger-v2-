@@ -3,8 +3,9 @@
 
 import { setupDatabase } from '../config/database.js';
 
-// Initialize database before tests
+// Initialize database schema and settings before tests
 beforeAll(() => {
+  // Verify system settings exist - does not create production database
   setupDatabase();
 });
 

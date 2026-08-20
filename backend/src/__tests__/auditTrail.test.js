@@ -3,7 +3,17 @@
  * Comprehensive tests for AuditTrail model, service, and functionality
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
+import Database from 'better-sqlite3';
+
+// Mock the database module BEFORE importing any modules that use it
+// This is critical for ESM - mocks must be set up before imports are evaluated
+const mockDb = new Database(':memory:');
+jest.mock('../config/database.js', () => ({
+  default: mockDb
+}));
+
+// Now safe to import modules that depend on database.js
 import {
   getAllAuditTrails,
   getAuditTrailCount,
@@ -15,6 +25,8 @@ import {
   deleteAuditTrail,
   getAuditTrailStatistics
 } from '../models/AuditTrail.js';
+
+const testDb = mockDb;
 
 import {
   validateAuditTrail,
@@ -31,16 +43,10 @@ import {
   logFinancialAction
 } from '../services/auditTrailService.js';
 
-import Database from 'better-sqlite3';
-
-// Test database setup
-const TEST_DB = ':memory:';
-let testDb;
-
 describe('Audit Trail Module', () => {
   beforeAll(() => {
     // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
+    testDb = mockDb;
     
     // Create audit_trail and users tables
     testDb.exec(`

@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Test database path
-const TEST_DB_PATH = path.resolve(__dirname, 'test_mobius_ledger.db');
+const TEST_DB_PATH = path.resolve(__dirname, 'test_incomeCategory.db');
 
 describe('Income Category Service', () => {
   let db;
@@ -57,7 +57,7 @@ describe('Income Category Service', () => {
       CREATE TABLE IF NOT EXISTS income (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
+        amount INTEGER NOT NULL,
         income_category_id INTEGER NOT NULL,
         description TEXT,
         payer_name TEXT NOT NULL,
