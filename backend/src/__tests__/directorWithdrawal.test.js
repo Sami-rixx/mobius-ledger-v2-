@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Test database path
-const TEST_DB_PATH = path.resolve(__dirname, 'test_mobius_ledger.db');
+const TEST_DB_PATH = path.resolve(__dirname, 'test_directorWithdrawal.db');
 
 // Create a test database instance for the models
 let testDb;

@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Test database path
-const TEST_DB_PATH = path.resolve(__dirname, 'test_mobius_ledger.db');
+const TEST_DB_PATH = path.resolve(__dirname, 'test_income.db');
 
 // Import models after setting up test environment
 // We need to mock the database path or use a test-specific setup
