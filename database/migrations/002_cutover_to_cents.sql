@@ -274,22 +274,27 @@ ALTER TABLE director_withdrawals RENAME TO director_withdrawals_backup;
 
 CREATE TABLE director_withdrawals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    transaction_id INTEGER UNIQUE,
     amount INTEGER NOT NULL,  -- Was DECIMAL(10,2), now INTEGER cents
-    withdrawal_date DATE NOT NULL,
+    label TEXT,
+    purpose TEXT NOT NULL,
     description TEXT,
-    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected')),
-    purpose TEXT,
-    recipient_name TEXT,
+    recipient_name TEXT NOT NULL,
+    recipient_contact TEXT,
+    payment_method_id INTEGER,
+    transaction_id INTEGER,
+    withdrawal_date DATE NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
     approved_by INTEGER,
     approved_at DATETIME,
     rejected_by INTEGER,
     rejected_at DATETIME,
+    rejection_reason TEXT,
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    created_by INTEGER,
-    updated_by INTEGER,
+    created_by INTEGER NOT NULL,
+    updated_by INTEGER NOT NULL,
+    FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id),
     FOREIGN KEY (transaction_id) REFERENCES transactions(id),
     FOREIGN KEY (approved_by) REFERENCES users(id),
     FOREIGN KEY (rejected_by) REFERENCES users(id),
@@ -298,13 +303,15 @@ CREATE TABLE director_withdrawals (
 );
 
 INSERT INTO director_withdrawals (
-    id, transaction_id, amount, withdrawal_date, description, status, purpose,
-    recipient_name, approved_by, approved_at, rejected_by, rejected_at, notes,
-    created_at, updated_at, created_by, updated_by
+    id, amount, label, purpose, description, recipient_name, recipient_contact,
+    payment_method_id, transaction_id, withdrawal_date, status,
+    approved_by, approved_at, rejected_by, rejected_at, rejection_reason,
+    notes, created_at, updated_at, created_by, updated_by
 ) SELECT 
-    id, transaction_id, amount_cents, withdrawal_date, description, status, purpose,
-    recipient_name, approved_by, approved_at, rejected_by, rejected_at, notes,
-    created_at, updated_at, created_by, updated_by
+    id, amount_cents, NULL as label, purpose, description, recipient_name, NULL as recipient_contact,
+    NULL as payment_method_id, transaction_id, withdrawal_date, status,
+    approved_by, approved_at, rejected_by, rejected_at, NULL as rejection_reason,
+    notes, created_at, updated_at, created_by, updated_by
 FROM director_withdrawals_backup;
 
 DROP TABLE director_withdrawals_backup;
