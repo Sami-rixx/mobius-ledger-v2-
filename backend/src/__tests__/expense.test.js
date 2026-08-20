@@ -1,7 +1,19 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Mock the database module BEFORE importing any modules that use it
+// This is critical for ESM - mocks must be set up before imports are evaluated
+const mockDb = new Database(':memory:');
+jest.mock('../config/database.js', () => ({
+  default: mockDb
+}));
+
+// Now safe to import modules that depend on database.js
+import Expense from '../models/Expense.js';
+import ExpenseCategory from '../models/ExpenseCategory.js';
+import * as ExpenseService from '../services/expenseService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,17 +21,8 @@ const __dirname = path.dirname(__filename);
 // Test database path
 const TEST_DB_PATH = path.resolve(__dirname, 'test_expense.db');
 
-// Import Expense model and service - we'll use the actual implementation
-// This requires setting the database path before importing
-process.env.DATABASE_PATH = TEST_DB_PATH;
-
-// Import after setting env
-import Expense from '../models/Expense.js';
-import ExpenseCategory from '../models/ExpenseCategory.js';
-import * as ExpenseService from '../services/expenseService.js';
-
 describe('Expense Management - Backend Tests', () => {
-  let db;
+  let db = mockDb;
 
   beforeAll(() => {
     // Create test database

@@ -1,7 +1,18 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Mock the database module BEFORE importing any modules that use it
+// This is critical for ESM - mocks must be set up before imports are evaluated
+const mockDb = new Database(':memory:');
+jest.mock('../config/database.js', () => ({
+  default: mockDb
+}));
+
+// Now safe to import modules that depend on database.js
+import * as DashboardModel from '../models/Dashboard.js';
+import * as DashboardService from '../services/dashboardService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,18 +20,13 @@ const __dirname = path.dirname(__filename);
 // Test database path
 const TEST_DB_PATH = path.resolve(__dirname, 'test_dashboard.db');
 
-// Import the Dashboard module functions
-// Note: We need to use a mock database for testing
-import * as DashboardModel from '../models/Dashboard.js';
-import * as DashboardService from '../services/dashboardService.js';
-
 /**
  * Dashboard Module Tests
  * Tests for Dashboard model, service, and validation functions
  */
 
 describe('Dashboard Module', () => {
-  let db;
+  let db = mockDb;
 
   beforeAll(() => {
     // Create test database

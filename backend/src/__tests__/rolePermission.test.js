@@ -5,17 +5,20 @@
 
 import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
+
+// Mock the database module BEFORE importing any modules that use it
+// This is critical for ESM - mocks must be set up before imports are evaluated
+const mockDb = new Database(':memory:');
+jest.mock('../config/database.js', () => ({
+  default: mockDb
+}));
+
+// Now safe to import modules that depend on database.js
 import RolePermission from '../models/RolePermission.js';
 import rolePermissionService from '../services/rolePermissionService.js';
 
-// Test database setup - must be at top level for ESM mocking to work
-const TEST_DB = ':memory:';
-const testDb = new Database(TEST_DB);
-
-// Mock the database module at top level so all dynamic imports get the mock
-jest.mock('../config/database.js', () => ({
-  default: testDb
-}));
+// Test database reference
+const testDb = mockDb;
 
 describe('RolePermission Module', () => {
   beforeAll(() => {

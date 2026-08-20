@@ -4,6 +4,16 @@
  */
 
 import Database from 'better-sqlite3';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
+
+// Mock the database module BEFORE importing any modules that use it
+// This is critical for ESM - mocks must be set up before imports are evaluated
+const mockDb = new Database(':memory:');
+jest.mock('../config/database.js', () => ({
+  default: mockDb
+}));
+
+// Now safe to import modules that depend on database.js
 import {
   getAllTransactions,
   getTransactionCount,
@@ -29,13 +39,15 @@ import {
   getTransactionCountByFilter
 } from '../services/transactionService.js';
 
-import db from '../config/database.js';
 import * as TransactionModel from '../models/Transaction.js';
 import * as TransactionService from '../services/transactionService.js';
 
+// Test database reference - db import will get the mock
+import db from '../config/database.js';
+
 // Test database setup
 const TEST_DB = ':memory:';
-let testDb;
+const testDb = mockDb;
 
 beforeAll(() => {
   // Create in-memory database for testing

@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -8,8 +9,30 @@ const __dirname = path.dirname(__filename);
 // Database path (relative to backend/src/config)
 const DB_PATH = path.resolve(__dirname, '../../../database/mobius_ledger.db');
 
+// Schema file path
+const SCHEMA_PATH = path.resolve(__dirname, '../../../database/schema.sql');
+
 // Initialize SQLite database
 const db = new Database(DB_PATH);
+
+// Schema initialization flag to prevent duplicate execution
+let schemaInitialized = false;
+
+// Ensure schema is initialized before any queries
+function ensureSchema() {
+  if (schemaInitialized) return;
+  try {
+    const schemaSql = fs.readFileSync(SCHEMA_PATH, 'utf8');
+    db.exec(schemaSql);
+    schemaInitialized = true;
+  } catch (error) {
+    console.error('Failed to initialize database schema:', error.message);
+    throw error;
+  }
+}
+
+// Initialize schema immediately upon module load
+ensureSchema();
 
 // Performance optimizations
 // Enable WAL mode for better concurrent read/write performance
@@ -32,6 +55,7 @@ db.pragma('mmap_size = 30000000000'); // 30GB mmap size limit
 
 // Ensure system settings exist for receipt generation
 export const setupDatabase = () => {
+  ensureSchema();
   try {
     // Ensure receipt_year exists (initialized by setup.js)
     const yearRow = db.prepare('SELECT value FROM system_settings WHERE key = ?').get('receipt_year');

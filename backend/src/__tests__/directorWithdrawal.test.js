@@ -1,7 +1,17 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Mock the database module BEFORE importing any modules that use it
+// This is critical for ESM - mocks must be set up before imports are evaluated
+const mockDb = new Database(':memory:');
+jest.mock('../config/database.js', () => ({
+  default: mockDb
+}));
+
+// Now safe to import modules that depend on database.js
+import { WITHDRAWAL_STATUS } from '../models/DirectorWithdrawal.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,10 +20,7 @@ const __dirname = path.dirname(__filename);
 const TEST_DB_PATH = path.resolve(__dirname, 'test_directorWithdrawal.db');
 
 // Create a test database instance for the models
-let testDb;
-
-// Mock the database module
-import { WITHDRAWAL_STATUS } from '../models/DirectorWithdrawal.js';
+let testDb = mockDb;
 
 // We'll test the service functions directly since they contain the business logic
 // The model functions are tested through the service layer
