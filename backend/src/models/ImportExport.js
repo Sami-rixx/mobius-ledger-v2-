@@ -73,20 +73,30 @@ const ImportExport = {
   // Create log entry
   async createLog(data) {
     const { type, action, tableName, fileName, recordCount, status, errorMessage, userId } = data;
+    // The status column is NOT NULL with a DB-level DEFAULT 'pending', but
+    // that default only applies when the column is omitted from the INSERT
+    // entirely - explicitly binding NULL (what happens when `status` isn't
+    // passed in `data`) still violates the NOT NULL constraint. Default it
+    // here in JS so callers can omit status and get the documented
+    // "pending" default, same as the column's intent.
+    const resolvedStatus = status || 'pending';
     const query = `
       INSERT INTO ${IMPORT_EXPORT_TABLE} 
       (type, action, table_name, file_name, record_count, status, error_message, user_id, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `;
-    const params = [type, action, tableName, fileName, recordCount || 0, status, errorMessage, userId];
+    const params = [type, action, tableName, fileName, recordCount || 0, resolvedStatus, errorMessage, userId];
     const result = await db.prepare(query).run(params);
-    return { id: result.lastInsertRowid, ...data };
+    return { id: result.lastInsertRowid, ...data, status: resolvedStatus };
   },
 
   // Get log by ID
   async getLogById(id) {
     const query = `SELECT * FROM ${IMPORT_EXPORT_TABLE} WHERE id = ?`;
-    return await db.prepare(query).get([id]);
+    // Normalize "not found" to null, matching the convention used by every
+    // other *ById model lookup in this codebase (e.g. Role.getRoleById),
+    // instead of leaking better-sqlite3's raw `undefined`.
+    return (await db.prepare(query).get([id])) || null;
   },
 
   // Get all logs
