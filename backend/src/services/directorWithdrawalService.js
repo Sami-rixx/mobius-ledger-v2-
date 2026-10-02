@@ -929,3 +929,23 @@ export const searchWithdrawals = async (query, options = {}) => {
 
 // Export constants
 export { WITHDRAWAL_STATUS, VALIDATION, STATUS_TRANSITIONS };
+
+// Export all service functions (added so this module can be consumed via
+// the services/index.js default-export barrel, consistent with every
+// other *Service.js module in this codebase)
+export default {
+  getPaginatedWithdrawals,
+  getAllWithdrawals,
+  getWithdrawalById,
+  createWithdrawal,
+  updateWithdrawal,
+  deleteWithdrawal,
+  approveWithdrawal,
+  rejectWithdrawal,
+  completeWithdrawal,
+  cancelWithdrawal,
+  getWithdrawalStatistics,
+  getAllLabels,
+  getPendingWithdrawals,
+  searchWithdrawals,
+};

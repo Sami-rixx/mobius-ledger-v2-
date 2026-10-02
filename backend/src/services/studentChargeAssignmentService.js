@@ -448,3 +448,27 @@ export const getOutstandingChargesSummary = () => {
     byCharge: Object.values(byCharge)
   };
 };
+
+// Export all service functions (added so this module can be consumed via
+// the services/index.js default-export barrel, consistent with every
+// other *Service.js module in this codebase)
+export default {
+  getPaginatedStudentChargeAssignments,
+  getAllStudentChargeAssignments,
+  getStudentChargeAssignmentById,
+  getStudentChargeAssignmentsByCharge,
+  getStudentChargeAssignmentsByStudent,
+  getUnpaidStudentChargeAssignmentsByStudent,
+  getUnpaidStudentChargeAssignmentsByCharge,
+  createStudentChargeAssignment,
+  createMultipleStudentChargeAssignments,
+  updateStudentChargeAssignment,
+  markAssignmentAsPaid,
+  markAssignmentAsUnpaid,
+  deleteStudentChargeAssignment,
+  deleteStudentChargeAssignmentsByCharge,
+  getStudentChargeAssignmentStatistics,
+  isStudentAssignedToCharge,
+  getStudentOutstandingChargeAmount,
+  getOutstandingChargesSummary,
+};

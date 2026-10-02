@@ -508,3 +508,27 @@ export { DAILY_LEDGER_VALIDATION };
 
 // Export table and field constants for external use
 export { TABLE, FIELDS };
+
+// Export all service functions (added so this module can be consumed via
+// the services/index.js default-export barrel, consistent with every
+// other *Service.js module in this codebase)
+export default {
+  validateDailyLedgerData,
+  createPaginationParams,
+  getPaginatedDailyLedgers,
+  getDailyLedgerById,
+  getDailyLedgerByDate,
+  getTodayLedger,
+  getYesterdayLedger,
+  getRecentLedgers,
+  getMonthlyLedgers,
+  getDailyLedgerStatistics,
+  createDailyLedger,
+  updateDailyLedger,
+  deleteDailyLedger,
+  getMissingLedgerDates,
+  generateLedgerForDate,
+  generateLedgerForDateRange,
+  fillMissingLedgerDates,
+  getLedgerSummary,
+};

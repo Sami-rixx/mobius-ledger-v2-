@@ -824,3 +824,24 @@ export const getWithdrawalsCount = async (req, res, next) => {
     });
   }
 };
+
+// Export all controller functions (added so this module can be consumed via
+// the controllers/index.js default-export barrel, consistent with every
+// other *Controller.js module in this codebase)
+export default {
+  getWithdrawals,
+  getAllWithdrawals,
+  getWithdrawalById,
+  createWithdrawal,
+  updateWithdrawal,
+  deleteWithdrawal,
+  approveWithdrawal,
+  rejectWithdrawal,
+  completeWithdrawal,
+  cancelWithdrawal,
+  getWithdrawalStatistics,
+  getAllLabels,
+  getPendingWithdrawals,
+  searchWithdrawals,
+  getWithdrawalsCount,
+};

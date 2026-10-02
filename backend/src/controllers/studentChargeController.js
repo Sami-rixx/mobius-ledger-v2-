@@ -554,3 +554,23 @@ export const getStudentOutstandingChargeAmount = (req, res) => {
     });
   }
 };
+
+// Export all controller functions (added so this module can be consumed via
+// the controllers/index.js default-export barrel, consistent with every
+// other *Controller.js module in this codebase)
+export default {
+  getStudentCharges,
+  getAllStudentCharges,
+  getStudentChargeById,
+  getStudentChargesByClass,
+  getActiveStudentCharges,
+  createStudentCharge,
+  updateStudentCharge,
+  deleteStudentCharge,
+  forceDeleteStudentCharge,
+  getStudentChargeStatistics,
+  assignChargeToStudents,
+  getChargesForStudent,
+  getUnpaidChargesForStudent,
+  getStudentOutstandingChargeAmount,
+};

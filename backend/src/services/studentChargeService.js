@@ -388,3 +388,23 @@ export const getUnpaidChargesForStudent = (studentId) => {
 export const getStudentOutstandingChargeAmount = (studentId) => {
   return StudentChargeAssignmentModel.getStudentOutstandingChargeAmount(studentId);
 };
+
+// Export all service functions (added so this module can be consumed via
+// the services/index.js default-export barrel, consistent with every
+// other *Service.js module in this codebase)
+export default {
+  getPaginatedStudentCharges,
+  getAllStudentCharges,
+  getStudentChargeById,
+  createStudentCharge,
+  updateStudentCharge,
+  deleteStudentCharge,
+  forceDeleteStudentCharge,
+  getStudentChargesByClass,
+  getActiveStudentCharges,
+  getStudentChargeStatistics,
+  assignChargeToStudents,
+  getChargesForStudent,
+  getUnpaidChargesForStudent,
+  getStudentOutstandingChargeAmount,
+};

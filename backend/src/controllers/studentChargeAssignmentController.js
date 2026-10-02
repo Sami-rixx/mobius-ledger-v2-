@@ -690,3 +690,27 @@ export const getOutstandingChargesSummary = (req, res) => {
     });
   }
 };
+
+// Export all controller functions (added so this module can be consumed via
+// the controllers/index.js default-export barrel, consistent with every
+// other *Controller.js module in this codebase)
+export default {
+  getStudentChargeAssignments,
+  getAllStudentChargeAssignments,
+  getStudentChargeAssignmentById,
+  getStudentChargeAssignmentsByCharge,
+  getStudentChargeAssignmentsByStudent,
+  getUnpaidStudentChargeAssignmentsByStudent,
+  getUnpaidStudentChargeAssignmentsByCharge,
+  createStudentChargeAssignment,
+  createMultipleStudentChargeAssignments,
+  updateStudentChargeAssignment,
+  markAssignmentAsPaid,
+  markAssignmentAsUnpaid,
+  deleteStudentChargeAssignment,
+  deleteStudentChargeAssignmentsByCharge,
+  getStudentChargeAssignmentStatistics,
+  isStudentAssignedToCharge,
+  getStudentOutstandingChargeAmount,
+  getOutstandingChargesSummary,
+};
