@@ -254,18 +254,18 @@ describe('RolePermission Module', () => {
       });
 
       it('should remove all permissions from role', () => {
-        const { removeAllPermissionsFromRole, getPermissionsForRole } = __ns_RolePermission;
+        const { removeAllPermissionsFromRole, getPermissionsByRoleId } = __ns_RolePermission;
         const removed = removeAllPermissionsFromRole(3);
-        const permissions = getPermissionsForRole(3);
+        const permissions = getPermissionsByRoleId(3);
         
         expect(removed).toBe(true);
         expect(permissions.length).toBe(0);
       });
 
       it('should replace all permissions for a role', () => {
-        const { replaceRolePermissions, getPermissionsForRole } = __ns_RolePermission;
+        const { replaceRolePermissions, getPermissionsByRoleId } = __ns_RolePermission;
         replaceRolePermissions(3, [1, 2, 3]);
-        const permissions = getPermissionsForRole(3);
+        const permissions = getPermissionsByRoleId(3);
         
         expect(Array.isArray(permissions)).toBe(true);
         expect(permissions.length).toBe(3);
@@ -367,8 +367,8 @@ describe('RolePermission Module', () => {
       });
 
       it('should get permissions for role from service', () => {
-        const { getPermissionsForRole } = __ns_rolePermissionService;
-        const permissions = getPermissionsForRole(1);
+        const { getPermissionsByRoleId } = __ns_rolePermissionService;
+        const permissions = getPermissionsByRoleId(1);
         
         expect(Array.isArray(permissions)).toBe(true);
         expect(permissions.length).toBeGreaterThan(0);
