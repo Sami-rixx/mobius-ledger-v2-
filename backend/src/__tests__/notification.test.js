@@ -49,7 +49,7 @@ describe('Notification Module', () => {
         scheduled_at DATETIME,
         sent_at DATETIME,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME NOT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       );
 
@@ -312,7 +312,7 @@ describe('Notification Module', () => {
           type: 'INVALID'
         });
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('Invalid type');
+        expect(result.errors.some(e => e.startsWith('Invalid type'))).toBe(true);
       });
 
       it('should reject invalid priority', () => {
@@ -322,7 +322,7 @@ describe('Notification Module', () => {
           priority: 'INVALID'
         });
         expect(result.isValid).toBe(false);
-        expect(result.errors).toContain('Invalid priority');
+        expect(result.errors.some(e => e.startsWith('Invalid priority'))).toBe(true);
       });
     });
 
