@@ -5,20 +5,22 @@
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import Database from 'better-sqlite3';
+import { createRequire } from 'module';
+import db from '../config/database.js';
+
+const require = createRequire(import.meta.url);
+import * as __ns_UserRole from '../models/UserRole.js';
+import * as __ns_userRoleService from '../services/userRoleService.js';
 
 // Test database setup
 const TEST_DB = ':memory:';
 let testDb;
 
-// Mock the database module
-jest.mock('../config/database.js', () => ({
-  default: testDb
-}));
 
 describe('UserRole Module', () => {
   beforeAll(() => {
     // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
+    testDb = db;
     
     // Create users and roles tables
     testDb.exec(`
@@ -94,7 +96,7 @@ describe('UserRole Module', () => {
   afterAll(() => {
     // Close test database connection
     try {
-      testDb.close();
+      // no-op: testDb is the shared db singleton, do not close it here
     } catch (e) {
       // Ignore errors during cleanup
     }
@@ -107,20 +109,20 @@ describe('UserRole Module', () => {
   describe('UserRole Model', () => {
     describe('Constants', () => {
       it('should export USER_ROLES_TABLE constant', () => {
-        const { USER_ROLES_TABLE } = require('../models/UserRole.js');
+        const { USER_ROLES_TABLE } = __ns_UserRole;
         expect(USER_ROLES_TABLE).toBe('user_roles');
       });
 
       it('should export USER_ROLE_FIELDS constant', () => {
-        const { USER_ROLE_FIELDS } = require('../models/UserRole.js');
-        expect(USER_ROLE_FIELDS).toBeInstanceOf(Array);
+        const { USER_ROLE_FIELDS } = __ns_UserRole;
+        expect(Array.isArray(USER_ROLE_FIELDS)).toBe(true);
         expect(USER_ROLE_FIELDS.length).toBeGreaterThan(0);
       });
     });
 
     describe('Model Functions', () => {
       it('should create a new user-role assignment', () => {
-        const { createUserRole } = require('../models/UserRole.js');
+        const { createUserRole } = __ns_UserRole;
         const newUserRole = createUserRole({
           user_id: 2,
           role_id: 3
@@ -132,7 +134,7 @@ describe('UserRole Module', () => {
       });
 
       it('should get user-role by ID', () => {
-        const { getUserRoleById } = require('../models/UserRole.js');
+        const { getUserRoleById } = __ns_UserRole;
         const userRole = getUserRoleById(1);
         
         expect(userRole).toBeDefined();
@@ -141,7 +143,7 @@ describe('UserRole Module', () => {
       });
 
       it('should get user-role by user and role', () => {
-        const { getUserRoleByUserAndRole } = require('../models/UserRole.js');
+        const { getUserRoleByUserAndRole } = __ns_UserRole;
         const userRole = getUserRoleByUserAndRole(1, 1);
         
         expect(userRole).toBeDefined();
@@ -150,34 +152,34 @@ describe('UserRole Module', () => {
       });
 
       it('should get all roles for a user', () => {
-        const { getRolesForUser } = require('../models/UserRole.js');
+        const { getRolesForUser } = __ns_UserRole;
         const roles = getRolesForUser(1);
         
-        expect(roles).toBeInstanceOf(Array);
+        expect(Array.isArray(roles)).toBe(true);
         expect(roles.length).toBe(2); // admin has 2 roles
         expect(roles.every(r => r.user_id === 1)).toBe(true);
       });
 
       it('should get role IDs for a user', () => {
-        const { getRoleIdsForUser } = require('../models/UserRole.js');
+        const { getRoleIdsForUser } = __ns_UserRole;
         const roleIds = getRoleIdsForUser(1);
         
-        expect(roleIds).toBeInstanceOf(Array);
+        expect(Array.isArray(roleIds)).toBe(true);
         expect(roleIds).toContain(1);
         expect(roleIds).toContain(2);
       });
 
       it('should get all users for a role', () => {
-        const { getUsersForRole } = require('../models/UserRole.js');
+        const { getUsersForRole } = __ns_UserRole;
         const users = getUsersForRole(2);
         
-        expect(users).toBeInstanceOf(Array);
+        expect(Array.isArray(users)).toBe(true);
         expect(users.length).toBeGreaterThanOrEqual(3); // teacher1, teacher2, admin
         expect(users.every(u => u.role_id === 2)).toBe(true);
       });
 
       it('should check if user has role', () => {
-        const { userHasRole } = require('../models/UserRole.js');
+        const { userHasRole } = __ns_UserRole;
         const hasRole = userHasRole(1, 1);
         const noRole = userHasRole(4, 1);
         
@@ -186,7 +188,7 @@ describe('UserRole Module', () => {
       });
 
       it('should check if user has any of the given roles', () => {
-        const { userHasAnyRole } = require('../models/UserRole.js');
+        const { userHasAnyRole } = __ns_UserRole;
         const hasAny = userHasAnyRole(1, [1, 2]);
         const hasNone = userHasAnyRole(4, [1, 2]);
         
@@ -195,7 +197,7 @@ describe('UserRole Module', () => {
       });
 
       it('should get user count for a role', () => {
-        const { getUserCountForRole } = require('../models/UserRole.js');
+        const { getUserCountForRole } = __ns_UserRole;
         const count = getUserCountForRole(2);
         
         expect(typeof count).toBe('number');
@@ -203,7 +205,7 @@ describe('UserRole Module', () => {
       });
 
       it('should get role count for a user', () => {
-        const { getRoleCountForUser } = require('../models/UserRole.js');
+        const { getRoleCountForUser } = __ns_UserRole;
         const count = getRoleCountForUser(1);
         
         expect(typeof count).toBe('number');
@@ -211,15 +213,15 @@ describe('UserRole Module', () => {
       });
 
       it('should get all user-roles', () => {
-        const { getAllUserRoles } = require('../models/UserRole.js');
+        const { getAllUserRoles } = __ns_UserRole;
         const userRoles = getAllUserRoles();
         
-        expect(userRoles).toBeInstanceOf(Array);
+        expect(Array.isArray(userRoles)).toBe(true);
         expect(userRoles.length).toBeGreaterThan(0);
       });
 
       it('should get user-role statistics', () => {
-        const { getUserRoleStatistics } = require('../models/UserRole.js');
+        const { getUserRoleStatistics } = __ns_UserRole;
         const stats = getUserRoleStatistics();
         
         expect(stats).toBeDefined();
@@ -227,7 +229,7 @@ describe('UserRole Module', () => {
       });
 
       it('should remove role from user', () => {
-        const { removeRoleFromUser, getUserRoleByUserAndRole } = require('../models/UserRole.js');
+        const { removeRoleFromUser, getUserRoleByUserAndRole } = __ns_UserRole;
         const removed = removeRoleFromUser(2, 2);
         const userRole = getUserRoleByUserAndRole(2, 2);
         
@@ -236,7 +238,7 @@ describe('UserRole Module', () => {
       });
 
       it('should remove all roles from user', () => {
-        const { removeAllRolesFromUser, getRolesForUser } = require('../models/UserRole.js');
+        const { removeAllRolesFromUser, getRolesForUser } = __ns_UserRole;
         const removed = removeAllRolesFromUser(3);
         const roles = getRolesForUser(3);
         
@@ -245,16 +247,16 @@ describe('UserRole Module', () => {
       });
 
       it('should replace all roles for a user', () => {
-        const { replaceUserRoles, getRolesForUser } = require('../models/UserRole.js');
+        const { replaceUserRoles, getRolesForUser } = __ns_UserRole;
         replaceUserRoles(4, [1, 2]);
         const roles = getRolesForUser(4);
         
-        expect(roles).toBeInstanceOf(Array);
+        expect(Array.isArray(roles)).toBe(true);
         expect(roles.length).toBe(2);
       });
 
       it('should get user-role count', () => {
-        const { getUserRoleCount } = require('../models/UserRole.js');
+        const { getUserRoleCount } = __ns_UserRole;
         const count = getUserRoleCount();
         
         expect(typeof count).toBe('number');
@@ -264,11 +266,11 @@ describe('UserRole Module', () => {
 
     describe('Model Exports', () => {
       it('should export all expected functions and constants', () => {
-        const UserRole = require('../models/UserRole.js');
+        const UserRole = __ns_UserRole;
         
         expect(UserRole).toBeDefined();
         expect(UserRole.USER_ROLES_TABLE).toBe('user_roles');
-        expect(UserRole.USER_ROLE_FIELDS).toBeInstanceOf(Array);
+        expect(Array.isArray(UserRole.USER_ROLE_FIELDS)).toBe(true);
         expect(typeof UserRole.createUserRole).toBe('function');
         expect(typeof UserRole.getUserRoleById).toBe('function');
         expect(typeof UserRole.getUserRoleByUserAndRole).toBe('function');
@@ -296,7 +298,7 @@ describe('UserRole Module', () => {
   describe('UserRole Service', () => {
     describe('Service Functions', () => {
       it('should validate user-role data', () => {
-        const { validateUserRole } = require('../services/userRoleService.js');
+        const { validateUserRole } = __ns_userRoleService;
         
         const validData = {
           user_id: 1,
@@ -309,7 +311,7 @@ describe('UserRole Module', () => {
       });
 
       it('should reject invalid user-role data', () => {
-        const { validateUserRole } = require('../services/userRoleService.js');
+        const { validateUserRole } = __ns_userRoleService;
         
         const invalidData = {
           user_id: null,
@@ -318,23 +320,23 @@ describe('UserRole Module', () => {
         
         const result = validateUserRole(invalidData);
         expect(result.isValid).toBe(false);
-        expect(result.errors).toBeInstanceOf(Array);
+        expect(Array.isArray(result.errors)).toBe(true);
         expect(result.errors.length).toBeGreaterThan(0);
       });
 
       it('should get paginated user-roles', () => {
-        const { getPaginatedUserRoles } = require('../services/userRoleService.js');
+        const { getPaginatedUserRoles } = __ns_userRoleService;
         const result = getPaginatedUserRoles({ page: 1, pageSize: 5 });
         
         expect(result).toBeDefined();
-        expect(result.data).toBeInstanceOf(Array);
+        expect(Array.isArray(result.data)).toBe(true);
         expect(result.total).toBeDefined();
         expect(result.page).toBe(1);
         expect(result.pageSize).toBe(5);
       });
 
       it('should create a user-role with service', () => {
-        const { createUserRole } = require('../services/userRoleService.js');
+        const { createUserRole } = __ns_userRoleService;
         const newUserRole = createUserRole({
           user_id: 3,
           role_id: 3
@@ -346,15 +348,15 @@ describe('UserRole Module', () => {
       });
 
       it('should get roles for user from service', () => {
-        const { getRolesForUser } = require('../services/userRoleService.js');
+        const { getRolesForUser } = __ns_userRoleService;
         const roles = getRolesForUser(1);
         
-        expect(roles).toBeInstanceOf(Array);
+        expect(Array.isArray(roles)).toBe(true);
         expect(roles.length).toBeGreaterThan(0);
       });
 
       it('should remove role from user with service', () => {
-        const { removeRoleFromUser, getUserRoleByUserAndRole } = require('../services/userRoleService.js');
+        const { removeRoleFromUser, getUserRoleByUserAndRole } = __ns_userRoleService;
         const removed = removeRoleFromUser(1, 2);
         const userRole = getUserRoleByUserAndRole(1, 2);
         
@@ -363,7 +365,7 @@ describe('UserRole Module', () => {
       });
 
       it('should get user-role statistics from service', () => {
-        const { getUserRoleStatistics } = require('../services/userRoleService.js');
+        const { getUserRoleStatistics } = __ns_userRoleService;
         const stats = getUserRoleStatistics();
         
         expect(stats).toBeDefined();
@@ -373,7 +375,7 @@ describe('UserRole Module', () => {
 
     describe('Service Exports', () => {
       it('should export all expected service functions', () => {
-        const userRoleService = require('../services/userRoleService.js');
+        const userRoleService = __ns_userRoleService;
         
         expect(userRoleService).toBeDefined();
         expect(typeof userRoleService.validateUserRole).toBe('function');

@@ -5,20 +5,20 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import Database from 'better-sqlite3';
+import { createRequire } from 'module';
+import db from '../config/database.js';
+
+const require = createRequire(import.meta.url);
 
 // Test database setup
 const TEST_DB = ':memory:';
 let testDb;
 
-// Mock the database module
-jest.mock('../config/database.js', () => ({
-  default: testDb
-}));
 
 describe('Notification Module', () => {
   beforeAll(() => {
     // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
+    testDb = db;
     
     // Create users and notifications tables
     testDb.exec(`
@@ -87,7 +87,7 @@ describe('Notification Module', () => {
   afterAll(() => {
     // Close test database connection
     try {
-      testDb.close();
+      // no-op: testDb is the shared db singleton, do not close it here
     } catch (e) {
       // Ignore errors during cleanup
     }

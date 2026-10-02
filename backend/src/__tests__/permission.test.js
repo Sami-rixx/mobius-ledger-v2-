@@ -5,20 +5,22 @@
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import Database from 'better-sqlite3';
+import { createRequire } from 'module';
+import db from '../config/database.js';
+
+const require = createRequire(import.meta.url);
+import * as __ns_Permission from '../models/Permission.js';
+import * as __ns_permissionService from '../services/permissionService.js';
 
 // Test database setup
 const TEST_DB = ':memory:';
 let testDb;
 
-// Mock the database module
-jest.mock('../config/database.js', () => ({
-  default: testDb
-}));
 
 describe('Permission Module', () => {
   beforeAll(() => {
     // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
+    testDb = db;
     
     // Create users table (required for foreign key references)
     testDb.exec(`
@@ -52,22 +54,22 @@ describe('Permission Module', () => {
 
     // Insert test permissions
     const insertPermission = testDb.prepare(`
-      INSERT INTO permissions (name, description, module, is_active)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO permissions (name, display_name, description, module, is_active)
+      VALUES (?, ?, ?, ?, ?)
     `);
-    
-    insertPermission.run('create_student', 'Create new student', 'students', 1);
-    insertPermission.run('read_student', 'View student details', 'students', 1);
-    insertPermission.run('update_student', 'Update student information', 'students', 1);
-    insertPermission.run('delete_student', 'Delete student record', 'students', 0);
-    insertPermission.run('view_reports', 'View financial reports', 'reports', 1);
-    insertPermission.run('manage_users', 'Manage user accounts', 'users', 1);
+
+    insertPermission.run('create_student', 'Create Student', 'Create new student', 'students', 1);
+    insertPermission.run('read_student', 'Read Student', 'View student details', 'students', 1);
+    insertPermission.run('update_student', 'Update Student', 'Update student information', 'students', 1);
+    insertPermission.run('delete_student', 'Delete Student', 'Delete student record', 'students', 0);
+    insertPermission.run('view_reports', 'View Reports', 'View financial reports', 'reports', 1);
+    insertPermission.run('manage_users', 'Manage Users', 'Manage user accounts', 'users', 1);
   });
 
   afterAll(() => {
     // Close test database connection
     try {
-      testDb.close();
+      // no-op: testDb is the shared db singleton, do not close it here
     } catch (e) {
       // Ignore errors during cleanup
     }
@@ -80,32 +82,35 @@ describe('Permission Module', () => {
   describe('Permission Model', () => {
     describe('Constants', () => {
       it('should export PERMISSIONS_TABLE constant', () => {
-        const { PERMISSIONS_TABLE } = require('../models/Permission.js');
+        const { PERMISSIONS_TABLE } = __ns_Permission;
         expect(PERMISSIONS_TABLE).toBe('permissions');
       });
 
       it('should export PERMISSION_FIELDS constant', () => {
-        const { PERMISSION_FIELDS } = require('../models/Permission.js');
-        expect(PERMISSION_FIELDS).toBeInstanceOf(Array);
-        expect(PERMISSION_FIELDS.length).toBeGreaterThan(0);
+        const { PERMISSION_FIELDS } = __ns_Permission;
+        expect(PERMISSION_FIELDS).toBeInstanceOf(Object);
+        expect(PERMISSION_FIELDS.NAME).toBe('name');
+        expect(PERMISSION_FIELDS.DISPLAY_NAME).toBe('display_name');
       });
 
       it('should export PERMISSION_MODULES constant', () => {
-        const { PERMISSION_MODULES } = require('../models/Permission.js');
-        expect(PERMISSION_MODULES).toBeInstanceOf(Array);
-        expect(PERMISSION_MODULES).toContain('students');
-        expect(PERMISSION_MODULES).toContain('users');
+        // PERMISSION_MODULES is a name->value constant map, not an array
+        const { PERMISSION_MODULES } = __ns_Permission;
+        expect(PERMISSION_MODULES).toBeInstanceOf(Object);
+        expect(PERMISSION_MODULES.STUDENTS).toBe('students');
+        expect(PERMISSION_MODULES.USERS).toBe('users');
       });
     });
 
     describe('Model Functions', () => {
       it('should create a new permission', () => {
-        const { createPermission } = require('../models/Permission.js');
+        const { createPermission } = __ns_Permission;
         const newPermission = createPermission({
           name: 'test_permission',
+          displayName: 'Test Permission',
           description: 'Test permission',
           module: 'test_module',
-          is_active: 1
+          isActive: true
         });
         
         expect(newPermission).toBeDefined();
@@ -114,7 +119,7 @@ describe('Permission Module', () => {
       });
 
       it('should get permission by ID', () => {
-        const { getPermissionById } = require('../models/Permission.js');
+        const { getPermissionById } = __ns_Permission;
         const permission = getPermissionById(1);
         
         expect(permission).toBeDefined();
@@ -122,7 +127,7 @@ describe('Permission Module', () => {
       });
 
       it('should get permission by name', () => {
-        const { getPermissionByName } = require('../models/Permission.js');
+        const { getPermissionByName } = __ns_Permission;
         const permission = getPermissionByName('read_student');
         
         expect(permission).toBeDefined();
@@ -130,23 +135,23 @@ describe('Permission Module', () => {
       });
 
       it('should get all permissions', () => {
-        const { getAllPermissions } = require('../models/Permission.js');
+        const { getAllPermissions } = __ns_Permission;
         const permissions = getAllPermissions();
         
-        expect(permissions).toBeInstanceOf(Array);
+        expect(Array.isArray(permissions)).toBe(true);
         expect(permissions.length).toBeGreaterThanOrEqual(6);
       });
 
       it('should get permissions by module', () => {
-        const { getPermissionsByModule } = require('../models/Permission.js');
+        const { getPermissionsByModule } = __ns_Permission;
         const permissions = getPermissionsByModule('students');
         
-        expect(permissions).toBeInstanceOf(Array);
+        expect(Array.isArray(permissions)).toBe(true);
         expect(permissions.every(p => p.module === 'students')).toBe(true);
       });
 
       it('should check if permission exists', () => {
-        const { permissionExists } = require('../models/Permission.js');
+        const { permissionExists } = __ns_Permission;
         const exists = permissionExists('create_student');
         const notExists = permissionExists('nonexistent_permission');
         
@@ -155,10 +160,10 @@ describe('Permission Module', () => {
       });
 
       it('should update a permission', () => {
-        const { updatePermission } = require('../models/Permission.js');
+        const { updatePermission } = __ns_Permission;
         const updated = updatePermission(3, {
           description: 'Updated description',
-          is_active: 0
+          isActive: false
         });
         
         expect(updated).toBeDefined();
@@ -167,17 +172,17 @@ describe('Permission Module', () => {
       });
 
       it('should delete a permission', () => {
-        const { deletePermission, getPermissionById } = require('../models/Permission.js');
+        const { deletePermission, getPermissionById } = __ns_Permission;
         const permissionId = 6;
         const deleted = deletePermission(permissionId);
         const deletedPermission = getPermissionById(permissionId);
-        
+
         expect(deleted).toBe(true);
-        expect(deletedPermission).toBeUndefined();
+        expect(deletedPermission).toBeNull();
       });
 
       it('should get permission count', () => {
-        const { getPermissionCount } = require('../models/Permission.js');
+        const { getPermissionCount } = __ns_Permission;
         const count = getPermissionCount();
         
         expect(typeof count).toBe('number');
@@ -185,46 +190,56 @@ describe('Permission Module', () => {
       });
 
       it('should search permissions', () => {
-        const { searchPermissions } = require('../models/Permission.js');
+        const { searchPermissions } = __ns_Permission;
         const results = searchPermissions('student');
-        
-        expect(results).toBeInstanceOf(Array);
-        expect(results.every(p => p.name.includes('student') || p.description.includes('student'))).toBe(true);
+
+        expect(Array.isArray(results)).toBe(true);
+        expect(results.every(p =>
+          /student/i.test(p.name) || /student/i.test(p.display_name) || /student/i.test(p.description || '')
+        )).toBe(true);
       });
 
       it('should get permission statistics', () => {
-        const { getPermissionStatistics } = require('../models/Permission.js');
+        // getPermissionStatistics lives in permissionService.js, not models/Permission.js
+        const { getPermissionStatistics } = __ns_permissionService;
         const stats = getPermissionStatistics();
-        
+
         expect(stats).toBeDefined();
         expect(stats.total).toBeDefined();
       });
 
       it('should get permission count by module', () => {
-        const { getPermissionCountByModule } = require('../models/Permission.js');
-        const count = getPermissionCountByModule('students');
-        
-        expect(typeof count).toBe('number');
-        expect(count).toBeGreaterThanOrEqual(3);
+        // Model function returns an array of { module, count } rows, not a
+        // single number for one module (there's no module-filter parameter).
+        const { getPermissionCountByModule } = __ns_Permission;
+        const counts = getPermissionCountByModule();
+
+        expect(Array.isArray(counts)).toBe(true);
+        const studentsRow = counts.find(c => c.module === 'students');
+        expect(studentsRow).toBeDefined();
+        expect(studentsRow.count).toBeGreaterThanOrEqual(3);
       });
 
       it('should get all permission modules', () => {
-        const { getAllPermissionModules } = require('../models/Permission.js');
-        const modules = getAllPermissionModules();
-        
-        expect(modules).toBeInstanceOf(Array);
-        expect(modules).toContain('students');
+        // getAllPermissionModules does not exist; the equivalent is
+        // permissionService.getPermissionModules(), returning the
+        // PERMISSION_MODULES constant map.
+        const { getPermissionModules } = __ns_permissionService;
+        const modules = getPermissionModules();
+
+        expect(modules).toBeInstanceOf(Object);
+        expect(modules.STUDENTS).toBe('students');
       });
     });
 
     describe('Model Exports', () => {
       it('should export all expected functions and constants', () => {
-        const Permission = require('../models/Permission.js');
+        const Permission = __ns_Permission;
         
         expect(Permission).toBeDefined();
         expect(Permission.PERMISSIONS_TABLE).toBe('permissions');
-        expect(Permission.PERMISSION_FIELDS).toBeInstanceOf(Array);
-        expect(Permission.PERMISSION_MODULES).toBeInstanceOf(Array);
+        expect(Permission.PERMISSION_FIELDS).toBeInstanceOf(Object);
+        expect(Permission.PERMISSION_MODULES).toBeInstanceOf(Object);
         expect(typeof Permission.createPermission).toBe('function');
         expect(typeof Permission.getPermissionById).toBe('function');
         expect(typeof Permission.getPermissionByName).toBe('function');
@@ -235,9 +250,7 @@ describe('Permission Module', () => {
         expect(typeof Permission.deletePermission).toBe('function');
         expect(typeof Permission.getPermissionCount).toBe('function');
         expect(typeof Permission.searchPermissions).toBe('function');
-        expect(typeof Permission.getPermissionStatistics).toBe('function');
         expect(typeof Permission.getPermissionCountByModule).toBe('function');
-        expect(typeof Permission.getAllPermissionModules).toBe('function');
       });
     });
   });
@@ -249,10 +262,11 @@ describe('Permission Module', () => {
   describe('Permission Service', () => {
     describe('Service Functions', () => {
       it('should validate permission data', () => {
-        const { validatePermission } = require('../services/permissionService.js');
+        const { validatePermission } = __ns_permissionService;
         
         const validData = {
           name: 'valid_permission',
+          displayName: 'Valid Permission',
           description: 'Valid description',
           module: 'test'
         };
@@ -263,7 +277,7 @@ describe('Permission Module', () => {
       });
 
       it('should reject invalid permission data', () => {
-        const { validatePermission } = require('../services/permissionService.js');
+        const { validatePermission } = __ns_permissionService;
         
         const invalidData = {
           name: '',
@@ -273,55 +287,56 @@ describe('Permission Module', () => {
         
         const result = validatePermission(invalidData);
         expect(result.isValid).toBe(false);
-        expect(result.errors).toBeInstanceOf(Array);
+        expect(Array.isArray(result.errors)).toBe(true);
         expect(result.errors.length).toBeGreaterThan(0);
       });
 
       it('should get paginated permissions', () => {
-        const { getPaginatedPermissions } = require('../services/permissionService.js');
+        const { getPaginatedPermissions } = __ns_permissionService;
         const result = getPaginatedPermissions({ page: 1, pageSize: 5 });
-        
+
         expect(result).toBeDefined();
-        expect(result.data).toBeInstanceOf(Array);
-        expect(result.total).toBeDefined();
-        expect(result.page).toBe(1);
-        expect(result.pageSize).toBe(5);
+        expect(Array.isArray(result.permissions)).toBe(true);
+        expect(result.pagination).toBeDefined();
+        expect(result.pagination.page).toBe(1);
+        expect(result.pagination.pageSize).toBe(5);
       });
 
-      it('should create a permission with service', () => {
-        const { createPermission } = require('../services/permissionService.js');
-        const newPermission = createPermission({
+      it('should create a permission with service', async () => {
+        const { createPermission } = __ns_permissionService;
+        const newPermission = await createPermission({
           name: 'service_test_permission',
+          displayName: 'Service Test Permission',
           description: 'Service test',
           module: 'service_test'
         });
-        
+
         expect(newPermission).toBeDefined();
         expect(newPermission.name).toBe('service_test_permission');
       });
 
-      it('should update a permission with service', () => {
-        const { updatePermission } = require('../services/permissionService.js');
-        const updated = updatePermission(1, {
+      it('should update a permission with service', async () => {
+        const { updatePermission } = __ns_permissionService;
+        const updated = await updatePermission(1, {
           description: 'Updated by service'
         });
-        
+
         expect(updated).toBeDefined();
         expect(updated.description).toBe('Updated by service');
       });
 
       it('should delete a permission with service', () => {
-        const { deletePermission, getPermissionById } = require('../services/permissionService.js');
+        const { deletePermission, getPermissionById } = __ns_permissionService;
         const permissionId = 2;
         const deleted = deletePermission(permissionId);
         const deletedPermission = getPermissionById(permissionId);
-        
+
         expect(deleted).toBe(true);
-        expect(deletedPermission).toBeUndefined();
+        expect(deletedPermission).toBeNull();
       });
 
       it('should get permission statistics from service', () => {
-        const { getPermissionStatistics } = require('../services/permissionService.js');
+        const { getPermissionStatistics } = __ns_permissionService;
         const stats = getPermissionStatistics();
         
         expect(stats).toBeDefined();
@@ -331,7 +346,7 @@ describe('Permission Module', () => {
 
     describe('Service Exports', () => {
       it('should export all expected service functions', () => {
-        const permissionService = require('../services/permissionService.js');
+        const permissionService = __ns_permissionService;
         
         expect(permissionService).toBeDefined();
         expect(typeof permissionService.validatePermission).toBe('function');

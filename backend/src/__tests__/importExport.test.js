@@ -5,6 +5,10 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import Database from 'better-sqlite3';
+import { createRequire } from 'module';
+import db from '../config/database.js';
+
+const require = createRequire(import.meta.url);
 import path from 'path';
 import fs from 'fs';
 
@@ -12,15 +16,11 @@ import fs from 'fs';
 const TEST_DB = ':memory:';
 let testDb;
 
-// Mock the database module
-jest.mock('../config/database.js', () => ({
-  default: testDb
-}));
 
 describe('ImportExport Module', () => {
   beforeAll(() => {
     // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
+    testDb = db;
     
     // Create users and import_export_log tables
     testDb.exec(`
@@ -108,7 +108,7 @@ describe('ImportExport Module', () => {
 
   afterAll(() => {
     if (testDb) {
-      testDb.close();
+      // no-op: testDb is the shared db singleton, do not close it here
     }
     // Clean up any test files
     const exportDir = path.join(process.cwd(), 'exports');

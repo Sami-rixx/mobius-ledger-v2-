@@ -143,7 +143,7 @@ export async function getAll(options = {}) {
   params.push(limit, offset);
 
   try {
-    const rows = await db.all(query, params);
+    const rows = await db.prepare(query).all(params);
     return rows.map(row => ({
       ...row,
       is_approved: row.status === WITHDRAWAL_STATUS.APPROVED,
@@ -179,7 +179,7 @@ export async function getById(id) {
   `;
 
   try {
-    const row = await db.get(query, [id]);
+    const row = await db.prepare(query).get([id]);
     if (!row) return null;
     
     return {
@@ -260,8 +260,8 @@ export async function create(data) {
   ];
 
   try {
-    const result = await db.run(query, params);
-    return getById(result.lastID);
+    const result = await db.prepare(query).run(params);
+    return getById(result.lastInsertRowid);
   } catch (error) {
     console.error('Error in create director withdrawal:', error.message);
     throw error;
@@ -333,7 +333,7 @@ export async function update(id, data) {
   ];
 
   try {
-    await db.run(query, params);
+    await db.prepare(query).run(params);
     return getById(id);
   } catch (error) {
     console.error('Error in update director withdrawal:', error.message);
@@ -350,7 +350,7 @@ export async function deleteById(id) {
   const query = `DELETE FROM ${TABLE} WHERE ${FIELDS.ID} = ?`;
 
   try {
-    const result = await db.run(query, [id]);
+    const result = await db.prepare(query).run([id]);
     return result.changes > 0;
   } catch (error) {
     console.error('Error in deleteById director withdrawal:', error.message);
@@ -415,7 +415,7 @@ export async function approve(id, approvedBy, notes = null) {
   `;
 
   try {
-    await db.run(query, [
+    await db.prepare(query).run([
       WITHDRAWAL_STATUS.APPROVED,
       approvedBy,
       notes ? `\nApproval note: ${notes}` : '',
@@ -449,7 +449,7 @@ export async function reject(id, rejectedBy, reason) {
   `;
 
   try {
-    await db.run(query, [
+    await db.prepare(query).run([
       WITHDRAWAL_STATUS.REJECTED,
       rejectedBy,
       reason,
@@ -481,7 +481,7 @@ export async function markAsCompleted(id, updatedBy, transactionId = null) {
   `;
 
   try {
-    await db.run(query, [
+    await db.prepare(query).run([
       WITHDRAWAL_STATUS.COMPLETED,
       transactionId || null,
       updatedBy,
@@ -512,7 +512,7 @@ export async function cancel(id, updatedBy, reason = null) {
   `;
 
   try {
-    await db.run(query, [
+    await db.prepare(query).run([
       WITHDRAWAL_STATUS.CANCELLED,
       reason ? `\nCancellation reason: ${reason}` : '',
       updatedBy,
@@ -557,7 +557,7 @@ export async function getStatistics() {
   ];
 
   try {
-    const row = await db.get(query, params);
+    const row = await db.prepare(query).get(params);
     return {
       total: row.total || 0,
       by_status: {
@@ -593,7 +593,7 @@ export async function getAllLabels() {
   `;
 
   try {
-    const rows = await db.all(query);
+    const rows = await db.prepare(query).all();
     return rows.map(row => row.label);
   } catch (error) {
     console.error('Error in getAllLabels director withdrawals:', error.message);
@@ -657,7 +657,7 @@ export async function getCount(options = {}) {
   const query = `SELECT COUNT(*) as count FROM ${TABLE} WHERE 1=1 ${whereClause}`;
 
   try {
-    const row = await db.get(query, params);
+    const row = await db.prepare(query).get(params);
     return row.count || 0;
   } catch (error) {
     console.error('Error in getCount director withdrawals:', error.message);
@@ -667,3 +667,30 @@ export async function getCount(options = {}) {
 
 // Export constants
 export { TABLE, FIELDS, WITHDRAWAL_STATUS };
+
+// Default export so `backend/src/models/index.js` can do
+// `export { default as DirectorWithdrawal, WITHDRAWAL_STATUS } from
+// './DirectorWithdrawal.js'`. This file previously only had named exports,
+// which would crash the backend on startup (see StudentCharge.js comment).
+export default {
+  TABLE,
+  FIELDS,
+  WITHDRAWAL_STATUS,
+  getAll,
+  getById,
+  create,
+  update,
+  deleteById,
+  getByStatus,
+  getPending,
+  getApproved,
+  getRejected,
+  approve,
+  reject,
+  markAsCompleted,
+  cancel,
+  getStatistics,
+  getAllLabels,
+  getByDateRange,
+  getCount
+};

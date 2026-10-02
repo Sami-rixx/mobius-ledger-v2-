@@ -656,7 +656,7 @@ export const completeWithdrawal = async (id, updatedBy, transactionId = null) =>
 
     // If transaction ID is provided, verify it exists
     if (transactionId) {
-      const transaction = await TransactionModel.getById(transactionId);
+      const transaction = await TransactionModel.getTransactionById(transactionId);
       if (!transaction) {
         return {
           success: false,

@@ -30,6 +30,10 @@ import {
   ROLE_PERMISSION_FIELDS
 } from '../models/RolePermission.js';
 
+// Re-export so consumers (e.g. rolePermissionController.js) can import these
+// constants directly from the service layer (see permissionService.js).
+export { ROLE_PERMISSIONS_TABLE, ROLE_PERMISSION_FIELDS };
+
 import { getRoleById as getRoleByIdModel } from '../models/Role.js';
 import { getPermissionById as getPermissionByIdModel } from '../models/Permission.js';
 

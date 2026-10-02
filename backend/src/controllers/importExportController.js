@@ -3,8 +3,18 @@
  * HTTP request handlers for import and export operations
  */
 
-const importExportService = require('../services/importExportService.js');
-const path = require('path');
+import importExportService from '../services/importExportService.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// This controller previously used CommonJS `require`/`module.exports` while
+// the rest of the backend is an ES module project ("type": "module" in
+// package.json). Node refuses to run `require` in an ES module, so this
+// crashed the whole process (ERR: "require is not defined in ES module
+// scope") as soon as app.js imported importExportRoutes.js, which imports
+// this controller.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Import/Export Controller
@@ -567,4 +577,26 @@ const importExportController = {
   }
 };
 
-module.exports = importExportController;
+// Named exports so `import * as ImportExportController from
+// '../controllers/importExportController.js'` (used by
+// importExportRoutes.js) can access each handler directly, in addition to a
+// default export for consistency with other parts of the codebase.
+export const {
+  listLogs,
+  countLogs,
+  getLogById,
+  getStatistics,
+  exportDatabase,
+  importDatabase,
+  exportToCSV,
+  importFromCSV,
+  createBackup,
+  restoreBackup,
+  listBackups,
+  listExports,
+  deleteBackup,
+  deleteExport,
+  getSupportedTables
+} = importExportController;
+
+export default importExportController;

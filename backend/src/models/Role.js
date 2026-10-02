@@ -133,19 +133,47 @@ export const getDefaultRole = () => {
  */
 export const updateRole = (id, data) => {
   const { displayName, description, isActive, isDefault } = data;
-  
+
+  // Build the SET clause dynamically so that fields omitted from `data`
+  // are left untouched instead of being overwritten with NULL/false.
+  // (Previously this always set all 4 columns unconditionally, which
+  // silently corrupted display_name/is_active/is_default on any partial
+  // update - e.g. a caller doing `updateRole(id, { description: 'x' })`.)
+  const updates = [];
+  const params = [];
+
+  if (displayName !== undefined) {
+    updates.push(`${ROLE_FIELDS.DISPLAY_NAME} = ?`);
+    params.push(displayName);
+  }
+  if (description !== undefined) {
+    updates.push(`${ROLE_FIELDS.DESCRIPTION} = ?`);
+    params.push(description);
+  }
+  if (isActive !== undefined) {
+    updates.push(`${ROLE_FIELDS.IS_ACTIVE} = ?`);
+    params.push(isActive ? 1 : 0);
+  }
+  if (isDefault !== undefined) {
+    updates.push(`${ROLE_FIELDS.IS_DEFAULT} = ?`);
+    params.push(isDefault ? 1 : 0);
+  }
+
+  if (updates.length === 0) {
+    return getRoleById(id);
+  }
+
+  updates.push(`${ROLE_FIELDS.UPDATED_AT} = datetime('now')`);
+  params.push(id);
+
   const stmt = db.prepare(`
-    UPDATE ${ROLES_TABLE} 
-    SET ${ROLE_FIELDS.DISPLAY_NAME} = ?, 
-        ${ROLE_FIELDS.DESCRIPTION} = ?, 
-        ${ROLE_FIELDS.IS_ACTIVE} = ?, 
-        ${ROLE_FIELDS.IS_DEFAULT} = ?, 
-        ${ROLE_FIELDS.UPDATED_AT} = datetime('now')
+    UPDATE ${ROLES_TABLE}
+    SET ${updates.join(', ')}
     WHERE ${ROLE_FIELDS.ID} = ?
   `);
-  
-  const result = stmt.run(displayName, description, isActive ? 1 : 0, isDefault ? 1 : 0, id);
-  
+
+  const result = stmt.run(...params);
+
   return result.changes > 0 ? getRoleById(id) : null;
 };
 

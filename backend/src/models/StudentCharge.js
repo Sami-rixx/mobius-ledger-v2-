@@ -444,3 +444,24 @@ export const getStudentChargeStatistics = () => {
 
 // Export field constants
 export { FIELDS, VALID_CHARGE_TYPES, TABLE };
+
+// Default export so `backend/src/models/index.js` can do
+// `export { default as StudentCharge } from './StudentCharge.js'`.
+// This file previously only had named exports, which crashed the backend on
+// startup with "does not provide an export named 'default'" as soon as
+// anything imported from models/index.js.
+export default {
+  FIELDS,
+  VALID_CHARGE_TYPES,
+  TABLE,
+  getAllStudentCharges,
+  getStudentChargeById,
+  getStudentChargesByClass,
+  getActiveStudentCharges,
+  createStudentCharge,
+  updateStudentCharge,
+  deleteStudentCharge,
+  getStudentChargeAssignmentCount,
+  getStudentChargeCount,
+  getStudentChargeStatistics
+};
