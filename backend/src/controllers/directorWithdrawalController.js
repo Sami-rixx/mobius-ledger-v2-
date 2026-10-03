@@ -824,3 +824,26 @@ export const getWithdrawalsCount = async (req, res, next) => {
     });
   }
 };
+
+// Default export aggregating all named exports above, so this module can
+// be consumed either via named imports or via controllers/index.js's
+// `export { default as X } from './directorWithdrawalController.js'` barrel re-export
+// (that barrel previously crashed with SyntaxError: does not provide an
+// export named 'default' since this file had no default export at all).
+export default {
+  getWithdrawals,
+  getAllWithdrawals,
+  getWithdrawalById,
+  createWithdrawal,
+  updateWithdrawal,
+  deleteWithdrawal,
+  approveWithdrawal,
+  rejectWithdrawal,
+  completeWithdrawal,
+  cancelWithdrawal,
+  getWithdrawalStatistics,
+  getAllLabels,
+  getPendingWithdrawals,
+  searchWithdrawals,
+  getWithdrawalsCount,
+};

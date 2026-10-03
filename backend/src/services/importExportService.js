@@ -4,9 +4,14 @@
  * Handles business logic, validation, and coordinates between models
  */
 
-const { ImportExport } = require('../models');
-const fs = require('fs');
-const path = require('path');
+import { ImportExport } from '../models/index.js';
+import fs from 'fs';
+import path from 'path';
+
+// This service previously used CommonJS `require`/`module.exports` while the
+// rest of the backend is an ES module project. See
+// importExportController.js for the full explanation of why that crashed
+// the whole backend on startup.
 
 // Validation constants
 const IMPORT_EXPORT_VALIDATION = {
@@ -623,4 +628,5 @@ const importExportService = {
 importExportService.IMPORT_EXPORT_VALIDATION = IMPORT_EXPORT_VALIDATION;
 importExportService.ERROR_MESSAGES = ERROR_MESSAGES;
 
-module.exports = importExportService;
+export { IMPORT_EXPORT_VALIDATION, ERROR_MESSAGES };
+export default importExportService;

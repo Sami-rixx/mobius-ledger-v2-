@@ -5,20 +5,26 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import Database from 'better-sqlite3';
+import { createRequire } from 'module';
+import db from '../config/database.js';
+
+const require = createRequire(import.meta.url);
+import * as __ns_models_UserSession from '../models/UserSession.js';
+import * as __ns_services_userSessionService from '../services/userSessionService.js';
+import * as __ns_models_index from '../models/index.js';
+import * as __ns_services_index from '../services/index.js';
+import * as __ns_controllers_index from '../controllers/index.js';
+import * as __ns_routes_index from '../routes/index.js';
 
 // Test database setup
 const TEST_DB = ':memory:';
 let testDb;
 
-// Mock the database module
-jest.mock('../config/database.js', () => ({
-  default: testDb
-}));
 
 describe('UserSession Module', () => {
   beforeAll(() => {
     // Create in-memory database for testing
-    testDb = new Database(TEST_DB);
+    testDb = db;
     
     // Create users and user_sessions tables
     testDb.exec(`
@@ -82,7 +88,7 @@ describe('UserSession Module', () => {
   afterAll(() => {
     // Close test database connection
     try {
-      testDb.close();
+      // no-op: testDb is the shared db singleton, do not close it here
     } catch (e) {
       // Ignore errors during cleanup
     }
@@ -95,12 +101,12 @@ describe('UserSession Module', () => {
   describe('UserSession Model', () => {
     describe('Constants', () => {
       it('should export USER_SESSIONS_TABLE constant', () => {
-        const { USER_SESSIONS_TABLE } = require('../models/UserSession.js');
+        const { USER_SESSIONS_TABLE } = __ns_models_UserSession;
         expect(USER_SESSIONS_TABLE).toBe('user_sessions');
       });
 
       it('should export USER_SESSION_FIELDS constant', () => {
-        const { USER_SESSION_FIELDS } = require('../models/UserSession.js');
+        const { USER_SESSION_FIELDS } = __ns_models_UserSession;
         expect(USER_SESSION_FIELDS.ID).toBe('id');
         expect(USER_SESSION_FIELDS.USER_ID).toBe('user_id');
         expect(USER_SESSION_FIELDS.SESSION_TOKEN).toBe('session_token');
@@ -115,7 +121,7 @@ describe('UserSession Module', () => {
 
     describe('CRUD Operations', () => {
       it('should create a new user session', () => {
-        const { createUserSession } = require('../models/UserSession.js');
+        const { createUserSession } = __ns_models_UserSession;
         
         const data = {
           userId: 1,
@@ -134,7 +140,7 @@ describe('UserSession Module', () => {
       });
 
       it('should get a user session by ID', () => {
-        const { getUserSessionById } = require('../models/UserSession.js');
+        const { getUserSessionById } = __ns_models_UserSession;
         
         const session = getUserSessionById(1);
         expect(session).toBeDefined();
@@ -143,14 +149,14 @@ describe('UserSession Module', () => {
       });
 
       it('should return null for non-existent session ID', () => {
-        const { getUserSessionById } = require('../models/UserSession.js');
+        const { getUserSessionById } = __ns_models_UserSession;
         
         const session = getUserSessionById(9999);
         expect(session).toBeNull();
       });
 
       it('should get a user session by session token', () => {
-        const { getUserSessionByToken } = require('../models/UserSession.js');
+        const { getUserSessionByToken } = __ns_models_UserSession;
         
         const session = getUserSessionByToken('token_admin_001');
         expect(session).toBeDefined();
@@ -158,14 +164,14 @@ describe('UserSession Module', () => {
       });
 
       it('should return null for non-existent session token', () => {
-        const { getUserSessionByToken } = require('../models/UserSession.js');
+        const { getUserSessionByToken } = __ns_models_UserSession;
         
         const session = getUserSessionByToken('nonexistent_token');
         expect(session).toBeNull();
       });
 
       it('should get all active sessions for a user', () => {
-        const { getActiveSessionsByUser } = require('../models/UserSession.js');
+        const { getActiveSessionsByUser } = __ns_models_UserSession;
         
         const sessions = getActiveSessionsByUser(2);
         expect(sessions).toBeDefined();
@@ -174,7 +180,7 @@ describe('UserSession Module', () => {
       });
 
       it('should get all user sessions with filtering', () => {
-        const { getAllUserSessions } = require('../models/UserSession.js');
+        const { getAllUserSessions } = __ns_models_UserSession;
         
         const allSessions = getAllUserSessions();
         expect(allSessions).toBeDefined();
@@ -188,7 +194,7 @@ describe('UserSession Module', () => {
       });
 
       it('should update a user session', () => {
-        const { updateUserSession } = require('../models/UserSession.js');
+        const { updateUserSession } = __ns_models_UserSession;
         
         const updatedSession = updateUserSession(1, {
           ipAddress: '10.0.0.2',
@@ -201,10 +207,10 @@ describe('UserSession Module', () => {
       });
 
       it('should deactivate a user session', () => {
-        const { deactivateUserSession, getUserSessionById } = require('../models/UserSession.js');
+        const { deactivateUserSession, getUserSessionById } = __ns_models_UserSession;
         
         // First create a session to deactivate
-        const { createUserSession } = require('../models/UserSession.js');
+        const { createUserSession } = __ns_models_UserSession;
         const newSession = createUserSession({
           userId: 1,
           sessionToken: 'token_to_deactivate',
@@ -221,10 +227,10 @@ describe('UserSession Module', () => {
       });
 
       it('should deactivate all sessions for a user', () => {
-        const { deactivateAllUserSessions, getActiveSessionsByUser } = require('../models/UserSession.js');
+        const { deactivateAllUserSessions, getActiveSessionsByUser } = __ns_models_UserSession;
         
         // Create some sessions for user 3
-        const { createUserSession } = require('../models/UserSession.js');
+        const { createUserSession } = __ns_models_UserSession;
         createUserSession({
           userId: 3,
           sessionToken: 'token_user3_extra1',
@@ -249,10 +255,10 @@ describe('UserSession Module', () => {
       });
 
       it('should delete a user session', () => {
-        const { deleteUserSession, getUserSessionById } = require('../models/UserSession.js');
+        const { deleteUserSession, getUserSessionById } = __ns_models_UserSession;
         
         // Create a session to delete
-        const { createUserSession } = require('../models/UserSession.js');
+        const { createUserSession } = __ns_models_UserSession;
         const newSession = createUserSession({
           userId: 1,
           sessionToken: 'token_to_delete',
@@ -269,7 +275,7 @@ describe('UserSession Module', () => {
       });
 
       it('should get user session count', () => {
-        const { getUserSessionCount } = require('../models/UserSession.js');
+        const { getUserSessionCount } = __ns_models_UserSession;
         
         const totalCount = getUserSessionCount();
         expect(totalCount).toBeGreaterThanOrEqual(5);
@@ -284,7 +290,7 @@ describe('UserSession Module', () => {
 
     describe('Session Token Validation', () => {
       it('should validate an active session token', () => {
-        const { validateSessionToken } = require('../models/UserSession.js');
+        const { validateSessionToken } = __ns_models_UserSession;
         
         const session = validateSessionToken('token_admin_001');
         expect(session).toBeDefined();
@@ -292,14 +298,14 @@ describe('UserSession Module', () => {
       });
 
       it('should return null for inactive session token', () => {
-        const { validateSessionToken } = require('../models/UserSession.js');
+        const { validateSessionToken } = __ns_models_UserSession;
         
         const session = validateSessionToken('token_admin_expired');
         expect(session).toBeNull();
       });
 
       it('should return null for non-existent session token', () => {
-        const { validateSessionToken } = require('../models/UserSession.js');
+        const { validateSessionToken } = __ns_models_UserSession;
         
         const session = validateSessionToken('nonexistent_token_12345');
         expect(session).toBeNull();
@@ -308,7 +314,7 @@ describe('UserSession Module', () => {
 
     describe('Session Extension', () => {
       it('should extend a session expiration time', () => {
-        const { extendUserSession } = require('../models/UserSession.js');
+        const { extendUserSession } = __ns_models_UserSession;
         
         const extendedSession = extendUserSession(1, 48);
         expect(extendedSession).toBeDefined();
@@ -324,7 +330,7 @@ describe('UserSession Module', () => {
   describe('UserSession Service', () => {
     describe('Validation', () => {
       it('should validate valid session data', () => {
-        const { validateSession } = require('../services/userSessionService.js');
+        const { validateSession } = __ns_services_userSessionService;
         
         const validation = validateSession({
           userId: 1,
@@ -336,7 +342,7 @@ describe('UserSession Module', () => {
       });
 
       it('should reject missing user ID', () => {
-        const { validateSession } = require('../services/userSessionService.js');
+        const { validateSession } = __ns_services_userSessionService;
         
         const validation = validateSession({
           sessionToken: 'valid_token'
@@ -347,7 +353,7 @@ describe('UserSession Module', () => {
       });
 
       it('should reject invalid user ID', () => {
-        const { validateSession } = require('../services/userSessionService.js');
+        const { validateSession } = __ns_services_userSessionService;
         
         const validation = validateSession({
           userId: -1,
@@ -359,7 +365,7 @@ describe('UserSession Module', () => {
       });
 
       it('should reject missing session token', () => {
-        const { validateSession } = require('../services/userSessionService.js');
+        const { validateSession } = __ns_services_userSessionService;
         
         const validation = validateSession({
           userId: 1
@@ -370,7 +376,7 @@ describe('UserSession Module', () => {
       });
 
       it('should reject session token that is too long', () => {
-        const { validateSession } = require('../services/userSessionService.js');
+        const { validateSession } = __ns_services_userSessionService;
         
         const validation = validateSession({
           userId: 1,
@@ -384,7 +390,7 @@ describe('UserSession Module', () => {
 
     describe('Pagination', () => {
       it('should return paginated sessions', () => {
-        const { getPaginatedSessions } = require('../services/userSessionService.js');
+        const { getPaginatedSessions } = __ns_services_userSessionService;
         
         const result = getPaginatedSessions({ page: 1, pageSize: 2 });
         
@@ -397,7 +403,7 @@ describe('UserSession Module', () => {
       });
 
       it('should filter by user ID', () => {
-        const { getPaginatedSessions } = require('../services/userSessionService.js');
+        const { getPaginatedSessions } = __ns_services_userSessionService;
         
         const result = getPaginatedSessions({ userId: 2, page: 1, pageSize: 10 });
         
@@ -405,7 +411,7 @@ describe('UserSession Module', () => {
       });
 
       it('should filter by active status', () => {
-        const { getPaginatedSessions } = require('../services/userSessionService.js');
+        const { getPaginatedSessions } = __ns_services_userSessionService;
         
         const result = getPaginatedSessions({ isActive: true, page: 1, pageSize: 10 });
         
@@ -415,7 +421,7 @@ describe('UserSession Module', () => {
 
     describe('Statistics', () => {
       it('should return session statistics', () => {
-        const { getSessionStatistics } = require('../services/userSessionService.js');
+        const { getSessionStatistics } = __ns_services_userSessionService;
         
         const stats = getSessionStatistics();
         
@@ -429,7 +435,7 @@ describe('UserSession Module', () => {
 
     describe('Cleanup', () => {
       it('should cleanup expired sessions', () => {
-        const { cleanupExpiredSessions } = require('../services/userSessionService.js');
+        const { cleanupExpiredSessions } = __ns_services_userSessionService;
         
         const result = cleanupExpiredSessions();
         
@@ -441,13 +447,13 @@ describe('UserSession Module', () => {
 
     describe('Force Logout', () => {
       it('should force logout a user by deactivating all sessions', () => {
-        const { forceLogoutUser, getActiveSessionsByUser } = require('../services/userSessionService.js');
+        const { forceLogoutUser, getActiveSessionsByUser } = __ns_services_userSessionService;
         
         // Create a new user and session
-        const { createUserSession } = require('../models/UserSession.js');
+        const { createUserSession } = __ns_models_UserSession;
         
         // First clear any existing sessions for user 4
-        const { deleteAllUserSessions } = require('../models/UserSession.js');
+        const { deleteAllUserSessions } = __ns_models_UserSession;
         deleteAllUserSessions(4);
         
         // Insert user 4
@@ -484,7 +490,7 @@ describe('UserSession Module', () => {
   
   describe('Module Exports', () => {
     it('should export UserSession model correctly', () => {
-      const UserSession = require('../models/UserSession.js');
+      const UserSession = __ns_models_UserSession;
       
       expect(UserSession.default).toBeDefined();
       expect(UserSession.USER_SESSIONS_TABLE).toBe('user_sessions');
@@ -492,7 +498,7 @@ describe('UserSession Module', () => {
     });
 
     it('should export UserSession from models/index.js', () => {
-      const models = require('../models/index.js');
+      const models = __ns_models_index;
       
       expect(models.UserSession).toBeDefined();
       expect(models.USER_SESSIONS_TABLE).toBe('user_sessions');
@@ -500,19 +506,19 @@ describe('UserSession Module', () => {
     });
 
     it('should export userSessionService from services/index.js', () => {
-      const services = require('../services/index.js');
+      const services = __ns_services_index;
       
       expect(services.userSessionService).toBeDefined();
     });
 
     it('should export UserSession controller from controllers/index.js', () => {
-      const controllers = require('../controllers/index.js');
+      const controllers = __ns_controllers_index;
       
       expect(controllers.UserSession).toBeDefined();
     });
 
     it('should export userSessionRoutes from routes/index.js', () => {
-      const routes = require('../routes/index.js');
+      const routes = __ns_routes_index;
       
       expect(routes.userSessionRoutes).toBeDefined();
     });

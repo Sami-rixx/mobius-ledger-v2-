@@ -323,20 +323,21 @@ export const createExpense = async (data) => {
     const expenseRecord = await ExpenseModel.create(expenseData);
 
     // Create associated transaction
+    // NOTE: see incomeService.js for why this must use camelCase keys and
+    // call createTransaction() (not the non-existent `.create()`).
     const transactionData = {
-      receipt_number: receiptNumber,
-      transaction_type: 'expense',
+      receiptNumber,
+      transactionType: 'expense',
       amount: amountNum,
-      expense_category_id: expenseCategoryId,
-      vendor_name: vendorName,
-      vendor_contact: vendorContact,
-      payment_method_id: paymentMethodId,
-      transaction_date: expenseDate,
+      expenseCategoryId,
+      paymentMethodId,
+      transactionDate: expenseDate,
       description: description || `Expense: ${category.name}`,
-      created_by: createdBy
+      createdBy,
+      updatedBy: createdBy
     };
 
-    await TransactionModel.create(transactionData);
+    await TransactionModel.createTransaction(transactionData);
 
     return {
       success: true,

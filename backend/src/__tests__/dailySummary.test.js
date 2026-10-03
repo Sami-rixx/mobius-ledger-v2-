@@ -2,12 +2,28 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Remove any stale db file (and WAL/SHM sidecars) left behind by a
+// previous run (e.g. a crashed process, or this suite previously
+// sharing a db path with other test files) so each run starts from a
+// guaranteed-fresh schema instead of silently reusing stale tables via
+// CREATE TABLE IF NOT EXISTS.
+function __removeTestDbFiles(dbPath) {
+  for (const suffix of ['', '-wal', '-shm']) {
+    try {
+      fs.unlinkSync(dbPath + suffix);
+    } catch (e) {
+      // ENOENT is expected when the file doesn't exist yet - ignore it.
+    }
+  }
+}
+
 // Test database path
-const TEST_DB_PATH = path.resolve(__dirname, 'test_mobius_ledger.db');
+const TEST_DB_PATH = path.resolve(__dirname, 'test_dailySummary.db');
 
 /**
  * DailySummary Model Tests
@@ -21,6 +37,7 @@ describe('DailySummary Model', () => {
 
   beforeAll(() => {
     // Create test database
+    __removeTestDbFiles(TEST_DB_PATH);
     db = new Database(TEST_DB_PATH);
     db.pragma('foreign_keys = ON');
 
@@ -223,6 +240,7 @@ describe('DailySummary Model', () => {
     } catch (error) {
       console.error('Error cleaning up test data:', error.message);
     }
+    __removeTestDbFiles(TEST_DB_PATH);
   });
 
   describe('Database Structure', () => {
@@ -293,8 +311,11 @@ describe('DailySummary Model', () => {
 
       expect(result).toBeDefined();
       expect(result.summary_date).toBe(today);
-      expect(result.total_income).toBe('10000.00');
-      expect(result.net_flow).toBe('5000.00');
+      // SQLite has no true DECIMAL type - DECIMAL(12,2) is just NUMERIC
+      // affinity, and better-sqlite3 always returns a plain JS number, never
+      // a formatted decimal string.
+      expect(result.total_income).toBe(10000);
+      expect(result.net_flow).toBe(5000);
     });
 
     it('should return undefined for non-existent date', () => {
@@ -312,6 +333,12 @@ describe('DailySummary Model', () => {
     it('should return a daily summary by ID', () => {
       const today = new Date().toISOString().split('T')[0];
 
+      // summary_date is UNIQUE and the 'getByDate' test above already
+      // inserts a row for "today" - without clearing it first, this
+      // INSERT OR IGNORE silently no-ops against that row, and
+      // lastInsertRowid then (mis)points at the earlier test's row/values.
+      db.prepare('DELETE FROM daily_summaries WHERE summary_date = ?').run(today);
+
       // Insert a test summary
       const insertResult = db.prepare(`
         INSERT OR IGNORE INTO daily_summaries (summary_date, total_income, income_count, total_expenses, expense_count, net_flow, transaction_count)
@@ -323,7 +350,7 @@ describe('DailySummary Model', () => {
 
       expect(result).toBeDefined();
       expect(result.id).toBe(summaryId);
-      expect(result.total_income).toBe('15000.00');
+      expect(result.total_income).toBe(15000);
     });
 
     it('should return undefined for non-existent ID', () => {
@@ -398,7 +425,10 @@ describe('DailySummary Model', () => {
       `).all(yesterday, today);
 
       if (result.length > 1) {
-        expect(result[0].summary_date).toBeLessThanOrEqual(result[1].summary_date);
+        // toBeLessThanOrEqual requires numeric/bigint operands - summary_date is
+        // a 'YYYY-MM-DD' string, so compare it lexicographically instead
+        // (which is valid for ISO date strings).
+        expect(result[0].summary_date <= result[1].summary_date).toBe(true);
       }
     });
   });
@@ -470,9 +500,9 @@ describe('DailySummary Model', () => {
 
       expect(result).toBeDefined();
       expect(result.summary_date).toBe(testDate);
-      expect(result.total_income).toBe('25000.00');
-      expect(result.total_expenses).toBe('15000.00');
-      expect(result.net_flow).toBe('10000.00');
+      expect(result.total_income).toBe(25000);
+      expect(result.total_expenses).toBe(15000);
+      expect(result.net_flow).toBe(10000);
     });
 
     it('should require all required fields', () => {
@@ -518,9 +548,9 @@ describe('DailySummary Model', () => {
       const result = db.prepare('SELECT * FROM daily_summaries WHERE id = ?').get(summaryId);
 
       expect(result).toBeDefined();
-      expect(result.total_income).toBe('35000.00');
-      expect(result.total_expenses).toBe('20000.00');
-      expect(result.net_flow).toBe('15000.00');
+      expect(result.total_income).toBe(35000);
+      expect(result.total_expenses).toBe(20000);
+      expect(result.net_flow).toBe(15000);
     });
 
     it('should require ID parameter', () => {
@@ -602,6 +632,15 @@ describe('DailySummary Model', () => {
     it('should return summary statistics', () => {
       const today = new Date().toISOString().split('T')[0];
       const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+      // summary_date is UNIQUE and several earlier tests in this file also
+      // insert rows for "today"/"yesterday" without per-test cleanup (there
+      // is no beforeEach truncating daily_summaries), so an INSERT OR
+      // IGNORE here can silently no-op against a row an earlier test
+      // already created with different totals, undercounting the sums
+      // this test asserts on below. Clear just these two dates first so
+      // this test is deterministic regardless of execution order.
+      db.prepare('DELETE FROM daily_summaries WHERE summary_date IN (?, ?)').run(yesterday, today);
 
       // Insert test data
       db.prepare(`
@@ -799,7 +838,7 @@ describe('DailySummary Model', () => {
       const result = db.prepare('SELECT * FROM daily_summaries WHERE summary_date = ?').get(testDate);
 
       expect(result).toBeDefined();
-      expect(result.net_flow).toBe('0.00');
+      expect(result.net_flow).toBe(0);
     });
 
     it('should handle negative net flow', () => {
@@ -814,7 +853,7 @@ describe('DailySummary Model', () => {
       const result = db.prepare('SELECT * FROM daily_summaries WHERE summary_date = ?').get(testDate);
 
       expect(result).toBeDefined();
-      expect(result.net_flow).toBe('-10000.00');
+      expect(result.net_flow).toBe(-10000);
     });
   });
 });

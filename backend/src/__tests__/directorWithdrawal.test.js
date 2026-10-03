@@ -2,18 +2,47 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/glo
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Remove any stale db file (and WAL/SHM sidecars) left behind by a
+// previous run (e.g. a crashed process, or this suite previously
+// sharing a db path with other test files) so each run starts from a
+// guaranteed-fresh schema instead of silently reusing stale tables via
+// CREATE TABLE IF NOT EXISTS.
+function __removeTestDbFiles(dbPath) {
+  for (const suffix of ['', '-wal', '-shm']) {
+    try {
+      fs.unlinkSync(dbPath + suffix);
+    } catch (e) {
+      // ENOENT is expected when the file doesn't exist yet - ignore it.
+    }
+  }
+}
+
 // Test database path
-const TEST_DB_PATH = path.resolve(__dirname, 'test_mobius_ledger.db');
+const TEST_DB_PATH = path.resolve(__dirname, 'test_directorWithdrawal.db');
 
 // Create a test database instance for the models
 let testDb;
 
 // Mock the database module
 import { WITHDRAWAL_STATUS } from '../models/DirectorWithdrawal.js';
+// The real db singleton that directorWithdrawalService (imported below via
+// dynamic import) actually reads/writes through config/database.js. This
+// test's own fixture setup previously created and seeded a *separate*,
+// disconnected `new Database(TEST_DB_PATH)` file for its "users"/
+// "payment_methods" rows, then stored a rowid from that unrelated file as
+// `global.testUserId`. Every createWithdrawal() call against the real
+// service then failed with "User not found" (that user only existed in the
+// disconnected file) - but nearly every test asserting on the result
+// wrapped its real assertions in `if (createResult.success) { ... }`,
+// so those assertions silently never ran instead of failing loudly. Only
+// the one test that asserted directly on `result.success` exposed this.
+// Fixed by seeding fixture data directly into the real singleton db.
+import __realDb from '../config/database.js';
 
 // We'll test the service functions directly since they contain the business logic
 // The model functions are tested through the service layer
@@ -22,8 +51,10 @@ describe('Director Withdrawal Module', () => {
   let db;
 
   beforeAll(() => {
-    // Create test database
-    db = new Database(TEST_DB_PATH);
+    // Use the real db singleton (already schema-initialized by
+    // src/test/setup.js's global beforeAll) instead of a disconnected file,
+    // so fixture rows are visible to the service under test.
+    db = __realDb;
     db.pragma('foreign_keys = ON');
 
     // Create minimal schema for testing director withdrawals
@@ -124,18 +155,24 @@ describe('Director Withdrawal Module', () => {
     // Store userId for tests
     global.testUserId = userId;
     global.testPaymentMethodId = paymentMethodId;
-    
-    db.close();
+    // db is the shared real singleton (used by every other test file in
+    // this worker too) - do not close it here.
   });
 
   afterAll(() => {
-    // Clean up test data
+    // Clean up test data from the real shared db singleton.
     try {
-      const cleanupDb = new Database(TEST_DB_PATH);
-      cleanupDb.prepare('DELETE FROM director_withdrawals WHERE purpose LIKE ?').run('%Test%');
-      cleanupDb.prepare('DELETE FROM users WHERE username = ?').run('testuser');
-      cleanupDb.prepare('DELETE FROM payment_methods WHERE name = ? OR name = ?').run('Cash', 'Bank Transfer');
-      cleanupDb.close();
+      // Some tests create withdrawals whose purpose doesn't contain 'Test'
+      // (e.g. the updateWithdrawal test's 'Original Purpose'/'Updated
+      // Purpose'), which the old `LIKE '%Test%'` filter alone missed - any
+      // leftover withdrawal still referencing testuser via created_by/
+      // updated_by (both NOT NULL FKs) then made the users delete below
+      // throw "FOREIGN KEY constraint failed". Delete by the test user's
+      // id as well so every withdrawal this suite created is removed.
+      db.prepare('DELETE FROM director_withdrawals WHERE purpose LIKE ? OR created_by = ? OR updated_by = ?')
+        .run('%Test%', global.testUserId, global.testUserId);
+      db.prepare('DELETE FROM users WHERE username = ?').run('testuser');
+      db.prepare('DELETE FROM payment_methods WHERE name = ? OR name = ?').run('Cash', 'Bank Transfer');
     } catch (error) {
       console.error('Error cleaning up test data:', error.message);
     }
@@ -248,7 +285,9 @@ describe('Director Withdrawal Module', () => {
         expect(result.success).toBe(true);
         expect(result.data).toBeDefined();
         expect(result.data.purpose).toBe('Test Purpose');
-        expect(result.data.recipientName).toBe('Test Recipient');
+        // The service/model return raw DB rows (snake_case columns), not a
+        // camelCase-transformed object - only the input accepts camelCase.
+        expect(result.data.recipient_name).toBe('Test Recipient');
         expect(result.data.status).toBe('pending');
         expect(result.data.is_pending).toBe(true);
       });
