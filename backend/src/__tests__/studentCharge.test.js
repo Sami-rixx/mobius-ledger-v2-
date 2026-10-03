@@ -487,9 +487,13 @@ describe('Student Charge Models', () => {
     });
 
     it('should get an assignment by ID', () => {
+      // Must use a different student than the previous test - there is a
+      // UNIQUE(charge_id, student_id) constraint on student_charge_assignments
+      // (a student can only be assigned a given charge once), and the
+      // previous test already assigned testChargeId to studentId1.
       const assignment = StudentChargeAssignmentModel.createStudentChargeAssignment({
         chargeId: testChargeId,
-        studentId: testData.studentId1,
+        studentId: testData.studentId2,
         amount: 600.00
       });
 

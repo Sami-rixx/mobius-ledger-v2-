@@ -28,49 +28,17 @@ import {
   getTransactionCountByFilter
 } from '../services/transactionService.js';
 
-import db from '../config/database.js';
-
-// Test database setup
-const TEST_DB = ':memory:';
-let testDb;
-
-beforeAll(() => {
-  // Create in-memory database for testing
-  testDb = new (require('better-sqlite3'))(TEST_DB);
-  
-  // Create transactions table
-  testDb.exec(`
-    CREATE TABLE IF NOT EXISTS transactions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      receipt_number TEXT UNIQUE,
-      transaction_type TEXT NOT NULL,
-      amount DECIMAL(10,2) NOT NULL,
-      category_id INTEGER,
-      income_category_id INTEGER,
-      expense_category_id INTEGER,
-      student_id INTEGER,
-      description TEXT,
-      payment_method_id INTEGER,
-      transaction_date TEXT,
-      transaction_time TEXT,
-      reference TEXT,
-      notes TEXT,
-      is_verified INTEGER DEFAULT 0,
-      verified_by INTEGER,
-      verified_at TEXT,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      created_by INTEGER,
-      updated_by INTEGER
-    )
-  `);
-});
-
-afterAll(() => {
-  if (testDb) {
-    testDb.close();
-  }
-});
+// NOTE: this file used to spin up its own disconnected, never-referenced
+// `better-sqlite3` database via `new (require('better-sqlite3'))(...)` in
+// beforeAll. Besides being entirely unused (nothing in this file ever
+// queries `testDb`), `require` does not exist in this project's ES
+// modules - every test in this file crashed with
+// `ReferenceError: require is not defined` before that code even got a
+// chance to run, since Jest's `beforeAll` executes before any test body.
+// The model/service functions under test here (Transaction.js /
+// transactionService.js) already use the real shared db singleton from
+// config/database.js (seeded with the full schema via the global
+// `src/test/setup.js`), so no separate test database is needed at all.
 
 describe('Transaction Model', () => {
   describe('Field Constants', () => {
@@ -287,50 +255,51 @@ describe('Transaction Service', () => {
 });
 
 describe('Transaction Module Exports', () => {
+  // NOTE: these used `require('../models/Transaction.js')` /
+  // `require('../services/transactionService.js')` to re-fetch the same
+  // modules already imported via ESM `import` at the top of this file -
+  // `require` isn't available in ES modules at all, and was never needed
+  // here since every one of these named exports is already in scope.
   test('should export all required functions from model', () => {
-    const model = require('../models/Transaction.js');
-    expect(model.getAllTransactions).toBeDefined();
-    expect(model.getTransactionCount).toBeDefined();
-    expect(model.getTransactionById).toBeDefined();
-    expect(model.getTransactionByReceiptNumber).toBeDefined();
-    expect(model.createTransaction).toBeDefined();
-    expect(model.updateTransaction).toBeDefined();
-    expect(model.deleteTransaction).toBeDefined();
-    expect(model.getTransactionsByStudent).toBeDefined();
-    expect(model.getTransactionsByDateRange).toBeDefined();
+    expect(getAllTransactions).toBeDefined();
+    expect(getTransactionCount).toBeDefined();
+    expect(getTransactionById).toBeDefined();
+    expect(getTransactionByReceiptNumber).toBeDefined();
+    expect(createTransaction).toBeDefined();
+    expect(updateTransaction).toBeDefined();
+    expect(deleteTransaction).toBeDefined();
+    expect(getTransactionsByStudent).toBeDefined();
+    expect(getTransactionsByDateRange).toBeDefined();
   });
 
   test('should export all required functions from service', () => {
-    const service = require('../services/transactionService.js');
-    expect(service.validateTransaction).toBeDefined();
-    expect(service.getPaginatedTransactions).toBeDefined();
-    expect(service.getTransaction).toBeDefined();
-    expect(service.getTransactionByReceipt).toBeDefined();
-    expect(service.createTransactionRecord).toBeDefined();
-    expect(service.updateTransactionRecord).toBeDefined();
-    expect(service.deleteTransactionRecord).toBeDefined();
-    expect(service.searchTransactions).toBeDefined();
-    expect(service.getTransactionStatistics).toBeDefined();
-    expect(service.getTransactionCountByFilter).toBeDefined();
+    expect(validateTransaction).toBeDefined();
+    expect(getPaginatedTransactions).toBeDefined();
+    expect(getTransaction).toBeDefined();
+    expect(getTransactionByReceipt).toBeDefined();
+    expect(createTransactionRecord).toBeDefined();
+    expect(updateTransactionRecord).toBeDefined();
+    expect(deleteTransactionRecord).toBeDefined();
+    expect(searchTransactions).toBeDefined();
+    expect(getTransactionStatistics).toBeDefined();
+    expect(getTransactionCountByFilter).toBeDefined();
   });
 });
 
 describe('Transaction Types Validation', () => {
   test('should have valid transaction types constant', () => {
-    const service = require('../services/transactionService.js');
     // The constant is not exported, but we can test through validation
     const validTypes = ['income', 'expense', 'school_fee', 'lunch_fee', 'student_charge', 'director_withdrawal'];
     validTypes.forEach(type => {
-      const result = service.validateTransaction({ transactionType: type, amount: 100 });
+      const result = validateTransaction({ transactionType: type, amount: 100 });
       expect(result.isValid).toBe(true);
     });
   });
 
   test('should reject invalid transaction type', () => {
-    const service = require('../services/transactionService.js');
-    const result = service.validateTransaction({ 
-      transactionType: 'invalid', 
-      amount: 100 
+    const result = validateTransaction({
+      transactionType: 'invalid',
+      amount: 100
     });
     expect(result.isValid).toBe(false);
     expect(result.errors[0]).toContain('Invalid transaction type');
