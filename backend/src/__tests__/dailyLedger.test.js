@@ -305,8 +305,23 @@ describe('DailyLedger Module', () => {
           net_movement: 0,
           transaction_count: 0
         };
-        
-        await expect(dailyLedgerModel.create(duplicateLedger)).rejects.toThrow();
+
+        // NOTE: deliberately an explicit try/catch rather than
+        // `expect(promise).rejects.toThrow()` - see the equivalent note in
+        // expense.test.js. Under `--experimental-vm-modules`, Jest's
+        // `rejects` matcher was observed to intermittently misreport "did
+        // not throw" for this exact assertion when the full test suite
+        // runs together (confirmed via manual `.then(onFulfilled,
+        // onRejected)` tracing that the promise reliably rejects every
+        // time; only the matcher's own result was unreliable).
+        let threw = false;
+        try {
+          await dailyLedgerModel.create(duplicateLedger);
+        } catch (error) {
+          threw = true;
+          expect(error).toBeDefined();
+        }
+        expect(threw).toBe(true);
       });
     });
 

@@ -1,395 +1,343 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import Database from 'better-sqlite3';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Remove any stale db file (and WAL/SHM sidecars) left behind by a
-// previous run (e.g. a crashed process, or this suite previously
-// sharing a db path with other test files) so each run starts from a
-// guaranteed-fresh schema instead of silently reusing stale tables via
-// CREATE TABLE IF NOT EXISTS.
-function __removeTestDbFiles(dbPath) {
-  for (const suffix of ['', '-wal', '-shm']) {
-    try {
-      fs.unlinkSync(dbPath + suffix);
-    } catch (e) {
-      // ENOENT is expected when the file doesn't exist yet - ignore it.
-    }
-  }
-}
-
-// Test database path
-const TEST_DB_PATH = path.resolve(__dirname, 'test_expense.db');
-
-// Import Expense model and service - we'll use the actual implementation
-// This requires setting the database path before importing
-process.env.DATABASE_PATH = TEST_DB_PATH;
-
-// Import after setting env
+// NOTE: this file used to set `process.env.DATABASE_PATH = TEST_DB_PATH`
+// textually before `import Expense from '../models/Expense.js'`, but ES
+// module `import` statements are hoisted and evaluate before any other
+// top-level code in a module, so that assignment had zero effect -
+// config/database.js's singleton `db` was already constructed (using the
+// ":memory:" test default) by the time it ran. Expense.js/ExpenseCategory.js/
+// expenseService.js therefore queried the real shared singleton db, while
+// this file's own fixture data was being inserted into a completely
+// separate, disconnected on-disk `test_expense.db` file the model/service
+// never touched. Fixed by seeding fixture rows directly into the real db
+// singleton instead (the same pattern used to fix this exact class of bug
+// in directorWithdrawal.test.js and expenseCategory.test.js).
+import db from '../config/database.js';
 import Expense from '../models/Expense.js';
 import ExpenseCategory from '../models/ExpenseCategory.js';
 import * as ExpenseService from '../services/expenseService.js';
 
 describe('Expense Management - Backend Tests', () => {
-  let db;
+  // Populated in beforeAll with real row ids from the shared db singleton -
+  // expenses/expense_categories are shared tables across the whole test
+  // run (and schema.sql seeds its own default system categories via
+  // INSERT OR IGNORE), so hardcoded ids like `1` are not a safe assumption.
+  let userId, paymentMethodId, categoryId, expense1Id, expense2Id;
 
   beforeAll(() => {
-    // Create test database
-    __removeTestDbFiles(TEST_DB_PATH);
-    db = new Database(TEST_DB_PATH);
-    db.pragma('foreign_keys = ON');
+    const testUser = db.prepare('INSERT OR IGNORE INTO users (username, full_name, role) VALUES (?, ?, ?)').run('exp_testuser', 'Test User', 'admin');
+    userId = testUser.lastInsertRowid || db.prepare('SELECT id FROM users WHERE username = ?').get('exp_testuser').id;
 
-    // Create minimal schema for testing
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS system_settings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        key TEXT UNIQUE NOT NULL,
-        value TEXT NOT NULL,
-        description TEXT,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
+    const paymentMethod = db.prepare('INSERT OR IGNORE INTO payment_methods (name) VALUES (?)').run('EXP Test Cash');
+    paymentMethodId = paymentMethod.lastInsertRowid || db.prepare('SELECT id FROM payment_methods WHERE name = ?').get('EXP Test Cash').id;
 
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        full_name TEXT NOT NULL,
-        email TEXT,
-        phone TEXT,
-        password_hash TEXT,
-        role TEXT DEFAULT 'admin',
-        is_active BOOLEAN DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
+    const category = db.prepare('INSERT INTO expense_categories (name, description, created_by) VALUES (?, ?, ?)').run('EXP Test Food', 'Food expenses', userId);
+    categoryId = category.lastInsertRowid;
 
-      CREATE TABLE IF NOT EXISTS payment_methods (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT,
-        is_active BOOLEAN DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS transactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        receipt_number TEXT UNIQUE NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
-        transaction_type TEXT NOT NULL,
-        description TEXT,
-        related_id INTEGER,
-        related_table TEXT,
-        transaction_date DATE NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        created_by INTEGER,
-        FOREIGN KEY (created_by) REFERENCES users(id)
-      );
-
-      CREATE TABLE IF NOT EXISTS expense_categories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        parent_id INTEGER,
-        description TEXT,
-        is_active BOOLEAN DEFAULT 1,
-        is_system BOOLEAN DEFAULT 0,
-        is_kitchen BOOLEAN DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        created_by INTEGER,
-        updated_by INTEGER,
-        FOREIGN KEY (parent_id) REFERENCES expense_categories(id),
-        FOREIGN KEY (created_by) REFERENCES users(id),
-        FOREIGN KEY (updated_by) REFERENCES users(id)
-      );
-
-      CREATE TABLE IF NOT EXISTS expenses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        amount DECIMAL(10, 2) NOT NULL,
-        expense_category_id INTEGER NOT NULL,
-        description TEXT,
-        vendor_name TEXT NOT NULL,
-        vendor_contact TEXT,
-        payment_method_id INTEGER,
-        transaction_id INTEGER,
-        expense_date DATE NOT NULL,
-        receipt_number TEXT,
-        notes TEXT,
-        is_verified BOOLEAN DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        created_by INTEGER,
-        updated_by INTEGER,
-        FOREIGN KEY (expense_category_id) REFERENCES expense_categories(id),
-        FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id),
-        FOREIGN KEY (transaction_id) REFERENCES transactions(id),
-        FOREIGN KEY (created_by) REFERENCES users(id),
-        FOREIGN KEY (updated_by) REFERENCES users(id)
-      );
-
-      -- Indexes
-      CREATE INDEX IF NOT EXISTS idx_expense_categories_name ON expense_categories(name);
-      CREATE INDEX IF NOT EXISTS idx_expense_categories_parent ON expense_categories(parent_id);
-      CREATE INDEX IF NOT EXISTS idx_expense_categories_active ON expense_categories(is_active);
-      CREATE INDEX IF NOT EXISTS idx_expense_categories_kitchen ON expense_categories(is_kitchen);
-      CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(expense_category_id);
-      CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(expense_date);
-      CREATE INDEX IF NOT EXISTS idx_expenses_receipt ON expenses(receipt_number);
-      CREATE INDEX IF NOT EXISTS idx_expenses_verified ON expenses(is_verified);
-    `);
-
-    // Insert test data
-    const testUser = db.prepare('INSERT INTO users (username, full_name, role) VALUES (?, ?, ?)').run('testuser', 'Test User', 'admin');
-    const userId = testUser.lastInsertRowid;
-
-    const paymentMethod = db.prepare('INSERT INTO payment_methods (name) VALUES (?)').run('Cash');
-    const paymentMethodId = paymentMethod.lastInsertRowid;
-
-    const category = db.prepare('INSERT INTO expense_categories (name, description, created_by) VALUES (?, ?, ?)').run('Food', 'Food expenses', userId);
-    const categoryId = category.lastInsertRowid;
-
-    // Insert some test expenses
-    db.prepare(`
+    // Insert some test expenses directly into the real db
+    const e1 = db.prepare(`
       INSERT INTO expenses (amount, expense_category_id, description, vendor_name, vendor_contact, payment_method_id, expense_date, receipt_number, notes, is_verified, created_by)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(100.00, categoryId, 'Test expense 1', 'Vendor 1', '123-456', paymentMethodId, '2026-01-01', 'REC-001', 'Test note', 0, userId);
+    `).run(100.00, categoryId, 'EXP Test expense 1', 'EXP Test Vendor 1', '123-456', paymentMethodId, '2026-01-01', 'EXPTEST-REC-001', 'Test note', 0, userId);
+    expense1Id = e1.lastInsertRowid;
 
-    db.prepare(`
+    const e2 = db.prepare(`
       INSERT INTO expenses (amount, expense_category_id, description, vendor_name, vendor_contact, payment_method_id, expense_date, receipt_number, notes, is_verified, created_by)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(200.00, categoryId, 'Test expense 2', 'Vendor 2', '987-654', paymentMethodId, '2026-01-02', 'REC-002', 'Test note 2', 1, userId);
+    `).run(200.00, categoryId, 'EXP Test expense 2', 'EXP Test Vendor 2', '987-654', paymentMethodId, '2026-01-02', 'EXPTEST-REC-002', 'Test note 2', 1, userId);
+    expense2Id = e2.lastInsertRowid;
   });
 
   afterAll(() => {
-    // Close database connection
-    if (db) {
-      db.close();
-    }
-    // Clean up test database
+    // Clean up test data from the real shared db singleton.
     try {
-      Database(TEST_DB_PATH).close();
-    } catch (e) {
-      // Ignore cleanup errors
+      // createExpense() also creates an associated transaction row (see
+      // expenseService.js), which FK-references created_by/payment_method -
+      // those must be cleared before the users/payment_methods rows they
+      // point at, or the DELETEs below fail with FOREIGN KEY constraint
+      // errors.
+      db.prepare("DELETE FROM transactions WHERE created_by = ? AND transaction_type = 'expense'").run(userId);
+      db.prepare("DELETE FROM expenses WHERE receipt_number LIKE 'EXPTEST-%' OR vendor_name LIKE 'EXP Test%' OR vendor_name LIKE 'Service Vendor%' OR vendor_name LIKE 'Delete Vendor%'").run();
+      db.prepare("DELETE FROM expense_categories WHERE name LIKE 'EXP Test%'").run();
+      db.prepare('DELETE FROM payment_methods WHERE name = ?').run('EXP Test Cash');
+      db.prepare('DELETE FROM users WHERE username = ?').run('exp_testuser');
+    } catch (error) {
+      console.error('Error cleaning up expense test data:', error.message);
     }
-    __removeTestDbFiles(TEST_DB_PATH);
   });
 
   describe('Expense Model', () => {
-    it('should create a new expense', () => {
+    it('should create a new expense', async () => {
+      // The model destructures camelCase fields (expenseCategoryId,
+      // vendorName, ...), not the snake_case keys this test originally
+      // passed - those silently became `undefined`, which hit the
+      // expense_category_id/vendor_name NOT NULL constraints.
       const newExpense = {
         amount: 150.00,
-        expense_category_id: 1,
-        description: 'Test model expense',
-        vendor_name: 'Test Vendor',
-        vendor_contact: '555-1234',
-        payment_method_id: 1,
-        expense_date: '2026-07-26',
-        receipt_number: 'REC-003',
+        expenseCategoryId: categoryId,
+        description: 'EXP Test model expense',
+        vendorName: 'EXP Test Vendor',
+        vendorContact: '555-1234',
+        paymentMethodId,
+        expenseDate: '2026-07-26',
+        receiptNumber: 'EXPTEST-REC-003',
         notes: 'Test notes',
-        is_verified: 0,
-        created_by: 1
+        isVerified: false,
+        createdBy: userId
       };
 
-      const result = Expense.create(newExpense);
+      const result = await Expense.create(newExpense);
       expect(result).toBeDefined();
       expect(result.id).toBeDefined();
       expect(result.amount).toBe(150.00);
-      expect(result.description).toBe('Test model expense');
+      expect(result.description).toBe('EXP Test model expense');
     });
 
-    it('should get an expense by ID', () => {
-      const expense = Expense.getById(1);
+    it('should get an expense by ID', async () => {
+      const expense = await Expense.getById(expense1Id);
       expect(expense).toBeDefined();
       expect(expense.amount).toBe(100.00);
     });
 
-    it('should get all expenses', () => {
-      const expenses = Expense.getAll();
+    it('should get all expenses', async () => {
+      const expenses = await Expense.getAll();
       expect(expenses.length).toBeGreaterThan(0);
     });
 
-    it('should update an expense', () => {
-      const updated = Expense.update(1, { description: 'Updated description', amount: 150.00 });
+    it('should update an expense', async () => {
+      const updated = await Expense.update(expense1Id, { description: 'EXP Test Updated description', amount: 150.00 });
       expect(updated).toBeDefined();
-      expect(updated.description).toBe('Updated description');
+      expect(updated.description).toBe('EXP Test Updated description');
     });
 
-    it('should delete an expense', () => {
+    it('should delete an expense', async () => {
       // First create one to delete
-      const newExpense = Expense.create({
+      const newExpense = await Expense.create({
         amount: 50.00,
-        expense_category_id: 1,
-        description: 'To be deleted',
-        vendor_name: 'Test Vendor',
-        expense_date: '2026-07-26',
-        receipt_number: 'REC-DELETE',
-        created_by: 1
+        expenseCategoryId: categoryId,
+        description: 'EXP Test To be deleted',
+        vendorName: 'EXP Test Vendor',
+        expenseDate: '2026-07-26',
+        receiptNumber: 'EXPTEST-REC-DELETE',
+        createdBy: userId
       });
 
-      const deleted = Expense.delete(newExpense.id);
-      expect(deleted).toBe(true);
+      // The model exports this as `deleteById`, not `delete` (`delete` is
+      // a reserved word anyway and was never actually exported). It
+      // resolves to the deleted row (fetched before the DELETE runs), not
+      // a bare boolean.
+      const deleted = await Expense.deleteById(newExpense.id);
+      expect(deleted).toBeDefined();
+      expect(deleted.id).toBe(newExpense.id);
 
-      const check = Expense.getById(newExpense.id);
-      expect(check).toBeUndefined();
+      // getById explicitly returns null (not undefined) for a missing row.
+      const check = await Expense.getById(newExpense.id);
+      expect(check).toBeNull();
     });
   });
 
   describe('ExpenseCategory Model', () => {
-    it('should create a new expense category', () => {
+    it('should create a new expense category', async () => {
       const newCategory = {
-        name: 'Utilities',
+        name: 'EXP Test Utilities',
         description: 'Utility bills',
         is_active: 1,
         is_system: 0,
         is_kitchen: 0,
-        created_by: 1
+        created_by: userId
       };
 
-      const result = ExpenseCategory.create(newCategory);
+      const result = await ExpenseCategory.create(newCategory);
       expect(result).toBeDefined();
       expect(result.id).toBeDefined();
-      expect(result.name).toBe('Utilities');
+      expect(result.name).toBe('EXP Test Utilities');
     });
 
-    it('should get a category by ID', () => {
-      const category = ExpenseCategory.getById(1);
+    it('should get a category by ID', async () => {
+      const category = await ExpenseCategory.getById(categoryId);
       expect(category).toBeDefined();
-      expect(category.name).toBe('Food');
+      expect(category.name).toBe('EXP Test Food');
     });
 
-    it('should get all categories', () => {
-      const categories = ExpenseCategory.getAll();
+    it('should get all categories', async () => {
+      const categories = await ExpenseCategory.getAll();
       expect(categories.length).toBeGreaterThan(0);
     });
 
-    it('should get active categories', () => {
-      const active = ExpenseCategory.getActive();
+    it('should get active categories', async () => {
+      // Model export is `getAllActive`, not `getActive`.
+      const active = await ExpenseCategory.getAllActive();
       expect(active.length).toBeGreaterThan(0);
     });
 
-    it('should get kitchen categories', () => {
-      const kitchen = ExpenseCategory.getKitchen();
+    it('should get kitchen categories', async () => {
+      // Model export is `getAllKitchen`, not `getKitchen`.
+      const kitchen = await ExpenseCategory.getAllKitchen();
       expect(Array.isArray(kitchen)).toBe(true);
     });
 
-    it('should get hierarchical tree', () => {
-      const tree = ExpenseCategory.getTree();
+    it('should get hierarchical tree', async () => {
+      const tree = await ExpenseCategory.getTree();
       expect(Array.isArray(tree)).toBe(true);
     });
   });
 
   describe('Expense Service', () => {
-    it('should get paginated expenses', () => {
-      const result = ExpenseService.getExpenses({ page: 1, limit: 10 });
+    it('should get paginated expenses', async () => {
+      // Returns `{ success, data, pagination }`, not `{ expenses }`.
+      const result = await ExpenseService.getPaginatedExpenses({ page: 1, pageSize: 10 });
       expect(result).toBeDefined();
-      expect(result.expenses).toBeDefined();
-      expect(Array.isArray(result.expenses)).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.data).toBeDefined();
+      expect(Array.isArray(result.data)).toBe(true);
     });
 
-    it('should get all expenses without pagination', () => {
-      const all = ExpenseService.getAllExpenses();
+    it('should get all expenses without pagination', async () => {
+      const all = await ExpenseService.getAllExpenses();
       expect(all).toBeDefined();
-      expect(Array.isArray(all)).toBe(true);
+      expect(Array.isArray(all.data)).toBe(true);
     });
 
-    it('should get expenses by category', () => {
-      const expenses = ExpenseService.getExpensesByCategory(1);
+    it('should get expenses by category', async () => {
+      const expenses = await ExpenseService.getExpensesByCategory(categoryId);
       expect(expenses).toBeDefined();
-      expect(Array.isArray(expenses)).toBe(true);
+      expect(Array.isArray(expenses.data)).toBe(true);
     });
 
-    it('should get expense by receipt number', () => {
-      const expense = ExpenseService.getExpenseByReceiptNumber('REC-001');
+    it('should get expense by receipt number', async () => {
+      const expense = await ExpenseService.getExpenseByReceiptNumber('EXPTEST-REC-001');
       expect(expense).toBeDefined();
+      expect(expense.success).toBe(true);
+      expect(expense.data).toBeDefined();
     });
 
-    it('should search expenses', () => {
-      const results = ExpenseService.searchExpenses({ query: 'Test' });
+    it('should search expenses', async () => {
+      // searchExpenses(searchTerm, options) takes a raw search string as
+      // its first argument, not a `{ query }` options object.
+      const results = await ExpenseService.searchExpenses('EXP Test');
       expect(results).toBeDefined();
-      expect(Array.isArray(results)).toBe(true);
+      expect(Array.isArray(results.data)).toBe(true);
     });
 
-    it('should get expense statistics', () => {
-      const stats = ExpenseService.getExpenseStatistics();
+    it('should get expense statistics', async () => {
+      const stats = await ExpenseService.getExpenseStatistics();
       expect(stats).toBeDefined();
-      expect(stats.total).toBeDefined();
+      expect(stats.data.total).toBeDefined();
     });
 
-    it('should verify an expense', () => {
-      const updated = ExpenseService.verifyExpense(1, 1);
+    it('should verify an expense', async () => {
+      const updated = await ExpenseService.verifyExpense(expense1Id, userId);
       expect(updated).toBeDefined();
+      expect(updated.success).toBe(true);
     });
 
-    it('should create an expense via service', () => {
+    it('should create an expense via service', async () => {
+      // createExpense auto-generates its own receipt number and also
+      // creates an associated transaction record - it does not accept or
+      // persist a caller-supplied receiptNumber.
       const newExpense = {
         amount: 250.00,
-        expense_category_id: 1,
-        description: 'Service test expense',
-        vendor_name: 'Service Vendor',
-        expense_date: '2026-07-26',
-        receipt_number: 'REC-SERVICE-001',
-        created_by: 1
+        expenseCategoryId: categoryId,
+        description: 'EXP Test Service test expense',
+        vendorName: 'Service Vendor',
+        expenseDate: '2026-07-26',
+        createdBy: userId
       };
 
-      const created = ExpenseService.createExpense(newExpense);
+      const created = await ExpenseService.createExpense(newExpense);
       expect(created).toBeDefined();
-      expect(created.id).toBeDefined();
+      expect(created.success).toBe(true);
+      expect(created.data.id).toBeDefined();
     });
 
-    it('should update an expense via service', () => {
-      const updated = ExpenseService.updateExpense(1, {
-        description: 'Updated via service',
+    it('should update an expense via service', async () => {
+      const updated = await ExpenseService.updateExpense(expense1Id, {
+        description: 'EXP Test Updated via service',
         amount: 175.00
       });
       expect(updated).toBeDefined();
+      expect(updated.success).toBe(true);
     });
 
-    it('should delete an expense via service', () => {
+    it('should delete an expense via service', async () => {
       // Create one to delete
-      const newExpense = ExpenseService.createExpense({
+      const newExpense = await ExpenseService.createExpense({
         amount: 99.99,
-        expense_category_id: 1,
-        description: 'To be deleted via service',
-        vendor_name: 'Delete Vendor',
-        expense_date: '2026-07-26',
-        receipt_number: 'REC-DELETE-SERVICE',
-        created_by: 1
+        expenseCategoryId: categoryId,
+        description: 'EXP Test To be deleted via service',
+        vendorName: 'Delete Vendor',
+        expenseDate: '2026-07-26',
+        createdBy: userId
       });
 
-      const deleted = ExpenseService.deleteExpense(newExpense.id);
-      expect(deleted).toBe(true);
+      const deleted = await ExpenseService.deleteExpense(newExpense.data.id);
+      expect(deleted.success).toBe(true);
     });
   });
 
   describe('Edge Cases and Validation', () => {
-    it('should handle missing required fields', () => {
-      expect(() => {
-        Expense.create({});
-      }).toThrow();
+    it('should handle missing required fields', async () => {
+      // Expense.create() is async - calling it inside a synchronous
+      // `expect(() => {...}).toThrow()` never actually catches anything,
+      // since the function always returns a (rejecting) Promise rather
+      // than throwing synchronously. The rejection then went completely
+      // unhandled outside Jest's test lifecycle, crashing the whole Node
+      // worker process with an uncaught SqliteError instead of failing
+      // just this one test.
+      //
+      // NOTE: this deliberately uses an explicit try/catch instead of
+      // `expect(promise).rejects.toThrow()`. Under this project's Jest
+      // config (`--experimental-vm-modules`, required for native ESM
+      // support), each test file's module graph is evaluated in its own
+      // V8 "vm" context/realm. When running the full suite together
+      // (many files/contexts in one process), that was observed to make
+      // Jest's `rejects` matcher intermittently and non-deterministically
+      // report "did not throw" for promises that provably DO reject
+      // (confirmed independently by attaching a manual
+      // `.then(onFulfilled, onRejected)` handler, which always observed
+      // the rejection correctly) - a known class of issue with
+      // cross-realm Promise handling under `--experimental-vm-modules`.
+      // A plain try/catch with a manual assertion does not go through
+      // that matcher code path and was confirmed reliable across many
+      // repeated full-suite runs.
+      let threw = false;
+      try {
+        await Expense.create({});
+      } catch (error) {
+        threw = true;
+        expect(error).toBeDefined();
+      }
+      expect(threw).toBe(true);
     });
 
-    it('should handle invalid expense category', () => {
-      expect(() => {
-        Expense.create({
+    it('should handle invalid expense category', async () => {
+      let threw = false;
+      try {
+        await Expense.create({
           amount: 100,
-          expense_category_id: 99999, // Non-existent
+          expenseCategoryId: 99999, // Non-existent
           description: 'Test',
-          vendor_name: 'Test',
-          expense_date: '2026-07-26'
+          vendorName: 'Test',
+          expenseDate: '2026-07-26',
+          createdBy: userId
         });
-      }).toThrow();
+      } catch (error) {
+        threw = true;
+        expect(error).toBeDefined();
+      }
+      expect(threw).toBe(true);
     });
 
-    it('should return empty array for non-existent category', () => {
-      const expenses = ExpenseService.getExpensesByCategory(99999);
-      expect(expenses).toEqual([]);
+    it('should return empty array for non-existent category', async () => {
+      const expenses = await ExpenseService.getExpensesByCategory(99999);
+      expect(expenses.data).toEqual([]);
     });
 
-    it('should return null for non-existent expense', () => {
-      const expense = ExpenseService.getExpenseById(99999);
-      expect(expense).toBeUndefined();
+    it('should return null for non-existent expense', async () => {
+      // Not-found is reported as `{ success: false, error }`, not undefined.
+      const expense = await ExpenseService.getExpenseById(99999);
+      expect(expense.success).toBe(false);
+      expect(expense.error).toBe('Expense record not found');
     });
   });
 });
