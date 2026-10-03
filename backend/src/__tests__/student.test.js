@@ -2,12 +2,28 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/glo
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Remove any stale db file (and WAL/SHM sidecars) left behind by a
+// previous run (e.g. a crashed process, or this suite previously
+// sharing a db path with other test files) so each run starts from a
+// guaranteed-fresh schema instead of silently reusing stale tables via
+// CREATE TABLE IF NOT EXISTS.
+function __removeTestDbFiles(dbPath) {
+  for (const suffix of ['', '-wal', '-shm']) {
+    try {
+      fs.unlinkSync(dbPath + suffix);
+    } catch (e) {
+      // ENOENT is expected when the file doesn't exist yet - ignore it.
+    }
+  }
+}
+
 // Test database path
-const TEST_DB_PATH = path.resolve(__dirname, 'test_mobius_ledger.db');
+const TEST_DB_PATH = path.resolve(__dirname, 'test_student.db');
 
 // We'll test the Student model by importing it and using the test database
 // Since the Student model imports database.js which uses a specific path,
@@ -17,6 +33,7 @@ let db;
 describe('Student Model', () => {
   beforeAll(() => {
     // Create test database
+    __removeTestDbFiles(TEST_DB_PATH);
     db = new Database(TEST_DB_PATH);
     db.pragma('foreign_keys = ON');
 
@@ -119,14 +136,15 @@ describe('Student Model', () => {
     if (db) {
       db.close();
     }
-    try {
-      const fs = require("node:fs");
-      fs.promises.unlink(TEST_DB_PATH);
-      fs.promises.unlink(TEST_DB_PATH + '-wal');
-      fs.promises.unlink(TEST_DB_PATH + '-shm');
-    } catch (e) {
-      // Ignore cleanup errors
-    }
+    // Previously used require("node:fs") (undefined in this ESM test file -
+    // would throw ReferenceError: require is not defined) and called
+    // fs.promises.unlink() without awaiting it, so the file was never
+    // actually deleted before the process exited. That stale file (shared
+    // with 9 other test files under the old literal 'test_mobius_ledger.db'
+    // path) is what caused "no such column: status" here - some other
+    // suite's leftover schema was silently reused via CREATE TABLE IF NOT
+    // EXISTS. Now using the already-imported `fs` and a synchronous unlink.
+    __removeTestDbFiles(TEST_DB_PATH);
   });
 
   beforeEach(() => {

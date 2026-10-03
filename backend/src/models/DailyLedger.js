@@ -44,10 +44,7 @@ const FIELDS = {
  * @returns {Promise<Object|null>} - Single ledger record or null if not found
  */
 export async function getById(id) {
-  const row = await db.get(
-    `SELECT * FROM ${TABLE} WHERE ${FIELDS.ID} = ?`,
-    [id]
-  );
+  const row = await db.prepare(`SELECT * FROM ${TABLE} WHERE ${FIELDS.ID} = ?`).get([id]);
   return row || null;
 }
 
@@ -57,10 +54,7 @@ export async function getById(id) {
  * @returns {Promise<Object|null>} - Single ledger record or null if not found
  */
 export async function getByDate(date) {
-  const row = await db.get(
-    `SELECT * FROM ${TABLE} WHERE ${FIELDS.DATE} = ?`,
-    [date]
-  );
+  const row = await db.prepare(`SELECT * FROM ${TABLE} WHERE ${FIELDS.DATE} = ?`).get([date]);
   return row || null;
 }
 
@@ -104,10 +98,7 @@ export async function getAll(options = {}) {
   const safeOrderBy = validOrderFields.includes(orderBy) ? orderBy : FIELDS.DATE;
   const safeOrderDirection = orderDirection === 'ASC' || orderDirection === 'DESC' ? orderDirection : 'DESC';
 
-  const rows = await db.all(
-    `SELECT * FROM ${TABLE} ${whereClause} ORDER BY ${safeOrderBy} ${safeOrderDirection} LIMIT ? OFFSET ?`,
-    [...params, limit, offset]
-  );
+  const rows = await db.prepare(`SELECT * FROM ${TABLE} ${whereClause} ORDER BY ${safeOrderBy} ${safeOrderDirection} LIMIT ? OFFSET ?`).all([...params, limit, offset]);
   return rows;
 }
 
@@ -175,10 +166,7 @@ export async function count(options = {}) {
     params.push(endDate);
   }
 
-  const result = await db.get(
-    `SELECT COUNT(*) as count FROM ${TABLE} ${whereClause}`,
-    params
-  );
+  const result = await db.prepare(`SELECT COUNT(*) as count FROM ${TABLE} ${whereClause}`).get(params);
   return result.count || 0;
 }
 
@@ -211,10 +199,8 @@ export async function create(data) {
   // Calculate closing balance if not provided
   const calculatedClosingBalance = closing_balance || (opening_balance + calculatedNetMovement);
 
-  const result = await db.run(
-    `INSERT INTO ${TABLE} (${FIELDS.DATE}, ${FIELDS.OPENING_BALANCE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.CLOSING_BALANCE}, ${FIELDS.NET_MOVEMENT}, ${FIELDS.TRANSACTION_COUNT}) 
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [
+  const result = await db.prepare(`INSERT INTO ${TABLE} (${FIELDS.DATE}, ${FIELDS.OPENING_BALANCE}, ${FIELDS.TOTAL_INCOME}, ${FIELDS.TOTAL_EXPENSES}, ${FIELDS.CLOSING_BALANCE}, ${FIELDS.NET_MOVEMENT}, ${FIELDS.TRANSACTION_COUNT}) 
+     VALUES (?, ?, ?, ?, ?, ?, ?)`).run([
       date,
       opening_balance,
       total_income,
@@ -222,10 +208,9 @@ export async function create(data) {
       calculatedClosingBalance,
       calculatedNetMovement,
       transaction_count
-    ]
-  );
+    ]);
 
-  return getById(result.lastID);
+  return getById(result.lastInsertRowid);
 }
 
 /**
@@ -254,8 +239,7 @@ export async function update(id, data) {
   // Calculate closing balance if opening balance or net movement changed
   const calculatedClosingBalance = closing_balance || (opening_balance + calculatedNetMovement);
 
-  await db.run(
-    `UPDATE ${TABLE} SET 
+  await db.prepare(`UPDATE ${TABLE} SET 
      ${FIELDS.DATE} = ?,
      ${FIELDS.OPENING_BALANCE} = ?,
      ${FIELDS.TOTAL_INCOME} = ?,
@@ -264,8 +248,7 @@ export async function update(id, data) {
      ${FIELDS.NET_MOVEMENT} = ?,
      ${FIELDS.TRANSACTION_COUNT} = ?,
      ${FIELDS.UPDATED_AT} = CURRENT_TIMESTAMP
-     WHERE ${FIELDS.ID} = ?`,
-    [
+     WHERE ${FIELDS.ID} = ?`).run([
       date,
       opening_balance,
       total_income,
@@ -274,8 +257,7 @@ export async function update(id, data) {
       calculatedNetMovement,
       transaction_count,
       id
-    ]
-  );
+    ]);
 
   return getById(id);
 }
@@ -287,10 +269,7 @@ export async function update(id, data) {
  * @returns {Promise<boolean>} - True if deleted, false if not found
  */
 export async function deleteById(id) {
-  const result = await db.run(
-    `DELETE FROM ${TABLE} WHERE ${FIELDS.ID} = ?`,
-    [id]
-  );
+  const result = await db.prepare(`DELETE FROM ${TABLE} WHERE ${FIELDS.ID} = ?`).run([id]);
   return result.changes > 0;
 }
 
@@ -318,8 +297,7 @@ export async function getStatistics(options = {}) {
     params.push(endDate);
   }
 
-  const stats = await db.get(
-    `SELECT 
+  const stats = await db.prepare(`SELECT 
      COUNT(*) as total_days,
      COALESCE(SUM(${FIELDS.TOTAL_INCOME}), 0) as total_income,
      COALESCE(SUM(${FIELDS.TOTAL_EXPENSES}), 0) as total_expenses,
@@ -328,9 +306,7 @@ export async function getStatistics(options = {}) {
      COALESCE(AVG(${FIELDS.TRANSACTION_COUNT}), 0) as avg_transactions_per_day,
      MIN(${FIELDS.DATE}) as first_date,
      MAX(${FIELDS.DATE}) as last_date
-     FROM ${TABLE} ${whereClause}`,
-    params
-  );
+     FROM ${TABLE} ${whereClause}`).get(params);
 
   return stats || {
     total_days: 0,
@@ -366,8 +342,7 @@ export async function getMissingDates(options = {}) {
   }
 
   // Get all dates in the range that are missing from the ledger
-  const rows = await db.all(
-    `WITH date_series AS (
+  const rows = await db.prepare(`WITH date_series AS (
       SELECT date(${FIELDS.DATE}, '+' || (n || ' days') || '') as date_value
       FROM (
         SELECT 0 as n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 
@@ -381,9 +356,7 @@ export async function getMissingDates(options = {}) {
     SELECT date_value as missing_date
     FROM date_series
     WHERE date_value NOT IN (SELECT ${FIELDS.DATE} FROM ${TABLE} WHERE ${FIELDS.DATE} BETWEEN ? AND ?)
-    ORDER BY date_value`,
-    [startDate, endDate, startDate, endDate, startDate, endDate]
-  );
+    ORDER BY date_value`).all([startDate, endDate, startDate, endDate, startDate, endDate]);
 
   return rows.map(row => row.missing_date);
 }
@@ -409,15 +382,20 @@ export async function generateForDate(date) {
   const openingBalance = previousLedger ? previousLedger.closing_balance : 0;
 
   // Get transactions for the date
-  const transactions = await db.all(
-    `SELECT 
-     COALESCE(SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END), 0) as total_income,
-     COALESCE(SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END), 0) as total_expenses,
+  // NOTE: this is an aggregate query (no GROUP BY) so it always returns a
+  // single row - it must be fetched with .get(), not .all(). It must also
+  // filter on the real `transaction_type` column/values (lowercase, as
+  // enforced by the CHECK constraint on transactions.transaction_type), not
+  // a non-existent `type` column, and must classify income-like vs
+  // expense-like transaction types the same way the trg_transaction_insert
+  // trigger does (income, school_fee, lunch_fee, student_charge vs expense,
+  // director_withdrawal).
+  const transactions = await db.prepare(`SELECT 
+     COALESCE(SUM(CASE WHEN transaction_type IN ('income', 'school_fee', 'lunch_fee', 'student_charge') THEN amount ELSE 0 END), 0) as total_income,
+     COALESCE(SUM(CASE WHEN transaction_type IN ('expense', 'director_withdrawal') THEN amount ELSE 0 END), 0) as total_expenses,
      COUNT(*) as transaction_count
      FROM ${TRANSACTIONS_TABLE} 
-     WHERE transaction_date = ?`,
-    [date]
-  );
+     WHERE transaction_date = ?`).get([date]);
 
   const totalIncome = parseFloat(transactions.total_income) || 0;
   const totalExpenses = parseFloat(transactions.total_expenses) || 0;
@@ -498,3 +476,28 @@ export { TABLE, FIELDS };
 
 // Export model name for consistency
 export const MODEL_NAME = 'DailyLedger';
+
+// Default export so `backend/src/models/index.js` can do
+// `export { default as DailyLedger, ... } from './DailyLedger.js'`. This
+// file previously only had named exports, which would crash the backend on
+// startup (see StudentCharge.js comment for the full explanation).
+export default {
+  TABLE,
+  FIELDS,
+  MODEL_NAME,
+  getById,
+  getByDate,
+  getAll,
+  getByMonth,
+  getRecent,
+  getToday,
+  getYesterday,
+  count,
+  create,
+  update,
+  deleteById,
+  getStatistics,
+  getMissingDates,
+  generateForDate,
+  generateForDateRange
+};

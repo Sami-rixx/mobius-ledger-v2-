@@ -545,3 +545,30 @@ export const getStudentOutstandingChargeAmount = (studentId) => {
 
 // Export field constants
 export { FIELDS, TABLE };
+
+// Default export so `backend/src/models/index.js` can do
+// `export { default as StudentChargeAssignment } from
+// './StudentChargeAssignment.js'`. This file previously only had named
+// exports, which would crash the backend on startup the same way
+// StudentCharge.js did (see the comment there).
+export default {
+  FIELDS,
+  TABLE,
+  getAllStudentChargeAssignments,
+  getStudentChargeAssignmentById,
+  getStudentChargeAssignmentsByCharge,
+  getStudentChargeAssignmentsByStudent,
+  getUnpaidStudentChargeAssignmentsByStudent,
+  getUnpaidStudentChargeAssignmentsByCharge,
+  createStudentChargeAssignment,
+  createMultipleStudentChargeAssignments,
+  updateStudentChargeAssignment,
+  markAssignmentAsPaid,
+  markAssignmentAsUnpaid,
+  deleteStudentChargeAssignment,
+  deleteStudentChargeAssignmentsByCharge,
+  getStudentChargeAssignmentCount,
+  getStudentChargeAssignmentStatistics,
+  isStudentAssignedToCharge,
+  getStudentOutstandingChargeAmount
+};

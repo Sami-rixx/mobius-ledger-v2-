@@ -23,3 +23,5 @@ export { default as RolePermission, ROLE_PERMISSIONS_TABLE, ROLE_PERMISSION_FIEL
 export { default as Dashboard, DASHBOARD_CONSTANTS } from './Dashboard.js';
 export { default as DailyLedger, TABLE as DAILY_LEDGER_TABLE, FIELDS as DAILY_LEDGER_FIELDS, MODEL_NAME as DAILY_LEDGER_MODEL } from './DailyLedger.js';
 export { default as ImportExport, IMPORT_EXPORT_STATUS, EXPORT_TYPES, IMPORT_TYPES, SUPPORTED_TABLES, BACKUP_DIR, EXPORT_DIR } from './ImportExport.js';
+export { default as PaymentMethod, PAYMENT_METHODS_TABLE, PAYMENT_METHOD_FIELDS } from './PaymentMethod.js';
+export { default as User, USERS_TABLE, USER_FIELDS } from './User.js';

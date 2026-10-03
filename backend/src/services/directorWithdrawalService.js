@@ -656,7 +656,7 @@ export const completeWithdrawal = async (id, updatedBy, transactionId = null) =>
 
     // If transaction ID is provided, verify it exists
     if (transactionId) {
-      const transaction = await TransactionModel.getById(transactionId);
+      const transaction = await TransactionModel.getTransactionById(transactionId);
       if (!transaction) {
         return {
           success: false,
@@ -929,3 +929,28 @@ export const searchWithdrawals = async (query, options = {}) => {
 
 // Export constants
 export { WITHDRAWAL_STATUS, VALIDATION, STATUS_TRANSITIONS };
+
+// Default export aggregating all named exports above, so this module can
+// be consumed either via named imports or via services/index.js's
+// `export { default as X } from './directorWithdrawalService.js'` barrel re-export
+// (that barrel previously crashed with SyntaxError: does not provide an
+// export named 'default' since this file had no default export at all).
+export default {
+  getPaginatedWithdrawals,
+  getAllWithdrawals,
+  getWithdrawalById,
+  createWithdrawal,
+  updateWithdrawal,
+  deleteWithdrawal,
+  approveWithdrawal,
+  rejectWithdrawal,
+  completeWithdrawal,
+  cancelWithdrawal,
+  getWithdrawalStatistics,
+  getAllLabels,
+  getPendingWithdrawals,
+  searchWithdrawals,
+  WITHDRAWAL_STATUS,
+  VALIDATION,
+  STATUS_TRANSITIONS,
+};

@@ -448,3 +448,29 @@ export const getOutstandingChargesSummary = () => {
     byCharge: Object.values(byCharge)
   };
 };
+
+// Default export aggregating all named exports above, so this module can
+// be consumed either via named imports or via services/index.js's
+// `export { default as X } from './studentChargeAssignmentService.js'` barrel re-export
+// (that barrel previously crashed with SyntaxError: does not provide an
+// export named 'default' since this file had no default export at all).
+export default {
+  getPaginatedStudentChargeAssignments,
+  getAllStudentChargeAssignments,
+  getStudentChargeAssignmentById,
+  getStudentChargeAssignmentsByCharge,
+  getStudentChargeAssignmentsByStudent,
+  getUnpaidStudentChargeAssignmentsByStudent,
+  getUnpaidStudentChargeAssignmentsByCharge,
+  createStudentChargeAssignment,
+  createMultipleStudentChargeAssignments,
+  updateStudentChargeAssignment,
+  markAssignmentAsPaid,
+  markAssignmentAsUnpaid,
+  deleteStudentChargeAssignment,
+  deleteStudentChargeAssignmentsByCharge,
+  getStudentChargeAssignmentStatistics,
+  isStudentAssignedToCharge,
+  getStudentOutstandingChargeAmount,
+  getOutstandingChargesSummary,
+};

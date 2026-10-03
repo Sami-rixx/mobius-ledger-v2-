@@ -29,6 +29,12 @@ import {
   DEFAULT_ROLES
 } from '../models/Role.js';
 
+// Re-export so consumers (e.g. roleController.js) can import these constants
+// directly from the service layer. See permissionService.js for the same fix
+// and rationale - missing named re-exports here crashed the backend on
+// startup with ERR_MODULE_NOT_FOUND-style SyntaxErrors.
+export { ROLES_TABLE, ROLE_FIELDS, DEFAULT_ROLES };
+
 // Default pagination
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;

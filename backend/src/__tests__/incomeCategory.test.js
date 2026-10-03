@@ -2,18 +2,35 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Remove any stale db file (and WAL/SHM sidecars) left behind by a
+// previous run (e.g. a crashed process, or this suite previously
+// sharing a db path with other test files) so each run starts from a
+// guaranteed-fresh schema instead of silently reusing stale tables via
+// CREATE TABLE IF NOT EXISTS.
+function __removeTestDbFiles(dbPath) {
+  for (const suffix of ['', '-wal', '-shm']) {
+    try {
+      fs.unlinkSync(dbPath + suffix);
+    } catch (e) {
+      // ENOENT is expected when the file doesn't exist yet - ignore it.
+    }
+  }
+}
+
 // Test database path
-const TEST_DB_PATH = path.resolve(__dirname, 'test_mobius_ledger.db');
+const TEST_DB_PATH = path.resolve(__dirname, 'test_incomeCategory.db');
 
 describe('Income Category Service', () => {
   let db;
 
   beforeAll(() => {
     // Create test database
+    __removeTestDbFiles(TEST_DB_PATH);
     db = new Database(TEST_DB_PATH);
     db.pragma('foreign_keys = ON');
 
@@ -102,6 +119,7 @@ describe('Income Category Service', () => {
     } catch (error) {
       console.error('Error cleaning up test data:', error.message);
     }
+    __removeTestDbFiles(TEST_DB_PATH);
   });
 
   describe('Income Category Model', () => {

@@ -133,7 +133,7 @@ export async function getAll(options = {}) {
   params.push(limit, offset);
 
   try {
-    const rows = await db.all(query, params);
+    const rows = await db.prepare(query).all(params);
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified)
@@ -163,7 +163,7 @@ export async function getById(id) {
   `;
 
   try {
-    const row = await db.get(query, [id]);
+    const row = await db.prepare(query).get([id]);
     if (row) {
       return { ...row, is_verified: Boolean(row.is_verified) };
     }
@@ -191,7 +191,7 @@ export async function getByReceiptNumber(receiptNumber) {
   `;
 
   try {
-    const row = await db.get(query, [receiptNumber]);
+    const row = await db.prepare(query).get([receiptNumber]);
     if (row) {
       return { ...row, is_verified: Boolean(row.is_verified) };
     }
@@ -224,7 +224,7 @@ export async function getByCategory(categoryId, options = {}) {
   `;
 
   try {
-    const rows = await db.all(query, [categoryId, limit, offset]);
+    const rows = await db.prepare(query).all([categoryId, limit, offset]);
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified)
@@ -254,7 +254,7 @@ export async function getByDateRange(startDate, endDate) {
   `;
 
   try {
-    const rows = await db.all(query, [startDate, endDate]);
+    const rows = await db.prepare(query).all([startDate, endDate]);
     return rows.map(row => ({
       ...row,
       is_verified: Boolean(row.is_verified)
@@ -322,8 +322,8 @@ export async function create(data) {
   ];
 
   try {
-    const result = await db.run(query, params);
-    return await getById(result.lastID);
+    const result = await db.prepare(query).run(params);
+    return await getById(result.lastInsertRowid);
   } catch (error) {
     console.error('Error in create expense:', error.message);
     throw error;
@@ -418,7 +418,7 @@ export async function update(id, data) {
   `;
 
   try {
-    await db.run(query, params);
+    await db.prepare(query).run(params);
     return await getById(id);
   } catch (error) {
     console.error('Error in update expense:', error.message);
@@ -439,7 +439,7 @@ export async function deleteById(id) {
     if (!row) {
       return null;
     }
-    await db.run(query, [id]);
+    await db.prepare(query).run([id]);
     return row;
   } catch (error) {
     console.error('Error in deleteById expense:', error.message);
@@ -498,7 +498,7 @@ export async function count(options = {}) {
   const query = `SELECT COUNT(*) as count FROM ${TABLE} WHERE 1=1 ${whereClause}`;
 
   try {
-    const result = await db.get(query, params);
+    const result = await db.prepare(query).get(params);
     return result.count;
   } catch (error) {
     console.error('Error in count expense:', error.message);
@@ -514,7 +514,7 @@ export async function getStatistics() {
   try {
     // Total expenses
     const totalQuery = `SELECT COALESCE(SUM(${FIELDS.AMOUNT}), 0) as totalAmount, COUNT(*) as totalCount FROM ${TABLE}`;
-    const totalResult = await db.get(totalQuery);
+    const totalResult = await db.prepare(totalQuery).get();
 
     // Expenses by category
     const byCategoryQuery = `
@@ -527,7 +527,7 @@ export async function getStatistics() {
       LEFT JOIN ${TABLE} ON ${TABLE}.${FIELDS.EXPENSE_CATEGORY_ID} = ${EXPENSE_CATEGORIES_TABLE}.id
       GROUP BY ${EXPENSE_CATEGORIES_TABLE}.id, ${EXPENSE_CATEGORIES_TABLE}.name
     `;
-    const byCategoryResult = await db.all(byCategoryQuery);
+    const byCategoryResult = await db.prepare(byCategoryQuery).all();
 
     // Monthly expenses for current year
     const currentYear = new Date().getFullYear();
@@ -541,7 +541,7 @@ export async function getStatistics() {
       GROUP BY strftime('%Y-%m', ${FIELDS.EXPENSE_DATE})
       ORDER BY month
     `;
-    const monthlyResult = await db.all(monthlyQuery, [currentYear.toString()]);
+    const monthlyResult = await db.prepare(monthlyQuery).all([currentYear.toString()]);
 
     return {
       total: {
@@ -593,7 +593,7 @@ export async function search(searchTerm, options = {}) {
   const searchPattern = `%${searchTerm}%`;
 
   try {
-    const rows = await db.all(query, [
+    const rows = await db.prepare(query).all([
       searchPattern, searchPattern, searchPattern, searchPattern, limit, offset
     ]);
     return rows.map(row => ({

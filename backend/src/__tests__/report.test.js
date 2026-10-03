@@ -2,12 +2,28 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Remove any stale db file (and WAL/SHM sidecars) left behind by a
+// previous run (e.g. a crashed process, or this suite previously
+// sharing a db path with other test files) so each run starts from a
+// guaranteed-fresh schema instead of silently reusing stale tables via
+// CREATE TABLE IF NOT EXISTS.
+function __removeTestDbFiles(dbPath) {
+  for (const suffix of ['', '-wal', '-shm']) {
+    try {
+      fs.unlinkSync(dbPath + suffix);
+    } catch (e) {
+      // ENOENT is expected when the file doesn't exist yet - ignore it.
+    }
+  }
+}
+
 // Test database path
-const TEST_DB_PATH = path.resolve(__dirname, 'test_mobius_ledger.db');
+const TEST_DB_PATH = path.resolve(__dirname, 'test_report.db');
 
 /**
  * Report Model and Service Tests
@@ -21,6 +37,7 @@ describe('Reports & Analytics Models', () => {
 
   beforeAll(() => {
     // Create test database
+    __removeTestDbFiles(TEST_DB_PATH);
     db = new Database(TEST_DB_PATH);
     db.pragma('foreign_keys = ON');
 
@@ -212,14 +229,21 @@ describe('Reports & Analytics Models', () => {
       const db = new Database(TEST_DB_PATH);
       db.prepare('DELETE FROM reports WHERE title LIKE ?').run('%Test%');
       db.prepare('DELETE FROM daily_summaries').run();
-      db.prepare('DELETE FROM income WHERE payer_name = ?').run('Test Payer');
-      db.prepare('DELETE FROM expenses WHERE vendor_name = ?').run('Test Vendor');
+      // The 'should query income vs expense data' test also inserts rows
+      // with payer_name 'Test Payer 2' / vendor_name 'Test Vendor 2', which
+      // the old exact-match filters below missed, leaving orphan income/
+      // expenses rows referencing the test categories and causing the
+      // category deletes further down to throw "FOREIGN KEY constraint
+      // failed". Use a LIKE prefix match to catch every variant.
+      db.prepare("DELETE FROM income WHERE payer_name LIKE 'Test Payer%'").run();
+      db.prepare("DELETE FROM expenses WHERE vendor_name LIKE 'Test Vendor%'").run();
       db.prepare('DELETE FROM income_categories WHERE name = ? AND is_system = 0').run('Test Income Category');
       db.prepare('DELETE FROM expense_categories WHERE name = ? AND is_system = 0').run('Test Expense Category');
       db.close();
     } catch (error) {
       console.error('Error cleaning up test data:', error.message);
     }
+    __removeTestDbFiles(TEST_DB_PATH);
   });
 
   describe('Report Model', () => {
@@ -326,14 +350,23 @@ describe('Reports & Analytics Models', () => {
       
       expect(summary).toBeDefined();
       expect(summary.summary_date).toBe(today);
-      expect(summary.total_income).toBe('1000.00');
-      expect(summary.net_flow).toBe('500.00');
+      // SQLite has no true DECIMAL type - DECIMAL(12,2) is just NUMERIC
+      // affinity, and better-sqlite3 always returns a plain JS number.
+      expect(summary.total_income).toBe(1000);
+      expect(summary.net_flow).toBe(500);
     });
 
     it('should retrieve summaries by date range', () => {
       const today = new Date().toISOString().split('T')[0];
       const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-      
+
+      // summary_date is UNIQUE and the previous test ('should insert and
+      // retrieve a daily summary') already inserted a row for "today"
+      // without cleaning it up, so re-inserting here threw UNIQUE
+      // constraint failed. Clear both dates first for a deterministic
+      // starting state regardless of execution order.
+      db.prepare('DELETE FROM daily_summaries WHERE summary_date IN (?, ?)').run(yesterday, today);
+
       // Insert test summaries
       db.prepare(`INSERT INTO daily_summaries (summary_date, total_income, total_expenses, net_flow) VALUES (?, ?, ?, ?)`).run(yesterday, 800.00, 400.00, 400.00);
       db.prepare(`INSERT INTO daily_summaries (summary_date, total_income, total_expenses, net_flow) VALUES (?, ?, ?, ?)`).run(today, 1000.00, 500.00, 500.00);
@@ -397,9 +430,13 @@ describe('Reports & Analytics Models', () => {
       db.prepare('INSERT INTO expenses (amount, expense_category_id, vendor_name, expense_date, created_by) VALUES (?, ?, ?, ?, ?)').run(1000.00, expenseCategoryId, 'Test Vendor 2', today, userId);
       
       // Query for comparison
+      // The inner UNION subquery already aliases both date columns as
+      // "date" - the outer SELECT/GROUP BY must reference that alias
+      // ("date"), not the original "income_date" column name, which does
+      // not exist in the subquery's result set.
       const result = db.prepare(`
         SELECT 
-          income_date as date,
+          date,
           SUM(CASE WHEN source = 'income' THEN amount ELSE 0 END) as total_income,
           SUM(CASE WHEN source = 'expense' THEN amount ELSE 0 END) as total_expenses
         FROM (
