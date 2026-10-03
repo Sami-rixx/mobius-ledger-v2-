@@ -93,7 +93,10 @@ const ImportExport = {
   // Get log by ID
   async getLogById(id) {
     const query = `SELECT * FROM ${IMPORT_EXPORT_TABLE} WHERE id = ?`;
-    return await db.prepare(query).get([id]);
+    // Normalize "not found" to null, matching the convention used by every
+    // other *ById model lookup in this codebase (e.g. Role.getRoleById),
+    // instead of leaking better-sqlite3's raw `undefined`.
+    return (await db.prepare(query).get([id])) || null;
   },
 
   // Get all logs

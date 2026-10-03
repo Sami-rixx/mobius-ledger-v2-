@@ -222,11 +222,12 @@ describe('ImportExport Module', () => {
         expect(log.type).toBe('export');
       });
 
-      it('should return undefined for non-existent log', async () => {
-        // better-sqlite3's .get() returns undefined (not null) when no row
-        // matches.
+      it('should return null for non-existent log', async () => {
+        // getLogById normalizes better-sqlite3's raw `undefined` (no row
+        // matched) to null, matching the convention used by every other
+        // *ById model lookup in this codebase (e.g. Role.getRoleById).
         const log = await ImportExport.getLogById(99999);
-        expect(log).toBeUndefined();
+        expect(log).toBeNull();
       });
     });
 

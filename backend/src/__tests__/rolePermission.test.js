@@ -194,6 +194,9 @@ describe('RolePermission Module', () => {
         expect(Array.isArray(roleIds)).toBe(true);
         expect(roleIds.length).toBeGreaterThanOrEqual(3); // All roles have read_student
         expect(roleIds.every(id => typeof id === 'number')).toBe(true);
+        expect(roleIds).toContain(1);
+        expect(roleIds).toContain(2);
+        expect(roleIds).toContain(3);
       });
 
       it('should check if role has permission', () => {
@@ -239,9 +242,9 @@ describe('RolePermission Module', () => {
       });
 
       it('should get role-permission statistics', () => {
-        // getRolePermissionStatistics lives only on rolePermissionService.js,
-        // not models/RolePermission.js, and returns
-        // { totalAssignments, assignmentCount }, not { total }.
+        // getRolePermissionStatistics lives in rolePermissionService.js, not
+        // models/RolePermission.js, and returns { totalAssignments,
+        // assignmentCount } rather than a generic { total } shape.
         const { getRolePermissionStatistics } = __ns_rolePermissionService;
         const stats = getRolePermissionStatistics();
 
@@ -318,8 +321,8 @@ describe('RolePermission Module', () => {
   describe('RolePermission Service', () => {
     describe('Service Functions', () => {
       it('should validate role-permission data', () => {
-        // the real function is validateRolePermissionAssignment, and it
-        // validates camelCase roleId/permissionId (not role_id/permission_id)
+        // The real function is validateRolePermissionAssignment and it checks
+        // camelCase data.roleId/data.permissionId, not role_id/permission_id.
         const { validateRolePermissionAssignment } = __ns_rolePermissionService;
 
         const validData = {
@@ -358,9 +361,8 @@ describe('RolePermission Module', () => {
       });
 
       it('should create a role-permission with service', async () => {
-        // createRolePermission never existed on the service; the real
-        // function is assignPermissionToRole (async, validates + checks
-        // role/permission existence), taking camelCase roleId/permissionId
+        // The real function is assignPermissionToRole (async, validates role
+        // and permission exist first) and expects camelCase roleId/permissionId.
         const { assignPermissionToRole } = __ns_rolePermissionService;
         const newRolePermission = await assignPermissionToRole({
           roleId: 3,

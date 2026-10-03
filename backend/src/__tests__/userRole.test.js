@@ -183,6 +183,9 @@ describe('UserRole Module', () => {
         expect(Array.isArray(userIds)).toBe(true);
         expect(userIds.length).toBeGreaterThanOrEqual(3); // teacher1, teacher2, admin
         expect(userIds.every(id => typeof id === 'number')).toBe(true);
+        expect(userIds).toContain(1);
+        expect(userIds).toContain(2);
+        expect(userIds).toContain(3);
       });
 
       it('should check if user has role', () => {
@@ -228,8 +231,8 @@ describe('UserRole Module', () => {
       });
 
       it('should get user-role statistics', () => {
-        // getUserRoleStatistics lives only on userRoleService.js, not
-        // models/UserRole.js, and returns { totalAssignments, assignmentCount }
+        // getUserRoleStatistics lives in userRoleService.js, not
+        // models/UserRole.js, and returns { totalAssignments, assignmentCount }.
         const { getUserRoleStatistics } = __ns_userRoleService;
         const stats = getUserRoleStatistics();
 
@@ -250,12 +253,11 @@ describe('UserRole Module', () => {
         const { removeAllRolesFromUser, getRolesByUserId } = __ns_UserRole;
         const removed = removeAllRolesFromUser(3);
         const roles = getRolesByUserId(3);
-
         expect(removed).toBe(true);
         expect(roles.length).toBe(0);
       });
 
-      it('should replace all roles for a user', async () => {
+      it('should replace all roles for a user', () => {
         // replaceUserRoles on the model is synchronous, but note the
         // service-layer wrapper (tested below) is async.
         const { replaceUserRoles, getRolesByUserId } = __ns_UserRole;
@@ -364,7 +366,6 @@ describe('UserRole Module', () => {
       it('should get roles for user from service', () => {
         const { getRolesByUserId } = __ns_userRoleService;
         const roles = getRolesByUserId(1);
-
         expect(Array.isArray(roles)).toBe(true);
         expect(roles.length).toBeGreaterThan(0);
       });
