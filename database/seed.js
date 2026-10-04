@@ -276,14 +276,17 @@ try {
 
   if (withdrawalTxn) {
     db.prepare(`
-      INSERT INTO director_withdrawals (transaction_id, amount, amount_cents, withdrawal_date, description, approved_by, approved_at, created_by, updated_by) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO director_withdrawals (transaction_id, amount, amount_cents, purpose, recipient_name, withdrawal_date, description, status, approved_by, approved_at, created_by, updated_by) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       withdrawalTxn.id,
       10000,
       1000000,
+      'Operational expenses',
+      'School Director',
       today,
       'Monthly withdrawal',
+      'approved',
       systemUserId,
       new Date().toISOString(),
       systemUserId,

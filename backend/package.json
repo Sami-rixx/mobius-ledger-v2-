@@ -8,7 +8,7 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest --detectOpenHandles",
-    "db:setup": "node database/setup.js"
+    "db:setup": "node ../database/setup.js"
   },
   "keywords": [
     "finance",
