@@ -71,6 +71,28 @@ describe('Income Category Service', () => {
         FOREIGN KEY (updated_by) REFERENCES users(id)
       );
 
+      CREATE TABLE IF NOT EXISTS payment_methods (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        is_active BOOLEAN DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        receipt_number TEXT UNIQUE NOT NULL,
+        amount DECIMAL(10, 2) NOT NULL,
+        transaction_type TEXT NOT NULL,
+        description TEXT,
+        related_id INTEGER,
+        related_table TEXT,
+        transaction_date DATE NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_by INTEGER,
+        FOREIGN KEY (created_by) REFERENCES users(id)
+      );
+
       CREATE TABLE IF NOT EXISTS income (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receipt_number TEXT UNIQUE NOT NULL,
