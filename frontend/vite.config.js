@@ -53,4 +53,18 @@ export default defineConfig({
       '@styles': '/src/styles',
     },
   },
+  // Vitest configuration ("npm test" -> "vitest" in package.json). This did
+  // not previously exist anywhere in the project (no `test` block here, no
+  // separate vitest.config.*), and there were zero test files anywhere
+  // under src/ - running `vitest` always failed immediately with "No test
+  // files found, exiting with code 1" before it ever got a chance to run
+  // anything. `environment: 'jsdom'` (jsdom was already an installed
+  // devDependency, apparently anticipating component tests that were never
+  // written) and `setupFiles` are required for React Testing Library-based
+  // component tests to be able to render into a DOM at all.
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.js'],
+    css: false,
+  },
 });
