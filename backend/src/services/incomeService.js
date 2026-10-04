@@ -312,20 +312,24 @@ export const createIncome = async (data) => {
     const incomeRecord = await IncomeModel.create(incomeData);
 
     // Create associated transaction
+    // NOTE: TransactionModel.createTransaction() destructures camelCase keys
+    // (see models/Transaction.js) - this previously used snake_case keys and
+    // called a non-existent `TransactionModel.create()`, which threw
+    // "TypeError: TransactionModel.create is not a function" and made every
+    // income creation fail.
     const transactionData = {
-      receipt_number: receiptNumber,
-      transaction_type: 'income',
+      receiptNumber,
+      transactionType: 'income',
       amount: amountNum,
-      income_category_id: incomeCategoryId,
-      payer_name: payerName,
-      payer_contact: payerContact,
-      payment_method_id: paymentMethodId,
-      transaction_date: incomeDate,
+      incomeCategoryId,
+      paymentMethodId,
+      transactionDate: incomeDate,
       description: description || `Income: ${category.name}`,
-      created_by: createdBy
+      createdBy,
+      updatedBy: createdBy
     };
 
-    await TransactionModel.create(transactionData);
+    await TransactionModel.createTransaction(transactionData);
 
     return {
       success: true,

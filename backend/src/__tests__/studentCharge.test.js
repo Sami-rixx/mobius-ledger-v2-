@@ -9,6 +9,7 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -391,12 +392,17 @@ describe('Student Charge Models', () => {
     if (db) {
       db.close();
     }
-    try {
-      require('fs').unlinkSync(TEST_DB_PATH);
-      require('fs').unlinkSync(TEST_DB_PATH + '-wal');
-      require('fs').unlinkSync(TEST_DB_PATH + '-shm');
-    } catch (e) {
-      // Ignore
+    // `require` does not exist in ES modules; this was silently throwing
+    // a ReferenceError every run (swallowed by the catch below as
+    // "Ignore"), so the on-disk test db + WAL/SHM sidecars were never
+    // actually being cleaned up. Use the already-available ESM `fs`
+    // import instead.
+    for (const suffix of ['', '-wal', '-shm']) {
+      try {
+        fs.unlinkSync(TEST_DB_PATH + suffix);
+      } catch (e) {
+        // ENOENT is expected if the file doesn't exist - ignore it.
+      }
     }
   });
 
@@ -487,9 +493,13 @@ describe('Student Charge Models', () => {
     });
 
     it('should get an assignment by ID', () => {
+      // Must use a different student than the previous test - there is a
+      // UNIQUE(charge_id, student_id) constraint on student_charge_assignments
+      // (a student can only be assigned a given charge once), and the
+      // previous test already assigned testChargeId to studentId1.
       const assignment = StudentChargeAssignmentModel.createStudentChargeAssignment({
         chargeId: testChargeId,
-        studentId: testData.studentId1,
+        studentId: testData.studentId2,
         amount: 600.00
       });
 

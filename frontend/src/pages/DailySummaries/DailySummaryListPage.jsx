@@ -184,7 +184,7 @@ function DailySummaryListPage() {
         <Card title="Actions" className="actions-card">
           <div className="action-buttons">
             <Button variant="primary" onClick={handleGenerateTodaySummary}>
-              Generate Today's Summary
+              Generate Today&apos;s Summary
             </Button>
             <Button variant="outline" onClick={handleGenerateRangeSummaries}>
               Generate Summaries for Range

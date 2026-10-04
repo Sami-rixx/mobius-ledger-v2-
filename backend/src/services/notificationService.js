@@ -36,18 +36,26 @@ const DEFAULT_PAGE_SIZE = 20;
  * @param {Object} data - Notification data to validate
  * @returns {Object} - Validation result with isValid and errors
  */
-export const validateNotification = (data) => {
+export const validateNotification = (data, isUpdate = false) => {
   const errors = [];
 
-  // Required fields
-  if (!data.title || data.title.trim() === '') {
-    errors.push('Title is required');
-  } else if (data.title.length > 255) {
-    errors.push('Title must be 255 characters or less');
+  // Required fields - on create, title/message must always be present.
+  // On update (partial data via PATCH-style updateNotification), only
+  // validate them if the caller actually supplied that field; otherwise
+  // every partial update (e.g. just toggling priority) would be rejected
+  // for "missing" a field it never intended to change.
+  if (!isUpdate || data.title !== undefined) {
+    if (!data.title || data.title.trim() === '') {
+      errors.push('Title is required');
+    } else if (data.title.length > 255) {
+      errors.push('Title must be 255 characters or less');
+    }
   }
 
-  if (!data.message || data.message.trim() === '') {
-    errors.push('Message is required');
+  if (!isUpdate || data.message !== undefined) {
+    if (!data.message || data.message.trim() === '') {
+      errors.push('Message is required');
+    }
   }
 
   // Validate type
@@ -212,8 +220,8 @@ export const updateNotification = (id, updateData) => {
     throw new Error('Invalid notification ID');
   }
 
-  // Validate update data
-  const validation = validateNotification(updateData);
+  // Validate update data (partial - only validate fields actually present)
+  const validation = validateNotification(updateData, true);
   if (!validation.isValid) {
     throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
   }

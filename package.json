@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Mobius Ledger v2 - Financial Management System for Schools",
   "private": true,
+  "type": "module",
   "workspaces": [
     "backend",
     "frontend"

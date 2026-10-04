@@ -690,3 +690,29 @@ export const getOutstandingChargesSummary = (req, res) => {
     });
   }
 };
+
+// Default export aggregating all named exports above, so this module can
+// be consumed either via named imports or via controllers/index.js's
+// `export { default as X } from './studentChargeAssignmentController.js'` barrel re-export
+// (that barrel previously crashed with SyntaxError: does not provide an
+// export named 'default' since this file had no default export at all).
+export default {
+  getStudentChargeAssignments,
+  getAllStudentChargeAssignments,
+  getStudentChargeAssignmentById,
+  getStudentChargeAssignmentsByCharge,
+  getStudentChargeAssignmentsByStudent,
+  getUnpaidStudentChargeAssignmentsByStudent,
+  getUnpaidStudentChargeAssignmentsByCharge,
+  createStudentChargeAssignment,
+  createMultipleStudentChargeAssignments,
+  updateStudentChargeAssignment,
+  markAssignmentAsPaid,
+  markAssignmentAsUnpaid,
+  deleteStudentChargeAssignment,
+  deleteStudentChargeAssignmentsByCharge,
+  getStudentChargeAssignmentStatistics,
+  isStudentAssignedToCharge,
+  getStudentOutstandingChargeAmount,
+  getOutstandingChargesSummary,
+};

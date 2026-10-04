@@ -329,7 +329,7 @@ export const getAuditTrailStatistics = (options = {}) => {
   });
 
   // By table
-  const tableQuery = `SELECT table_name, COUNT(*) as count FROM ${TABLE}`;
+  let tableQuery = `SELECT table_name, COUNT(*) as count FROM ${TABLE}`;
   const tableParams = [];
   const tableConditions = [];
 

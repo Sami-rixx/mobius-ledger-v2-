@@ -67,16 +67,16 @@ export async function getIncomeVsExpense(options = {}) {
   let dateTrunc = '';
   switch (groupBy) {
     case 'day':
-      dateTrunc = 'strftime("%Y-%m-%d", income_date) as period';
+      dateTrunc = "strftime('%Y-%m-%d', income_date) as period";
       break;
     case 'week':
-      dateTrunc = 'strftime("%Y-%W", income_date) as period';
+      dateTrunc = "strftime('%Y-%W', income_date) as period";
       break;
     case 'month':
-      dateTrunc = 'strftime("%Y-%m", income_date) as period';
+      dateTrunc = "strftime('%Y-%m', income_date) as period";
       break;
     case 'year':
-      dateTrunc = 'strftime("%Y", income_date) as period';
+      dateTrunc = "strftime('%Y', income_date) as period";
       break;
   }
 
@@ -394,13 +394,13 @@ export async function getIncomeTrends(options = {}) {
   let dateFormat = '';
   switch (interval) {
     case 'day':
-      dateFormat = 'strftime("%Y-%m-%d", income_date) as period';
+      dateFormat = "strftime('%Y-%m-%d', income_date) as period";
       break;
     case 'week':
-      dateFormat = 'strftime("%Y-%W", income_date) as period';
+      dateFormat = "strftime('%Y-%W', income_date) as period";
       break;
     case 'month':
-      dateFormat = 'strftime("%Y-%m", income_date) as period';
+      dateFormat = "strftime('%Y-%m', income_date) as period";
       break;
   }
 
@@ -444,13 +444,13 @@ export async function getExpenseTrends(options = {}) {
   let dateFormat = '';
   switch (interval) {
     case 'day':
-      dateFormat = 'strftime("%Y-%m-%d", expense_date) as period';
+      dateFormat = "strftime('%Y-%m-%d', expense_date) as period";
       break;
     case 'week':
-      dateFormat = 'strftime("%Y-%W", expense_date) as period';
+      dateFormat = "strftime('%Y-%W', expense_date) as period";
       break;
     case 'month':
-      dateFormat = 'strftime("%Y-%m", expense_date) as period';
+      dateFormat = "strftime('%Y-%m', expense_date) as period";
       break;
   }
 
@@ -494,13 +494,13 @@ export async function getNetFlowTrends(options = {}) {
   let dateFormat = '';
   switch (interval) {
     case 'day':
-      dateFormat = 'strftime("%Y-%m-%d", date) as period';
+      dateFormat = "strftime('%Y-%m-%d', date) as period";
       break;
     case 'week':
-      dateFormat = 'strftime("%Y-%W", date) as period';
+      dateFormat = "strftime('%Y-%W', date) as period";
       break;
     case 'month':
-      dateFormat = 'strftime("%Y-%m", date) as period';
+      dateFormat = "strftime('%Y-%m', date) as period";
       break;
   }
 

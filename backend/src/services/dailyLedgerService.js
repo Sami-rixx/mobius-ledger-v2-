@@ -508,3 +508,32 @@ export { DAILY_LEDGER_VALIDATION };
 
 // Export table and field constants for external use
 export { TABLE, FIELDS };
+
+// Default export aggregating all named exports above, so this module can
+// be consumed either via named imports or via services/index.js's
+// `export { default as X } from './dailyLedgerService.js'` barrel re-export
+// (that barrel previously crashed with SyntaxError: does not provide an
+// export named 'default' since this file had no default export at all).
+export default {
+  validateDailyLedgerData,
+  createPaginationParams,
+  getPaginatedDailyLedgers,
+  getDailyLedgerById,
+  getDailyLedgerByDate,
+  getTodayLedger,
+  getYesterdayLedger,
+  getRecentLedgers,
+  getMonthlyLedgers,
+  getDailyLedgerStatistics,
+  createDailyLedger,
+  updateDailyLedger,
+  deleteDailyLedger,
+  getMissingLedgerDates,
+  generateLedgerForDate,
+  generateLedgerForDateRange,
+  fillMissingLedgerDates,
+  getLedgerSummary,
+  DAILY_LEDGER_VALIDATION,
+  TABLE,
+  FIELDS,
+};

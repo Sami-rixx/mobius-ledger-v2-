@@ -115,7 +115,7 @@ export async function getAll(options = {}) {
   params.push(limit, offset);
 
   try {
-    const rows = await db.all(query, params);
+    const rows = await db.prepare(query).all(params);
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -141,7 +141,7 @@ export async function getAllActive() {
   `;
 
   try {
-    const rows = await db.all(query);
+    const rows = await db.prepare(query).all();
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -168,7 +168,7 @@ export async function getAllKitchen() {
   `;
 
   try {
-    const rows = await db.all(query);
+    const rows = await db.prepare(query).all();
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -205,7 +205,7 @@ export async function getRootCategories(options = {}) {
   `;
 
   try {
-    const rows = await db.all(query, params);
+    const rows = await db.prepare(query).all(params);
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -232,7 +232,7 @@ export async function getChildren(parentId) {
   `;
 
   try {
-    const rows = await db.all(query, [parentId]);
+    const rows = await db.prepare(query).all([parentId]);
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),
@@ -254,7 +254,7 @@ export async function getById(id) {
   const query = `SELECT * FROM ${TABLE} WHERE ${FIELDS.ID} = ?`;
 
   try {
-    const row = await db.get(query, [id]);
+    const row = await db.prepare(query).get([id]);
     if (row) {
       return {
         ...row,
@@ -279,7 +279,7 @@ export async function getByName(name) {
   const query = `SELECT * FROM ${TABLE} WHERE ${FIELDS.NAME} = ?`;
 
   try {
-    const row = await db.get(query, [name]);
+    const row = await db.prepare(query).get([name]);
     if (row) {
       return {
         ...row,
@@ -337,8 +337,8 @@ export async function create(data) {
   ];
 
   try {
-    const result = await db.run(query, params);
-    return await getById(result.lastID);
+    const result = await db.prepare(query).run(params);
+    return await getById(result.lastInsertRowid);
   } catch (error) {
     console.error('Error in create expense category:', error.message);
     throw error;
@@ -408,7 +408,7 @@ export async function update(id, data) {
   `;
 
   try {
-    await db.run(query, params);
+    await db.prepare(query).run(params);
     return await getById(id);
   } catch (error) {
     console.error('Error in update expense category:', error.message);
@@ -429,7 +429,7 @@ export async function deleteById(id) {
     if (!row) {
       return null;
     }
-    await db.run(query, [id]);
+    await db.prepare(query).run([id]);
     return row;
   } catch (error) {
     console.error('Error in deleteById expense category:', error.message);
@@ -477,7 +477,7 @@ export async function count(options = {}) {
   const query = `SELECT COUNT(*) as count FROM ${TABLE} WHERE 1=1 ${whereClause}`;
 
   try {
-    const result = await db.get(query, params);
+    const result = await db.prepare(query).get(params);
     return result.count;
   } catch (error) {
     console.error('Error in count expense categories:', error.message);
@@ -501,7 +501,7 @@ export async function nameExists(name, excludeId = null) {
   }
 
   try {
-    const result = await db.get(query, params);
+    const result = await db.prepare(query).get(params);
     return result.count > 0;
   } catch (error) {
     console.error('Error in nameExists expense category:', error.message);
@@ -565,7 +565,7 @@ export async function getWithUsageCount() {
   `;
 
   try {
-    const rows = await db.all(query);
+    const rows = await db.prepare(query).all();
     return rows.map(row => ({
       ...row,
       is_active: Boolean(row.is_active),

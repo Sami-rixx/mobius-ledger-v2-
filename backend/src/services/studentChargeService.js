@@ -388,3 +388,25 @@ export const getUnpaidChargesForStudent = (studentId) => {
 export const getStudentOutstandingChargeAmount = (studentId) => {
   return StudentChargeAssignmentModel.getStudentOutstandingChargeAmount(studentId);
 };
+
+// Default export aggregating all named exports above, so this module can
+// be consumed either via named imports or via services/index.js's
+// `export { default as X } from './studentChargeService.js'` barrel re-export
+// (that barrel previously crashed with SyntaxError: does not provide an
+// export named 'default' since this file had no default export at all).
+export default {
+  getPaginatedStudentCharges,
+  getAllStudentCharges,
+  getStudentChargeById,
+  createStudentCharge,
+  updateStudentCharge,
+  deleteStudentCharge,
+  forceDeleteStudentCharge,
+  getStudentChargesByClass,
+  getActiveStudentCharges,
+  getStudentChargeStatistics,
+  assignChargeToStudents,
+  getChargesForStudent,
+  getUnpaidChargesForStudent,
+  getStudentOutstandingChargeAmount,
+};

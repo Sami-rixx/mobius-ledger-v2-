@@ -27,6 +27,15 @@ import {
   PERMISSION_MODULES
 } from '../models/Permission.js';
 
+// Re-export so consumers (e.g. permissionController.js) can import these
+// constants directly from the service layer, as they already attempt to.
+// Previously these were only available via the default export object below,
+// which caused `SyntaxError: The requested module '../services/
+// permissionService.js' does not provide an export named 'PERMISSIONS_TABLE'`
+// and crashed the entire backend on startup (permissionRoutes is eagerly
+// imported by app.js).
+export { PERMISSIONS_TABLE, PERMISSION_FIELDS, PERMISSION_MODULES };
+
 // Default pagination
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;

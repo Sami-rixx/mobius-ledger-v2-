@@ -149,19 +149,45 @@ export const getPermissionsByModule = (module, includeInactive = false) => {
  */
 export const updatePermission = (id, data) => {
   const { displayName, description, module, isActive } = data;
-  
+
+  // Build the SET clause dynamically so fields omitted from `data` are left
+  // untouched instead of being overwritten with NULL/false on partial
+  // updates (same class of bug fixed in models/Role.js updateRole).
+  const updates = [];
+  const params = [];
+
+  if (displayName !== undefined) {
+    updates.push(`${PERMISSION_FIELDS.DISPLAY_NAME} = ?`);
+    params.push(displayName);
+  }
+  if (description !== undefined) {
+    updates.push(`${PERMISSION_FIELDS.DESCRIPTION} = ?`);
+    params.push(description);
+  }
+  if (module !== undefined) {
+    updates.push(`${PERMISSION_FIELDS.MODULE} = ?`);
+    params.push(module);
+  }
+  if (isActive !== undefined) {
+    updates.push(`${PERMISSION_FIELDS.IS_ACTIVE} = ?`);
+    params.push(isActive ? 1 : 0);
+  }
+
+  if (updates.length === 0) {
+    return getPermissionById(id);
+  }
+
+  updates.push(`${PERMISSION_FIELDS.UPDATED_AT} = datetime('now')`);
+  params.push(id);
+
   const stmt = db.prepare(`
-    UPDATE ${PERMISSIONS_TABLE} 
-    SET ${PERMISSION_FIELDS.DISPLAY_NAME} = ?, 
-        ${PERMISSION_FIELDS.DESCRIPTION} = ?, 
-        ${PERMISSION_FIELDS.MODULE} = ?, 
-        ${PERMISSION_FIELDS.IS_ACTIVE} = ?, 
-        ${PERMISSION_FIELDS.UPDATED_AT} = datetime('now')
+    UPDATE ${PERMISSIONS_TABLE}
+    SET ${updates.join(', ')}
     WHERE ${PERMISSION_FIELDS.ID} = ?
   `);
-  
-  const result = stmt.run(displayName, description, module, isActive ? 1 : 0, id);
-  
+
+  const result = stmt.run(...params);
+
   return result.changes > 0 ? getPermissionById(id) : null;
 };
 

@@ -3,9 +3,18 @@
  * Database model for handling data import and export operations
  */
 
-const db = require('../database/db.js');
-const fs = require('fs');
-const path = require('path');
+import db from '../config/database.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// This model previously used CommonJS `require`/`module.exports` (and
+// referenced a non-existent '../database/db.js' module - the real database
+// connection lives at '../config/database.js') while the rest of the
+// backend is an ES module project. See importExportController.js for the
+// full explanation of why that crashed the whole backend on startup.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ImportExport Model Constants
 const IMPORT_EXPORT_TABLE = 'import_export_log';
@@ -64,20 +73,30 @@ const ImportExport = {
   // Create log entry
   async createLog(data) {
     const { type, action, tableName, fileName, recordCount, status, errorMessage, userId } = data;
+    // The status column is NOT NULL DEFAULT 'pending' in schema.sql, but
+    // that column default only applies when the column is omitted from the
+    // INSERT entirely - supplying an explicit `undefined` (-> SQL NULL)
+    // bypasses it and throws a NOT NULL constraint violation. Any caller
+    // that didn't explicitly pass `status` (e.g. relying on the documented
+    // "default status" behavior) would crash. Apply the same default here.
+    const resolvedStatus = status || IMPORT_EXPORT_STATUS.PENDING;
     const query = `
       INSERT INTO ${IMPORT_EXPORT_TABLE} 
       (type, action, table_name, file_name, record_count, status, error_message, user_id, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `;
-    const params = [type, action, tableName, fileName, recordCount || 0, status, errorMessage, userId];
-    const result = await db.run(query, params);
-    return { id: result.lastID, ...data };
+    const params = [type, action, tableName, fileName, recordCount || 0, resolvedStatus, errorMessage, userId];
+    const result = await db.prepare(query).run(params);
+    return { id: result.lastInsertRowid, ...data, status: resolvedStatus };
   },
 
   // Get log by ID
   async getLogById(id) {
     const query = `SELECT * FROM ${IMPORT_EXPORT_TABLE} WHERE id = ?`;
-    return await db.get(query, [id]);
+    // Normalize "not found" to null, matching the convention used by every
+    // other *ById model lookup in this codebase (e.g. Role.getRoleById),
+    // instead of leaking better-sqlite3's raw `undefined`.
+    return (await db.prepare(query).get([id])) || null;
   },
 
   // Get all logs
@@ -92,14 +111,14 @@ const ImportExport = {
     if (endDate) { query += ' AND created_at <= ?'; params.push(endDate); }
     query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
-    return await db.all(query, params);
+    return await db.prepare(query).all(params);
   },
 
   // Update log status
   async updateLogStatus(id, updates) {
     const { status, errorMessage, recordCount } = updates;
     const query = `UPDATE ${IMPORT_EXPORT_TABLE} SET status = ?, error_message = ?, record_count = ?, updated_at = datetime('now') WHERE id = ?`;
-    await db.run(query, [status, errorMessage, recordCount, id]);
+    await db.prepare(query).run([status, errorMessage, recordCount, id]);
     return { id, ...updates };
   },
 
@@ -113,16 +132,16 @@ const ImportExport = {
     if (status) { query += ' AND status = ?'; params.push(status); }
     if (startDate) { query += ' AND created_at >= ?'; params.push(startDate); }
     if (endDate) { query += ' AND created_at <= ?'; params.push(endDate); }
-    const result = await db.get(query, params);
+    const result = await db.prepare(query).get(params);
     return result.count;
   },
 
   // Get statistics
   async getStatistics() {
-    const results = await db.all(`
+    const results = await db.prepare(`
       SELECT type, action, status, COUNT(*) as count, SUM(record_count) as total_records
       FROM ${IMPORT_EXPORT_TABLE} GROUP BY type, action, status
-    `);
+    `).all();
     const stats = { total_operations: 0, successful: 0, failed: 0, total_records_imported: 0, total_records_exported: 0, by_type: {}, by_action: {} };
     for (const row of results) {
       stats.total_operations += row.count;
@@ -151,12 +170,12 @@ const ImportExport = {
     const backupFilename = filename || `backup-${timestamp}.sql`;
     const filepath = path.join(BACKUP_DIR, backupFilename);
     try {
-      const tables = await db.all("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+      const tables = await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all();
       let sql = '';
-      const schema = await db.all("SELECT sql FROM sqlite_master WHERE type IN ('table', 'index') AND name NOT LIKE 'sqlite_%'");
+      const schema = await db.prepare("SELECT sql FROM sqlite_master WHERE type IN ('table', 'index') AND name NOT LIKE 'sqlite_%'").all();
       for (const row of schema) if (row.sql) sql += row.sql + ';\n\n';
       for (const table of tables) {
-        const rows = await db.all(`SELECT * FROM ${table.name}`);
+        const rows = await db.prepare(`SELECT * FROM ${table.name}`).all();
         if (rows.length > 0) {
           const columns = Object.keys(rows[0]);
           for (const row of rows) {
@@ -204,7 +223,7 @@ const ImportExport = {
     const csvFilename = filename || `${tableName}-${timestamp}.csv`;
     const filepath = path.join(EXPORT_DIR, csvFilename);
     try {
-      const rows = await db.all(`SELECT * FROM ${tableName}`);
+      const rows = await db.prepare(`SELECT * FROM ${tableName}`).all();
       if (rows.length === 0) return { success: true, filepath, filename: csvFilename, recordCount: 0, message: 'No data' };
       const columns = Object.keys(rows[0]);
       let csv = columns.join(',') + '\n';
@@ -257,7 +276,7 @@ const ImportExport = {
         }
       }
       if (records.length === 0) return { success: true, message: 'No data', recordCount: 0 };
-      const tableInfo = await db.all(`PRAGMA table_info(${tableName})`);
+      const tableInfo = await db.prepare(`PRAGMA table_info(${tableName})`).all();
       const tableCols = tableInfo.map(c => c.name);
       const missing = tableCols.filter(c => !headers.includes(c) && c !== 'id' && !c.endsWith('_at'));
       if (missing.length > 0) return { success: false, error: 'Column mismatch', message: `Missing: ${missing.join(',')}` };
@@ -267,7 +286,7 @@ const ImportExport = {
         const cols = Object.keys(record);
         const ph = cols.map(() => '?').join(',');
         const vals = cols.map(c => record[c]);
-        try { await db.run(`INSERT INTO ${tableName} (${cols.join(',')}) VALUES (${ph})`, vals); inserted++; } catch (e) { console.error(e.message); }
+        try { await db.prepare(`INSERT INTO ${tableName} (${cols.join(',')}) VALUES (${ph})`).run(vals); inserted++; } catch (e) { console.error(e.message); }
       }
       await this.updateLogStatus(log.id, { status: IMPORT_EXPORT_STATUS.COMPLETED, recordCount: inserted });
       return { success: true, message: 'CSV imported', recordCount: inserted, totalRecords: records.length };
@@ -345,4 +364,12 @@ ImportExport.SUPPORTED_TABLES = SUPPORTED_TABLES;
 ImportExport.BACKUP_DIR = BACKUP_DIR;
 ImportExport.EXPORT_DIR = EXPORT_DIR;
 
-module.exports = ImportExport;
+// Named exports so `backend/src/models/index.js` can re-export these
+// constants (`export { default as ImportExport, IMPORT_EXPORT_STATUS, ... }
+// from './ImportExport.js'`). Previously these constants were only attached
+// as properties on the default-exported object, not available as named ES
+// module exports, which crashed the backend on startup with
+// "does not provide an export named 'IMPORT_EXPORT_STATUS'" (same bug class
+// as PERMISSIONS_TABLE/ROLES_TABLE/etc. - see permissionService.js).
+export { IMPORT_EXPORT_STATUS, EXPORT_TYPES, IMPORT_TYPES, SUPPORTED_TABLES, BACKUP_DIR, EXPORT_DIR };
+export default ImportExport;

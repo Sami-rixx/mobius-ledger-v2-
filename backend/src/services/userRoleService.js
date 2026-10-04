@@ -30,6 +30,10 @@ import {
   USER_ROLE_FIELDS
 } from '../models/UserRole.js';
 
+// Re-export so consumers (e.g. userRoleController.js) can import these
+// constants directly from the service layer (see permissionService.js).
+export { USER_ROLES_TABLE, USER_ROLE_FIELDS };
+
 import { getRoleById as getRoleByIdModel } from '../models/Role.js';
 // Note: User.js model not yet created, user validation deferred to database constraints
 

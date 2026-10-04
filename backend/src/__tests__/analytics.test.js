@@ -2,12 +2,28 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Remove any stale db file (and WAL/SHM sidecars) left behind by a
+// previous run (e.g. a crashed process, or this suite previously
+// sharing a db path with other test files) so each run starts from a
+// guaranteed-fresh schema instead of silently reusing stale tables via
+// CREATE TABLE IF NOT EXISTS.
+function __removeTestDbFiles(dbPath) {
+  for (const suffix of ['', '-wal', '-shm']) {
+    try {
+      fs.unlinkSync(dbPath + suffix);
+    } catch (e) {
+      // ENOENT is expected when the file doesn't exist yet - ignore it.
+    }
+  }
+}
+
 // Test database path
-const TEST_DB_PATH = path.resolve(__dirname, 'test_mobius_ledger.db');
+const TEST_DB_PATH = path.resolve(__dirname, 'test_analytics.db');
 
 /**
  * Analytics Model Tests
@@ -21,6 +37,7 @@ describe('Analytics Model', () => {
 
   beforeAll(() => {
     // Create test database
+    __removeTestDbFiles(TEST_DB_PATH);
     db = new Database(TEST_DB_PATH);
     db.pragma('foreign_keys = ON');
 
@@ -259,14 +276,20 @@ describe('Analytics Model', () => {
     } catch (error) {
       console.error('Error cleaning up test data:', error.message);
     }
+    __removeTestDbFiles(TEST_DB_PATH);
   });
 
   describe('getIncomeVsExpense', () => {
     it('should return income vs expense comparison data', () => {
       const today = new Date().toISOString().split('T')[0];
+      // lastMonth was referenced below without ever being defined in this
+      // test (ReferenceError: lastMonth is not defined) - added to match
+      // the same "last 30 days" window pattern used by the sibling trend
+      // tests further down in this file.
+      const lastMonth = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", income_date) as period,
+          strftime('%Y-%m', income_date) as period,
           SUM(CASE WHEN source = 'income' THEN amount ELSE 0 END) as total_income,
           COUNT(CASE WHEN source = 'income' THEN 1 END) as income_count,
           SUM(CASE WHEN source = 'expense' THEN amount ELSE 0 END) as total_expenses,
@@ -299,7 +322,7 @@ describe('Analytics Model', () => {
     it('should group by month correctly', () => {
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", income_date) as period,
+          strftime('%Y-%m', income_date) as period,
           SUM(CASE WHEN source = 'income' THEN amount ELSE 0 END) as total_income,
           SUM(CASE WHEN source = 'expense' THEN amount ELSE 0 END) as total_expenses
         FROM (
@@ -546,7 +569,7 @@ describe('Analytics Model', () => {
 
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", income_date) as period,
+          strftime('%Y-%m', income_date) as period,
           COUNT(*) as count,
           COALESCE(SUM(amount), 0) as total_amount,
           AVG(amount) as avg_amount
@@ -578,7 +601,7 @@ describe('Analytics Model', () => {
 
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", expense_date) as period,
+          strftime('%Y-%m', expense_date) as period,
           COUNT(*) as count,
           COALESCE(SUM(amount), 0) as total_amount,
           AVG(amount) as avg_amount
@@ -600,7 +623,7 @@ describe('Analytics Model', () => {
 
       const stmt = db.prepare(`
         SELECT 
-          strftime("%Y-%m", date) as period,
+          strftime('%Y-%m', date) as period,
           SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
           SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expenses,
           SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END) as net_flow,

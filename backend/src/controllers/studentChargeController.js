@@ -554,3 +554,25 @@ export const getStudentOutstandingChargeAmount = (req, res) => {
     });
   }
 };
+
+// Default export aggregating all named exports above, so this module can
+// be consumed either via named imports or via controllers/index.js's
+// `export { default as X } from './studentChargeController.js'` barrel re-export
+// (that barrel previously crashed with SyntaxError: does not provide an
+// export named 'default' since this file had no default export at all).
+export default {
+  getStudentCharges,
+  getAllStudentCharges,
+  getStudentChargeById,
+  getStudentChargesByClass,
+  getActiveStudentCharges,
+  createStudentCharge,
+  updateStudentCharge,
+  deleteStudentCharge,
+  forceDeleteStudentCharge,
+  getStudentChargeStatistics,
+  assignChargeToStudents,
+  getChargesForStudent,
+  getUnpaidChargesForStudent,
+  getStudentOutstandingChargeAmount,
+};
