@@ -192,7 +192,7 @@ function ExpenseCategoryForm({ category, onSubmit, onCancel, loading = false }) 
             Active
           </label>
           <small className="form-text text-muted">
-            Inactive categories won't appear in dropdowns
+            Inactive categories won&apos;t appear in dropdowns
           </small>
         </div>
 

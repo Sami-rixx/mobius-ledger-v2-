@@ -79,7 +79,7 @@ function IncomeCategoryEditPage() {
     <div className="page income-category-edit-page">
       <header className="page-header">
         <h1>Edit Income Category</h1>
-        <p>Update category "{category?.name || id}"</p>
+        <p>Update category &quot;{category?.name || id}&quot;</p>
       </header>
 
       {error && (
