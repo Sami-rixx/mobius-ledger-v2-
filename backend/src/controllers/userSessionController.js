@@ -38,6 +38,26 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 
 /**
+ * Strip the hashed session token and CSRF token from a session row before
+ * it is ever sent to a client. These are internal secrets of the session
+ * mechanism itself (a hash of the bearer credential, and the per-session
+ * CSRF binding value) - even though session_token is now a SHA-256 hash
+ * rather than the raw bearer token, it has no legitimate reason to ever
+ * leave the server, and this endpoint is reachable by Admin users who
+ * should be able to see *that* sessions exist/their metadata without
+ * being handed security-mechanism internals.
+ */
+function redactSession(session) {
+  if (!session) return session;
+  const { session_token, csrf_token, ...safe } = session;
+  return safe;
+}
+
+function redactSessions(sessions) {
+  return Array.isArray(sessions) ? sessions.map(redactSession) : sessions;
+}
+
+/**
  * List user sessions with pagination and filtering
  * GET /api/user-sessions
  */
@@ -68,7 +88,7 @@ export const listSessions = (req, res) => {
     const result = getPaginatedSessions(options);
     res.json({
       success: true,
-      data: result.data,
+      data: redactSessions(result.data),
       pagination: result.pagination
     });
   } catch (error) {
@@ -134,7 +154,7 @@ export const getSingleSession = (req, res) => {
 
     res.json({
       success: true,
-      data: session
+      data: redactSession(session)
     });
   } catch (error) {
     res.status(500).json({
@@ -170,7 +190,7 @@ export const getSessionByTokenHandler = (req, res) => {
 
     res.json({
       success: true,
-      data: session
+      data: redactSession(session)
     });
   } catch (error) {
     res.status(500).json({
@@ -198,7 +218,7 @@ export const getActiveSessionsByUserHandler = (req, res) => {
     const sessions = getActiveSessionsByUser(userId);
     res.json({
       success: true,
-      data: sessions
+      data: redactSessions(sessions)
     });
   } catch (error) {
     res.status(500).json({
@@ -228,7 +248,7 @@ export const createUserSession = (req, res) => {
     const session = createSession(data);
     res.status(201).json({
       success: true,
-      data: session
+      data: redactSession(session)
     });
   } catch (error) {
     res.status(500).json({
@@ -274,7 +294,7 @@ export const updateUserSessionHandler = (req, res) => {
 
     res.json({
       success: true,
-      data: session
+      data: redactSession(session)
     });
   } catch (error) {
     res.status(500).json({
@@ -497,7 +517,7 @@ export const extendSessionHandler = (req, res) => {
 
     res.json({
       success: true,
-      data: session,
+      data: redactSession(session),
       message: `Session extended by ${extendByHours} hours`
     });
   } catch (error) {

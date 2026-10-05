@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
 import * as StudentController from '../controllers/studentController.js';
 
 /**
@@ -11,43 +12,43 @@ import * as StudentController from '../controllers/studentController.js';
 const router = Router();
 
 // GET /api/students - Get paginated list of students
-router.get('/', StudentController.getStudents);
+router.get('/', requirePermission('students.read'), StudentController.getStudents);
 
 // GET /api/students/all - Get all students without pagination
-router.get('/all', StudentController.getAllStudents);
+router.get('/all', requirePermission('students.read'), StudentController.getAllStudents);
 
 // GET /api/students/admission/:admissionNumber - Get a student by admission number
-router.get('/admission/:admissionNumber', StudentController.getStudentByAdmissionNumber);
+router.get('/admission/:admissionNumber', requirePermission('students.read'), StudentController.getStudentByAdmissionNumber);
 
 // GET /api/students/class/:classId - Get students by class
-router.get('/class/:classId', StudentController.getStudentsByClass);
+router.get('/class/:classId', requirePermission('students.read'), StudentController.getStudentsByClass);
 
 // GET /api/students/search - Search students
-router.get('/search', StudentController.searchStudents);
+router.get('/search', requirePermission('students.read'), StudentController.searchStudents);
 
 // GET /api/students/statistics - Get student statistics
-router.get('/statistics', StudentController.getStudentStatistics);
+router.get('/statistics', requirePermission('students.read'), StudentController.getStudentStatistics);
 
 // GET /api/students/summary - Get student summary for dashboard
-router.get('/summary', StudentController.getStudentSummary);
+router.get('/summary', requirePermission('students.read'), StudentController.getStudentSummary);
 
 // GET /api/students/check-admission/:admissionNumber - Check admission number availability
-router.get('/check-admission/:admissionNumber', StudentController.checkAdmissionNumber);
+router.get('/check-admission/:admissionNumber', requirePermission('students.read'), StudentController.checkAdmissionNumber);
 
 // GET /api/students/:id - Get a single student by ID (must come AFTER all specific routes)
-router.get('/:id', StudentController.getStudentById);
+router.get('/:id', requirePermission('students.read'), StudentController.getStudentById);
 
 // POST /api/students - Create a new student
-router.post('/', StudentController.createStudent);
+router.post('/', requirePermission('students.create'), StudentController.createStudent);
 
 // PUT /api/students/:id - Update a student (full update)
-router.put('/:id', StudentController.updateStudent);
+router.put('/:id', requirePermission('students.update'), StudentController.updateStudent);
 
 // PATCH /api/students/:id - Partially update a student
-router.patch('/:id', StudentController.patchStudent);
+router.patch('/:id', requirePermission('students.update'), StudentController.patchStudent);
 
 // DELETE /api/students/:id - Delete a student
-router.delete('/:id', StudentController.deleteStudent);
+router.delete('/:id', requirePermission('students.delete'), StudentController.deleteStudent);
 
 /**
  * API Documentation for Student Routes

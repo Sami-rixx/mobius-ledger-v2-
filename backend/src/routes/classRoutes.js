@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
 import * as ClassController from '../controllers/classController.js';
 
 /**
@@ -11,43 +12,43 @@ import * as ClassController from '../controllers/classController.js';
 const router = Router();
 
 // GET /api/classes - Get paginated list of classes
-router.get('/', ClassController.getClasses);
+router.get('/', requirePermission('classes.read'), ClassController.getClasses);
 
 // GET /api/classes/all - Get all classes without pagination
-router.get('/all', ClassController.getAllClasses);
+router.get('/all', requirePermission('classes.read'), ClassController.getAllClasses);
 
 // GET /api/classes/name/:name - Get a class by name
-router.get('/name/:name', ClassController.getClassByName);
+router.get('/name/:name', requirePermission('classes.read'), ClassController.getClassByName);
 
 // GET /api/classes/active - Get all active classes
-router.get('/active', ClassController.getActiveClasses);
+router.get('/active', requirePermission('classes.read'), ClassController.getActiveClasses);
 
 // GET /api/classes/search - Search classes
-router.get('/search', ClassController.searchClasses);
+router.get('/search', requirePermission('classes.read'), ClassController.searchClasses);
 
 // GET /api/classes/statistics - Get class statistics
-router.get('/statistics', ClassController.getClassStatistics);
+router.get('/statistics', requirePermission('classes.read'), ClassController.getClassStatistics);
 
 // GET /api/classes/with-students - Get classes with student counts
-router.get('/with-students', ClassController.getClassesWithStudentCounts);
+router.get('/with-students', requirePermission('classes.read'), ClassController.getClassesWithStudentCounts);
 
 // GET /api/classes/check-name/:name - Check class name availability
-router.get('/check-name/:name', ClassController.checkClassName);
+router.get('/check-name/:name', requirePermission('classes.read'), ClassController.checkClassName);
 
 // GET /api/classes/:id - Get a single class by ID (must come AFTER all specific routes)
-router.get('/:id', ClassController.getClassById);
+router.get('/:id', requirePermission('classes.read'), ClassController.getClassById);
 
 // POST /api/classes - Create a new class
-router.post('/', ClassController.createClass);
+router.post('/', requirePermission('classes.manage'), ClassController.createClass);
 
 // PUT /api/classes/:id - Update a class (full update)
-router.put('/:id', ClassController.updateClass);
+router.put('/:id', requirePermission('classes.manage'), ClassController.updateClass);
 
 // PATCH /api/classes/:id - Partially update a class
-router.patch('/:id', ClassController.patchClass);
+router.patch('/:id', requirePermission('classes.manage'), ClassController.patchClass);
 
 // DELETE /api/classes/:id - Delete a class
-router.delete('/:id', ClassController.deleteClass);
+router.delete('/:id', requirePermission('classes.manage'), ClassController.deleteClass);
 
 /**
  * API Documentation for Class Routes

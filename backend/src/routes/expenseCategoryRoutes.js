@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
 import * as ExpenseCategoryController from '../controllers/expenseCategoryController.js';
 
 /**
@@ -11,49 +12,49 @@ import * as ExpenseCategoryController from '../controllers/expenseCategoryContro
 const router = Router();
 
 // GET /api/expense-categories - Get paginated list of expense categories
-router.get('/', ExpenseCategoryController.getExpenseCategories);
+router.get('/', requirePermission('expenses.read'), ExpenseCategoryController.getExpenseCategories);
 
 // GET /api/expense-categories/all - Get all expense categories without pagination
-router.get('/all', ExpenseCategoryController.getAllExpenseCategories);
+router.get('/all', requirePermission('expenses.read'), ExpenseCategoryController.getAllExpenseCategories);
 
 // GET /api/expense-categories/active - Get all active expense categories
-router.get('/active', ExpenseCategoryController.getActiveExpenseCategories);
+router.get('/active', requirePermission('expenses.read'), ExpenseCategoryController.getActiveExpenseCategories);
 
 // GET /api/expense-categories/kitchen - Get all kitchen expense categories
-router.get('/kitchen', ExpenseCategoryController.getKitchenExpenseCategories);
+router.get('/kitchen', requirePermission('expenses.read'), ExpenseCategoryController.getKitchenExpenseCategories);
 
 // GET /api/expense-categories/root - Get root expense categories (no parent)
-router.get('/root', ExpenseCategoryController.getRootExpenseCategories);
+router.get('/root', requirePermission('expenses.read'), ExpenseCategoryController.getRootExpenseCategories);
 
 // GET /api/expense-categories/parent/:parentId - Get child categories for a parent
-router.get('/parent/:parentId', ExpenseCategoryController.getChildExpenseCategories);
+router.get('/parent/:parentId', requirePermission('expenses.read'), ExpenseCategoryController.getChildExpenseCategories);
 
 // GET /api/expense-categories/tree - Get hierarchical category tree
-router.get('/tree', ExpenseCategoryController.getExpenseCategoryTree);
+router.get('/tree', requirePermission('expenses.read'), ExpenseCategoryController.getExpenseCategoryTree);
 
 // GET /api/expense-categories/:id - Get a single expense category by ID
-router.get('/:id', ExpenseCategoryController.getExpenseCategoryById);
+router.get('/:id', requirePermission('expenses.read'), ExpenseCategoryController.getExpenseCategoryById);
 
 // GET /api/expense-categories/name/:name - Get expense category by name
-router.get('/name/:name', ExpenseCategoryController.getExpenseCategoryByName);
+router.get('/name/:name', requirePermission('expenses.read'), ExpenseCategoryController.getExpenseCategoryByName);
 
 // GET /api/expense-categories/usage - Get categories with usage count
-router.get('/usage', ExpenseCategoryController.getExpenseCategoriesWithUsage);
+router.get('/usage', requirePermission('expenses.read'), ExpenseCategoryController.getExpenseCategoriesWithUsage);
 
 // GET /api/expense-categories/count - Get count of expense categories
-router.get('/count', ExpenseCategoryController.getExpenseCategoryCount);
+router.get('/count', requirePermission('expenses.read'), ExpenseCategoryController.getExpenseCategoryCount);
 
 // GET /api/expense-categories/check-name/:name - Check if category name exists
-router.get('/check-name/:name', ExpenseCategoryController.checkExpenseCategoryNameExists);
+router.get('/check-name/:name', requirePermission('expenses.read'), ExpenseCategoryController.checkExpenseCategoryNameExists);
 
 // POST /api/expense-categories - Create a new expense category
-router.post('/', ExpenseCategoryController.createExpenseCategory);
+router.post('/', requirePermission('expense_categories.manage'), ExpenseCategoryController.createExpenseCategory);
 
 // PUT /api/expense-categories/:id - Update an expense category
-router.put('/:id', ExpenseCategoryController.updateExpenseCategory);
+router.put('/:id', requirePermission('expense_categories.manage'), ExpenseCategoryController.updateExpenseCategory);
 
 // DELETE /api/expense-categories/:id - Delete an expense category
-router.delete('/:id', ExpenseCategoryController.deleteExpenseCategory);
+router.delete('/:id', requirePermission('expense_categories.manage'), ExpenseCategoryController.deleteExpenseCategory);
 
 /**
  * Expense Category Routes Summary:

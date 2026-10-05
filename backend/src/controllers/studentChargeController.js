@@ -237,7 +237,7 @@ export const getActiveStudentCharges = (req, res) => {
 export const createStudentCharge = (req, res) => {
   try {
     const chargeData = req.body;
-    const createdBy = req.user?.id || 1; // Default to user 1 if not authenticated
+    const createdBy = req.user.id;
 
     // Validate required fields
     if (!chargeData.name) {
@@ -296,7 +296,7 @@ export const updateStudentCharge = (req, res) => {
     }
 
     const chargeData = req.body;
-    const updatedBy = req.user?.id || 1;
+    const updatedBy = req.user.id;
 
     // Validate amount if provided
     if (chargeData.amount !== undefined && chargeData.amount <= 0) {
@@ -336,7 +336,7 @@ export const deleteStudentCharge = (req, res) => {
       });
     }
 
-    const deletedBy = req.user?.id || 1;
+    const deletedBy = req.user.id;
     const deleted = studentChargeService.deleteStudentCharge(id, deletedBy);
 
     if (!deleted) {
@@ -373,7 +373,7 @@ export const forceDeleteStudentCharge = (req, res) => {
       });
     }
 
-    const deletedBy = req.user?.id || 1;
+    const deletedBy = req.user.id;
     const deleted = studentChargeService.forceDeleteStudentCharge(id, deletedBy);
 
     if (!deleted) {
@@ -438,7 +438,7 @@ export const assignChargeToStudents = (req, res) => {
     }
 
     const { studentIds, amount, notes } = req.body;
-    const assignedBy = req.user?.id || 1;
+    const assignedBy = req.user.id;
 
     if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
       return res.status(400).json({

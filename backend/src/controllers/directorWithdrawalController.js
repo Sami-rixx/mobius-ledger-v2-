@@ -218,7 +218,7 @@ export const createWithdrawal = async (req, res, next) => {
     } = req.body;
 
     // Get user ID from headers (temporary until auth is implemented)
-    const createdBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    const createdBy = req.user.id;
 
     // Validate required fields
     if (amount === undefined || amount === null || amount === '') {
@@ -308,7 +308,7 @@ export const updateWithdrawal = async (req, res, next) => {
     }
 
     // Get user ID from headers (temporary until auth is implemented)
-    const updatedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    const updatedBy = req.user.id;
 
     const {
       amount,
@@ -380,7 +380,7 @@ export const deleteWithdrawal = async (req, res, next) => {
     }
 
     // Get user ID from headers (temporary until auth is implemented)
-    const deletedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    const deletedBy = req.user.id;
 
     const result = await directorWithdrawalService.deleteWithdrawal(withdrawalId, deletedBy);
 
@@ -429,7 +429,7 @@ export const approveWithdrawal = async (req, res, next) => {
     }
 
     // Get user ID from headers (temporary until auth is implemented)
-    const approvedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    const approvedBy = req.user.id;
 
     const { notes } = req.body;
 
@@ -480,7 +480,7 @@ export const rejectWithdrawal = async (req, res, next) => {
     }
 
     // Get user ID from headers (temporary until auth is implemented)
-    const rejectedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    const rejectedBy = req.user.id;
 
     const { reason } = req.body;
 
@@ -538,7 +538,7 @@ export const completeWithdrawal = async (req, res, next) => {
     }
 
     // Get user ID from headers (temporary until auth is implemented)
-    const updatedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    const updatedBy = req.user.id;
 
     const { transactionId } = req.body;
 
@@ -593,7 +593,7 @@ export const cancelWithdrawal = async (req, res, next) => {
     }
 
     // Get user ID from headers (temporary until auth is implemented)
-    const updatedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    const updatedBy = req.user.id;
 
     const { reason } = req.body;
 

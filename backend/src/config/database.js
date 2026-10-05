@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { runMigrationsAsync } from '../../../database/migrationRunner.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,13 +65,20 @@ const applySchema = () => {
 };
 
 // Ensure system settings exist for receipt generation
-export const setupDatabase = () => {
+export const setupDatabase = async () => {
   try {
     // Ensure the schema (tables/indexes/triggers/views) exists before we try
     // to read/write any rows. This is what previously failed with
     // "no such table: system_settings" whenever the database file/schema had
     // not been bootstrapped by a separate manual step first.
     applySchema();
+
+    // Apply numbered security/schema migrations on top of the baseline
+    // schema. This is what safely evolves an *existing* database (adding
+    // auth/session columns, RBAC seed data, reversal columns, idempotency
+    // table, etc.) - CREATE TABLE IF NOT EXISTS alone cannot do this for
+    // ALTER-TABLE-shaped changes. Safe to call on every process start.
+    await runMigrationsAsync(db, { quiet: isTestEnv });
 
     // Ensure receipt_year exists (initialized by setup.js)
     const yearRow = db.prepare('SELECT value FROM system_settings WHERE key = ?').get('receipt_year');
@@ -109,6 +117,19 @@ export const setupDatabase = () => {
     throw error;
   }
 };
+
+// Restrict database file permissions to the owning OS user (defense in
+// depth for the "secure database storage" / "restricted file permissions"
+// production requirement). No-op for :memory: databases.
+if (DB_PATH !== ':memory:') {
+  try {
+    fs.chmodSync(DB_PATH, 0o600);
+  } catch (error) {
+    // Best-effort only (e.g. platform without POSIX permissions, or file
+    // not yet created when better-sqlite3 lazily creates it) - never block
+    // startup on this.
+  }
+}
 
 // Close database connection gracefully
 process.on('SIGINT', () => {

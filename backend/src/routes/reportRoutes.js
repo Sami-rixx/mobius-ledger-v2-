@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
 import * as ReportController from '../controllers/reportController.js';
 
 /**
@@ -11,46 +12,46 @@ import * as ReportController from '../controllers/reportController.js';
 const router = Router();
 
 // GET /api/reports - Get paginated list of reports
-router.get('/', ReportController.getReports);
+router.get('/', requirePermission('reports.read'), ReportController.getReports);
 
 // GET /api/reports/all - Get all reports without pagination
-router.get('/all', ReportController.getAllReports);
+router.get('/all', requirePermission('reports.read'), ReportController.getAllReports);
 
 // GET /api/reports/:id - Get a single report by ID
-router.get('/:id', ReportController.getReportById);
+router.get('/:id', requirePermission('reports.read'), ReportController.getReportById);
 
 // GET /api/reports/type/:reportType - Get reports by type (paginated)
-router.get('/type/:reportType', ReportController.getReportsByType);
+router.get('/type/:reportType', requirePermission('reports.read'), ReportController.getReportsByType);
 
 // GET /api/reports/latest/:reportType - Get the latest report of a specific type
-router.get('/latest/:reportType', ReportController.getLatestReportByType);
+router.get('/latest/:reportType', requirePermission('reports.read'), ReportController.getLatestReportByType);
 
 // GET /api/reports/statistics - Get report statistics
-router.get('/statistics', ReportController.getReportStatistics);
+router.get('/statistics', requirePermission('reports.read'), ReportController.getReportStatistics);
 
 // GET /api/reports/search - Search reports
-router.get('/search', ReportController.searchReports);
+router.get('/search', requirePermission('reports.read'), ReportController.searchReports);
 
 // POST /api/reports/daily - Generate a daily summary report
-router.post('/daily', ReportController.generateDailySummaryReport);
+router.post('/daily', requirePermission('reports.read'), ReportController.generateDailySummaryReport);
 
 // POST /api/reports/range - Generate a date range summary report
-router.post('/range', ReportController.generateDateRangeReport);
+router.post('/range', requirePermission('reports.read'), ReportController.generateDateRangeReport);
 
 // POST /api/reports/income-expense - Generate an income vs expense comparison report
-router.post('/income-expense', ReportController.generateIncomeVsExpenseReport);
+router.post('/income-expense', requirePermission('reports.read'), ReportController.generateIncomeVsExpenseReport);
 
 // POST /api/reports/category-summary - Generate a category summary report
-router.post('/category-summary', ReportController.generateCategorySummaryReport);
+router.post('/category-summary', requirePermission('reports.read'), ReportController.generateCategorySummaryReport);
 
 // POST /api/reports - Create a report record directly
-router.post('/', ReportController.createReport);
+router.post('/', requirePermission('reports.export'), ReportController.createReport);
 
 // PUT /api/reports/:id - Update a report record
-router.put('/:id', ReportController.updateReport);
+router.put('/:id', requirePermission('reports.export'), ReportController.updateReport);
 
 // DELETE /api/reports/:id - Delete a report record
-router.delete('/:id', ReportController.deleteReport);
+router.delete('/:id', requirePermission('reports.export'), ReportController.deleteReport);
 
 /**
  * Report Routes Summary:

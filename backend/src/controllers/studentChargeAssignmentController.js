@@ -291,7 +291,7 @@ export const getUnpaidStudentChargeAssignmentsByCharge = (req, res) => {
 export const createStudentChargeAssignment = (req, res) => {
   try {
     const assignmentData = req.body;
-    const assignedBy = req.user?.id || 1;
+    const assignedBy = req.user.id;
 
     // Validate required fields
     if (!assignmentData.chargeId) {
@@ -343,7 +343,7 @@ export const createStudentChargeAssignment = (req, res) => {
 export const createMultipleStudentChargeAssignments = (req, res) => {
   try {
     const { assignments } = req.body;
-    const assignedBy = req.user?.id || 1;
+    const assignedBy = req.user.id;
 
     if (!assignments || !Array.isArray(assignments) || assignments.length === 0) {
       return res.status(400).json({
@@ -392,7 +392,7 @@ export const updateStudentChargeAssignment = (req, res) => {
     }
 
     const assignmentData = req.body;
-    const updatedBy = req.user?.id || 1;
+    const updatedBy = req.user.id;
 
     // Validate amount if provided
     if (assignmentData.amount !== undefined && assignmentData.amount <= 0) {
@@ -446,7 +446,7 @@ export const markAssignmentAsPaid = async (req, res) => {
     }
 
     const paymentData = req.body;
-    const recordedBy = req.user?.id || 1;
+    const recordedBy = req.user.id;
 
     const result = await studentChargeAssignmentService.markAssignmentAsPaid(
       id,
@@ -482,7 +482,7 @@ export const markAssignmentAsUnpaid = (req, res) => {
       });
     }
 
-    const reversedBy = req.user?.id || 1;
+    const reversedBy = req.user.id;
 
     const assignment = studentChargeAssignmentService.markAssignmentAsUnpaid(id, reversedBy);
 
@@ -514,7 +514,7 @@ export const deleteStudentChargeAssignment = (req, res) => {
       });
     }
 
-    const deletedBy = req.user?.id || 1;
+    const deletedBy = req.user.id;
     const deleted = studentChargeAssignmentService.deleteStudentChargeAssignment(id, deletedBy);
 
     if (!deleted) {
@@ -551,7 +551,7 @@ export const deleteStudentChargeAssignmentsByCharge = (req, res) => {
       });
     }
 
-    const deletedBy = req.user?.id || 1;
+    const deletedBy = req.user.id;
     const deletedCount = studentChargeAssignmentService.deleteStudentChargeAssignmentsByCharge(
       chargeId,
       deletedBy

@@ -22,8 +22,15 @@ import {
   getAuditTrailStatistics as getAuditTrailStatisticsModel
 } from '../models/AuditTrail.js';
 
-// Valid action types
-const VALID_ACTIONS = ['CREATE', 'UPDATE', 'DELETE'];
+// Valid action types - kept in sync with the audit_trail CHECK constraint
+// (see database/migrations/008_audit_taxonomy_expand.js).
+export const VALID_ACTIONS = [
+  'CREATE', 'UPDATE', 'DELETE', 'REVERSAL',
+  'LOGIN_SUCCESS', 'LOGIN_FAILURE', 'LOGOUT', 'PASSWORD_CHANGE',
+  'ROLE_ASSIGNED', 'ROLE_REVOKED', 'PERMISSION_CHANGED',
+  'WITHDRAWAL_APPROVED', 'WITHDRAWAL_REJECTED',
+  'EXPORT', 'IMPORT', 'RESTORE', 'AUTHZ_DENIED', 'SESSION_REVOKED'
+];
 
 // Default pagination
 const DEFAULT_PAGE = 1;

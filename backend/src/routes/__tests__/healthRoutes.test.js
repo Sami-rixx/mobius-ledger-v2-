@@ -45,9 +45,17 @@ describe('Health Routes', () => {
   });
 
   describe('404 Handler', () => {
-    it('should return 404 for unknown routes', async () => {
+    it('should return 401 (not 404) for an unknown route under /api without a session, to avoid leaking route existence to unauthenticated callers', async () => {
       const response = await request(app)
         .get('/api/unknown')
+        .expect(401);
+
+      expect(response.body).toHaveProperty('success', false);
+    });
+
+    it('should return 404 for an unknown route outside /api (no auth gate applies there)', async () => {
+      const response = await request(app)
+        .get('/totally-unknown')
         .expect(404);
 
       expect(response.body).toHaveProperty('error', 'Not Found');

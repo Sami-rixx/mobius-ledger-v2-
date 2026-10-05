@@ -224,7 +224,7 @@ export const createStudent = (req, res, next) => {
 
     // Extract created_by from request (future: from authenticated user)
     // For now, use system user (ID 1) or null
-    const createdBy = req.user?.id || null;
+    const createdBy = req.user.id;
 
     const student = StudentService.createStudent(studentData, createdBy);
 
@@ -268,7 +268,7 @@ export const updateStudent = (req, res, next) => {
     }
 
     // Extract updated_by from request
-    const updatedBy = req.user?.id || null;
+    const updatedBy = req.user.id;
 
     const student = StudentService.updateStudent(parseInt(id), studentData, updatedBy);
 
@@ -304,7 +304,7 @@ export const patchStudent = (req, res, next) => {
     const studentData = req.body;
 
     // Extract updated_by from request
-    const updatedBy = req.user?.id || null;
+    const updatedBy = req.user.id;
 
     const student = StudentService.updateStudent(parseInt(id), studentData, updatedBy);
 
@@ -336,7 +336,7 @@ export const deleteStudent = (req, res, next) => {
     }
 
     // Extract deleted_by from request
-    const deletedBy = req.user?.id || null;
+    const deletedBy = req.user.id;
 
     const deleted = StudentService.deleteStudent(parseInt(id), deletedBy);
 

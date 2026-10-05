@@ -201,7 +201,7 @@ describe('Audit Trail Module', () => {
       };
       const result = validateAuditTrail(invalidData);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Invalid action. Must be one of: CREATE, UPDATE, DELETE');
+      expect(result.errors.some((e) => e.startsWith('Invalid action. Must be one of:'))).toBe(true);
     });
 
     it('should reject missing action', () => {

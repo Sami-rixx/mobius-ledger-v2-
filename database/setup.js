@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { runMigrationsAsync } from './migrationRunner.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,15 +52,39 @@ try {
   
   console.log('System settings initialized');
   
-  // Create a system user for audit purposes
+  // Apply numbered security/schema migrations (RBAC seed data, auth/session
+  // columns, idempotency table, audit immutability triggers, etc.) on top
+  // of the baseline schema just applied above. Must run before the admin
+  // user insert below so that security columns (must_change_password)
+  // already exist.
+  await runMigrationsAsync(db);
+
+  // Create a system admin user record for audit purposes. IMPORTANT:
+  // password_hash is intentionally left NULL here. A NULL password hash
+  // can never authenticate (see backend/src/services/authService.js -
+  // login explicitly rejects NULL/empty hashes before any verification
+  // step), so this seeded account is a placeholder identity only. Run
+  // `node database/bootstrap-admin.js` once after setup to set a real
+  // Argon2id password before the application is exposed to any user.
   const insertUser = db.prepare(`
-    INSERT OR IGNORE INTO users (username, full_name, email, role, is_active) 
-    VALUES ('system', 'System Administrator', 'admin@mobius.school', 'admin', 1)
+    INSERT OR IGNORE INTO users (username, full_name, email, role, is_active, must_change_password)
+    VALUES ('system', 'System Administrator', 'admin@mobius.school', 'admin', 1, 1)
   `);
   insertUser.run();
-  
-  console.log('System user created');
-  
+
+  // Make sure the system user also has the normalized Admin role (the RBAC
+  // seed migration only backfills roles for users that existed *before* it
+  // ran; this user is inserted after, so assign it explicitly here).
+  const systemUser = db.prepare('SELECT id FROM users WHERE username = ?').get('system');
+  const adminRole = db.prepare('SELECT id FROM roles WHERE name = ?').get('admin');
+  if (systemUser && adminRole) {
+    db.prepare('INSERT OR IGNORE INTO user_roles (user_id, role_id, assigned_at) VALUES (?, ?, datetime(\'now\'))')
+      .run(systemUser.id, adminRole.id);
+  }
+
+  console.log('System user created (no usable password yet)');
+  console.log('Run "node database/bootstrap-admin.js" to set its initial password before go-live.');
+
   // Get database info
   const tableCount = db.prepare('SELECT COUNT(*) as count FROM sqlite_master WHERE type = ?').get('table').count;
   const rowCount = db.prepare('SELECT SUM(row_count) as count FROM (SELECT COUNT(*) as row_count FROM system_settings UNION ALL SELECT COUNT(*) FROM users)').get().count;

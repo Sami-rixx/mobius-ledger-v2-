@@ -338,19 +338,22 @@ export const getExpenseStatistics = async (req, res, next) => {
  * - paymentMethodId (optional): Payment method ID
  * - expenseDate (required): Expense date (YYYY-MM-DD)
  * - notes (optional): Additional notes
- * - createdBy (required): User ID who created the record
- * 
+ *
+ * `createdBy` is NEVER accepted from the client - it is always the
+ * authenticated requester's own user id (req.user.id).
+ *
  * Response: 201 Created with the created expense record or 400 if validation fails
  */
 export const createExpense = async (req, res, next) => {
   try {
     const body = req.body;
+    const createdBy = req.user.id;
 
     // Validate required fields
-    if (!body.expenseCategoryId || !body.amount || !body.vendorName || !body.expenseDate || !body.createdBy) {
+    if (!body.expenseCategoryId || !body.amount || !body.vendorName || !body.expenseDate) {
       return res.status(400).json({
         success: false,
-        error: 'Required fields: expenseCategoryId, amount, vendorName, expenseDate, createdBy'
+        error: 'Required fields: expenseCategoryId, amount, vendorName, expenseDate'
       });
     }
 
@@ -371,14 +374,6 @@ export const createExpense = async (req, res, next) => {
       });
     }
 
-    // Validate createdBy is a number
-    if (isNaN(parseInt(body.createdBy, 10))) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid createdBy. Must be a number.'
-      });
-    }
-
     const result = await expenseService.createExpense({
       expenseCategoryId: parseInt(body.expenseCategoryId, 10),
       amount: amountNum,
@@ -388,7 +383,7 @@ export const createExpense = async (req, res, next) => {
       paymentMethodId: body.paymentMethodId ? parseInt(body.paymentMethodId, 10) : undefined,
       expenseDate: body.expenseDate,
       notes: body.notes,
-      createdBy: parseInt(body.createdBy, 10)
+      createdBy
     });
 
     if (!result.success) {
@@ -525,10 +520,10 @@ export const deleteExpense = async (req, res, next) => {
 /**
  * Verify an expense record
  * POST /api/expenses/:id/verify
- * 
- * Request Body:
- * - verifiedBy (required): User ID who verified the record
- * 
+ *
+ * `verifiedBy` is always the authenticated requester (req.user.id) - never
+ * accepted from the request body.
+ *
  * Response: 200 OK with verified expense record or 404 if not found
  */
 export const verifyExpense = async (req, res, next) => {
@@ -542,22 +537,7 @@ export const verifyExpense = async (req, res, next) => {
       });
     }
 
-    const { verifiedBy } = req.body;
-
-    if (!verifiedBy) {
-      return res.status(400).json({
-        success: false,
-        error: 'verifiedBy is required.'
-      });
-    }
-
-    const verifiedByNum = parseInt(verifiedBy, 10);
-    if (isNaN(verifiedByNum)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid verifiedBy. Must be a number.'
-      });
-    }
+    const verifiedByNum = req.user.id;
 
     const result = await expenseService.verifyExpense(id, verifiedByNum);
 

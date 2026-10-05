@@ -309,19 +309,25 @@ export const getIncomeByDateRange = async (req, res, next) => {
  * - paymentMethodId (number, optional): Payment method ID
  * - incomeDate (string, required): Date of income (YYYY-MM-DD)
  * - notes (string, optional): Additional notes
- * - createdBy (number, required): User ID who created the record
- * 
+ *
+ * `createdBy` is NEVER accepted from the client - it is always the
+ * authenticated requester's own user id (req.user.id), set by the
+ * `authenticate` middleware from their validated server-side session.
+ * Accepting a client-supplied actor id here would let any caller forge
+ * financial audit attribution.
+ *
  * Response: 201 Created with created income record or 400/404 with error
  */
 export const createIncome = async (req, res, next) => {
   try {
     const data = req.body;
+    const createdBy = req.user.id;
 
     // Validate required fields
-    if (!data.incomeCategoryId || !data.amount || !data.payerName || !data.incomeDate || !data.createdBy) {
+    if (!data.incomeCategoryId || !data.amount || !data.payerName || !data.incomeDate) {
       return res.status(400).json({
         success: false,
-        error: 'Required fields: incomeCategoryId, amount, payerName, incomeDate, createdBy'
+        error: 'Required fields: incomeCategoryId, amount, payerName, incomeDate'
       });
     }
 
@@ -329,7 +335,6 @@ export const createIncome = async (req, res, next) => {
     const incomeCategoryId = parseInt(data.incomeCategoryId, 10);
     const amount = parseFloat(data.amount);
     const paymentMethodId = data.paymentMethodId ? parseInt(data.paymentMethodId, 10) : undefined;
-    const createdBy = parseInt(data.createdBy, 10);
 
     if (isNaN(incomeCategoryId)) {
       return res.status(400).json({
@@ -342,13 +347,6 @@ export const createIncome = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         error: 'Invalid amount. Must be a positive number.'
-      });
-    }
-
-    if (isNaN(createdBy)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid createdBy. Must be a number.'
       });
     }
 
@@ -517,10 +515,11 @@ export const deleteIncome = async (req, res, next) => {
 /**
  * Mark an income record as verified
  * POST /api/income/:id/verify
- * 
- * Request Body:
- * - verifiedBy (number, required): User ID who verified the record
- * 
+ *
+ * `verifiedBy` is always the authenticated requester (req.user.id) - never
+ * accepted from the request body, to prevent attributing a verification to
+ * someone other than the actual caller.
+ *
  * Response: 200 OK with updated income record or 404 if not found
  */
 export const verifyIncome = async (req, res, next) => {
@@ -534,23 +533,7 @@ export const verifyIncome = async (req, res, next) => {
       });
     }
 
-    const { verifiedBy } = req.body;
-
-    if (!verifiedBy) {
-      return res.status(400).json({
-        success: false,
-        error: 'verifiedBy is required.'
-      });
-    }
-
-    const verifiedByNum = parseInt(verifiedBy, 10);
-
-    if (isNaN(verifiedByNum)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid verifiedBy. Must be a number.'
-      });
-    }
+    const verifiedByNum = req.user.id;
 
     const result = await incomeService.verifyIncome(id, verifiedByNum);
 

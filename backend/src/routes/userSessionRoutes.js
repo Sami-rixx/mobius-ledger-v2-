@@ -1,23 +1,26 @@
 /**
- * UserSession Routes
- * RESTful API endpoint definitions for user session operations
- * 
+ * UserSession Routes (Admin-only session administration)
+ *
+ * Mounted behind `requirePermission('sessions.manage')` in app.js (Admin
+ * role only). Real sessions are only ever created by the authentication
+ * flow (see controllers/authController.js#login) - this router no longer
+ * exposes a generic "create a session with an arbitrary token" endpoint,
+ * nor raw-token lookup/"validate" endpoints (the `session_token` column
+ * now stores a SHA-256 hash, never the raw bearer value - see
+ * services/sessionService.js - so a client-supplied raw token could never
+ * usefully be looked up here anyway).
+ *
  * Endpoints:
- * - GET /api/user-sessions - List user sessions with pagination and filtering
- * - GET /api/user-sessions/count - Get user session count
- * - GET /api/user-sessions/:id - Get a single user session by ID
- * - GET /api/user-sessions/token/:sessionToken - Get user session by session token
- * - GET /api/user-sessions/user/:userId/active - Get all active sessions for a user
- * - POST /api/user-sessions - Create a new user session
- * - PUT /api/user-sessions/:id - Update a user session
- * - POST /api/user-sessions/:id/deactivate - Deactivate a user session (logout)
- * - POST /api/user-sessions/user/:userId/deactivate-all - Deactivate all sessions for a user (force logout)
+ * - GET /api/user-sessions - List sessions with pagination/filtering
+ * - GET /api/user-sessions/stats - Session statistics
+ * - GET /api/user-sessions/count - Count sessions
+ * - GET /api/user-sessions/user/:userId/active - Active sessions for a user
+ * - GET /api/user-sessions/:id - Get a single session by ID
+ * - POST /api/user-sessions/:id/deactivate - Revoke a session (admin force-logout)
+ * - POST /api/user-sessions/user/:userId/deactivate-all - Revoke all sessions for a user
  * - POST /api/user-sessions/cleanup - Deactivate all expired sessions
- * - DELETE /api/user-sessions/:id - Delete a user session
- * - DELETE /api/user-sessions/user/:userId - Delete all sessions for a user
- * - POST /api/user-sessions/validate - Validate a session token
- * - POST /api/user-sessions/:id/extend - Extend a session's expiration time
- * - GET /api/user-sessions/stats - Get session statistics
+ * - DELETE /api/user-sessions/:id - Delete a session row
+ * - DELETE /api/user-sessions/user/:userId - Delete all session rows for a user
  */
 
 import { Router } from 'express';
@@ -25,65 +28,28 @@ import {
   listSessions,
   countSessions,
   getSingleSession,
-  getSessionByTokenHandler,
   getActiveSessionsByUserHandler,
-  createUserSession,
-  updateUserSessionHandler,
   deactivateUserSessionHandler,
   deactivateAllUserSessionsHandler,
   deactivateExpiredSessionsHandler,
   deleteUserSessionHandler,
   deleteAllUserSessionsHandler,
-  validateSessionTokenHandler,
-  extendSessionHandler,
   getSessionStatsHandler
 } from '../controllers/userSessionController.js';
 
 const router = Router();
 
-// GET /api/user-sessions - List user sessions with pagination and filtering
 router.get('/', listSessions);
-
-// GET /api/user-sessions/count - Get user session count
 router.get('/count', countSessions);
-
-// GET /api/user-sessions/:id - Get a single user session by ID
+router.get('/stats', getSessionStatsHandler);
+router.get('/user/:userId/active', getActiveSessionsByUserHandler);
 router.get('/:id', getSingleSession);
 
-// GET /api/user-sessions/token/:sessionToken - Get user session by session token
-router.get('/token/:sessionToken', getSessionByTokenHandler);
-
-// GET /api/user-sessions/user/:userId/active - Get all active sessions for a user
-router.get('/user/:userId/active', getActiveSessionsByUserHandler);
-
-// POST /api/user-sessions - Create a new user session
-router.post('/', createUserSession);
-
-// PUT /api/user-sessions/:id - Update a user session
-router.put('/:id', updateUserSessionHandler);
-
-// POST /api/user-sessions/:id/deactivate - Deactivate a user session (logout)
 router.post('/:id/deactivate', deactivateUserSessionHandler);
-
-// POST /api/user-sessions/user/:userId/deactivate-all - Deactivate all sessions for a user (force logout)
 router.post('/user/:userId/deactivate-all', deactivateAllUserSessionsHandler);
-
-// POST /api/user-sessions/cleanup - Deactivate all expired sessions
 router.post('/cleanup', deactivateExpiredSessionsHandler);
 
-// DELETE /api/user-sessions/:id - Delete a user session
 router.delete('/:id', deleteUserSessionHandler);
-
-// DELETE /api/user-sessions/user/:userId - Delete all sessions for a user
 router.delete('/user/:userId', deleteAllUserSessionsHandler);
-
-// POST /api/user-sessions/validate - Validate a session token
-router.post('/validate', validateSessionTokenHandler);
-
-// POST /api/user-sessions/:id/extend - Extend a session's expiration time
-router.post('/:id/extend', extendSessionHandler);
-
-// GET /api/user-sessions/stats - Get session statistics
-router.get('/stats', getSessionStatsHandler);
 
 export default router;

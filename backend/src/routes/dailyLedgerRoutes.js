@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
 import * as DailyLedgerController from '../controllers/dailyLedgerController.js';
 
 /**
@@ -11,55 +12,55 @@ import * as DailyLedgerController from '../controllers/dailyLedgerController.js'
 const router = Router();
 
 // GET /api/daily-ledger - List daily ledger records with pagination
-router.get('/', DailyLedgerController.listDailyLedgers);
+router.get('/', requirePermission('ledger.read'), DailyLedgerController.listDailyLedgers);
 
 // GET /api/daily-ledger/count - Count total daily ledger records
-router.get('/count', DailyLedgerController.countDailyLedgers);
+router.get('/count', requirePermission('ledger.read'), DailyLedgerController.countDailyLedgers);
 
 // GET /api/daily-ledger/:id - Get daily ledger by ID
-router.get('/:id', DailyLedgerController.getDailyLedgerByIdHandler);
+router.get('/:id', requirePermission('ledger.read'), DailyLedgerController.getDailyLedgerByIdHandler);
 
 // GET /api/daily-ledger/date/:date - Get daily ledger by date
-router.get('/date/:date', DailyLedgerController.getDailyLedgerByDateHandler);
+router.get('/date/:date', requirePermission('ledger.read'), DailyLedgerController.getDailyLedgerByDateHandler);
 
 // GET /api/daily-ledger/today - Get today's daily ledger
-router.get('/today', DailyLedgerController.getTodayLedgerHandler);
+router.get('/today', requirePermission('ledger.read'), DailyLedgerController.getTodayLedgerHandler);
 
 // GET /api/daily-ledger/yesterday - Get yesterday's daily ledger
-router.get('/yesterday', DailyLedgerController.getYesterdayLedgerHandler);
+router.get('/yesterday', requirePermission('ledger.read'), DailyLedgerController.getYesterdayLedgerHandler);
 
 // GET /api/daily-ledger/recent - Get recent daily ledger records
-router.get('/recent', DailyLedgerController.getRecentLedgersHandler);
+router.get('/recent', requirePermission('ledger.read'), DailyLedgerController.getRecentLedgersHandler);
 
 // GET /api/daily-ledger/month/:year/:month - Get daily ledgers for a specific month
-router.get('/month/:year/:month', DailyLedgerController.getMonthlyLedgersHandler);
+router.get('/month/:year/:month', requirePermission('ledger.read'), DailyLedgerController.getMonthlyLedgersHandler);
 
 // GET /api/daily-ledger/statistics - Get daily ledger statistics
-router.get('/statistics', DailyLedgerController.getDailyLedgerStatisticsHandler);
+router.get('/statistics', requirePermission('ledger.read'), DailyLedgerController.getDailyLedgerStatisticsHandler);
 
 // POST /api/daily-ledger - Create a new daily ledger record
-router.post('/', DailyLedgerController.createDailyLedgerHandler);
+router.post('/', requirePermission('ledger.manage'), DailyLedgerController.createDailyLedgerHandler);
 
 // PUT /api/daily-ledger/:id - Update an existing daily ledger record
-router.put('/:id', DailyLedgerController.updateDailyLedgerHandler);
+router.put('/:id', requirePermission('ledger.manage'), DailyLedgerController.updateDailyLedgerHandler);
 
 // DELETE /api/daily-ledger/:id - Delete a daily ledger record
-router.delete('/:id', DailyLedgerController.deleteDailyLedgerHandler);
+router.delete('/:id', requirePermission('ledger.manage'), DailyLedgerController.deleteDailyLedgerHandler);
 
 // GET /api/daily-ledger/missing-dates - Get missing dates in the ledger sequence
-router.get('/missing-dates', DailyLedgerController.getMissingLedgerDatesHandler);
+router.get('/missing-dates', requirePermission('ledger.read'), DailyLedgerController.getMissingLedgerDatesHandler);
 
 // POST /api/daily-ledger/generate/:date - Generate ledger for a specific date
-router.post('/generate/:date', DailyLedgerController.generateLedgerForDateHandler);
+router.post('/generate/:date', requirePermission('ledger.manage'), DailyLedgerController.generateLedgerForDateHandler);
 
 // POST /api/daily-ledger/generate - Generate ledger for a date range
-router.post('/generate', DailyLedgerController.generateLedgerForDateRangeHandler);
+router.post('/generate', requirePermission('ledger.manage'), DailyLedgerController.generateLedgerForDateRangeHandler);
 
 // POST /api/daily-ledger/fill-missing - Fill missing ledger dates
-router.post('/fill-missing', DailyLedgerController.fillMissingLedgerDatesHandler);
+router.post('/fill-missing', requirePermission('ledger.manage'), DailyLedgerController.fillMissingLedgerDatesHandler);
 
 // GET /api/daily-ledger/summary - Get ledger summary
-router.get('/summary', DailyLedgerController.getLedgerSummaryHandler);
+router.get('/summary', requirePermission('ledger.read'), DailyLedgerController.getLedgerSummaryHandler);
 
 /**
  * Daily Ledger Routes Summary:

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
 import * as DashboardController from '../controllers/dashboardController.js';
 
 /**
@@ -11,28 +12,28 @@ import * as DashboardController from '../controllers/dashboardController.js';
 const router = Router();
 
 // GET /api/dashboard - Get comprehensive dashboard summary
-router.get('/', DashboardController.getDashboardSummary);
+router.get('/', requirePermission('dashboard.read'), DashboardController.getDashboardSummary);
 
 // GET /api/dashboard/summary - Get quick statistics for dashboard cards
-router.get('/summary', DashboardController.getQuickStats);
+router.get('/summary', requirePermission('dashboard.read'), DashboardController.getQuickStats);
 
 // GET /api/dashboard/charts/income-expense - Get income vs expense chart data
-router.get('/charts/income-expense', DashboardController.getIncomeVsExpenseChart);
+router.get('/charts/income-expense', requirePermission('dashboard.read'), DashboardController.getIncomeVsExpenseChart);
 
 // GET /api/dashboard/charts/income-by-category - Get income by category for pie chart
-router.get('/charts/income-by-category', DashboardController.getIncomeByCategory);
+router.get('/charts/income-by-category', requirePermission('dashboard.read'), DashboardController.getIncomeByCategory);
 
 // GET /api/dashboard/charts/expenses-by-category - Get expenses by category for pie chart
-router.get('/charts/expenses-by-category', DashboardController.getExpensesByCategory);
+router.get('/charts/expenses-by-category', requirePermission('dashboard.read'), DashboardController.getExpensesByCategory);
 
 // GET /api/dashboard/recent-activity - Get recent activity feed
-router.get('/recent-activity', DashboardController.getRecentActivity);
+router.get('/recent-activity', requirePermission('dashboard.read'), DashboardController.getRecentActivity);
 
 // GET /api/dashboard/students/distribution - Get student distribution by class
-router.get('/students/distribution', DashboardController.getStudentDistribution);
+router.get('/students/distribution', requirePermission('dashboard.read'), DashboardController.getStudentDistribution);
 
 // GET /api/dashboard/filtered - Get filtered summary with date range
-router.get('/filtered', DashboardController.getFilteredSummary);
+router.get('/filtered', requirePermission('dashboard.read'), DashboardController.getFilteredSummary);
 
 /**
  * Dashboard Routes Summary:
