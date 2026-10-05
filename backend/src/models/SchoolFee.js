@@ -1,5 +1,6 @@
 import db from '../config/database.js';
 import { resolveOrder } from '../utils/sortUtils.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * School Fee Model
@@ -339,14 +340,15 @@ export const createSchoolFeePayment = (data) => {
 
   const stmt = db.prepare(`
     INSERT INTO ${TABLE} 
-    (student_id, transaction_id, amount, payment_date, academic_year, term, notes, created_by, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (student_id, transaction_id, amount, amount_cents, payment_date, academic_year, term, notes, created_by, updated_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
     studentId,
     transactionId,
     amount,
+    toCents(amount),
     paymentDate,
     academicYear,
     term,
@@ -389,9 +391,11 @@ export const updateSchoolFeePayment = (id, data) => {
     return null;
   }
 
+  const resolvedAmount = amount || existing.amount;
+
   const stmt = db.prepare(`
     UPDATE ${TABLE} 
-    SET student_id = ?, transaction_id = ?, amount = ?, payment_date = ?, 
+    SET student_id = ?, transaction_id = ?, amount = ?, amount_cents = ?, payment_date = ?, 
         academic_year = ?, term = ?, notes = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `);
@@ -399,7 +403,8 @@ export const updateSchoolFeePayment = (id, data) => {
   stmt.run(
     studentId || existing.student_id,
     transactionId || existing.transaction_id,
-    amount || existing.amount,
+    resolvedAmount,
+    toCents(resolvedAmount),
     paymentDate || existing.payment_date,
     academicYear || existing.academic_year,
     term || existing.term,

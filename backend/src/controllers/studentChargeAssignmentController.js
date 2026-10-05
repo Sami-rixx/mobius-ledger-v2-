@@ -468,7 +468,8 @@ export const markAssignmentAsPaid = async (req, res) => {
 };
 
 /**
- * Mark an assignment as unpaid
+ * Reverse a paid assignment's payment (posted financial records are never
+ * silently un-posted - see studentChargeAssignmentService.markAssignmentAsUnpaid).
  * POST /api/charges/assignments/:id/unpay
  */
 export const markAssignmentAsUnpaid = (req, res) => {
@@ -483,13 +484,14 @@ export const markAssignmentAsUnpaid = (req, res) => {
     }
 
     const reversedBy = req.user.id;
+    const reason = req.body?.reason || null;
 
-    const assignment = studentChargeAssignmentService.markAssignmentAsUnpaid(id, reversedBy);
+    const result = studentChargeAssignmentService.markAssignmentAsUnpaid(id, reversedBy, reason);
 
     res.json({
       success: true,
-      data: assignment,
-      message: 'Assignment marked as unpaid successfully'
+      data: result,
+      message: 'Assignment payment reversed successfully'
     });
   } catch (error) {
     res.status(500).json({

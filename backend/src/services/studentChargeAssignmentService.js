@@ -2,7 +2,10 @@ import * as StudentChargeAssignmentModel from '../models/StudentChargeAssignment
 import * as StudentChargeModel from '../models/StudentCharge.js';
 import * as StudentModel from '../models/Student.js';
 import * as TransactionModel from '../models/Transaction.js';
+import db from '../config/database.js';
 import { generateReceiptNumber } from '../utils/receiptGenerator.js';
+import { toCents } from '../utils/money.js';
+import { logFinancialAction } from './auditTrailService.js';
 
 /**
  * Student Charge Assignment Service
@@ -294,27 +297,37 @@ export const markAssignmentAsPaid = async (id, paymentData, recordedBy) => {
 
   // Generate receipt number
   const receiptNumber = generateReceiptNumber();
+  const paymentAmount = paymentData.amount || existingAssignment.amount;
 
-  // Create transaction
-  const transaction = TransactionModel.createTransaction({
-    receiptNumber,
-    transactionType: 'student_charge',
-    amount: paymentData.amount || existingAssignment.amount,
-    studentId: existingAssignment.student_id,
-    description: `Payment for charge: ${charge.name}`,
-    paymentMethodId: paymentData.paymentMethodId,
-    transactionDate: new Date().toISOString().split('T')[0],
-    reference: paymentData.reference || null,
-    notes: paymentData.notes || `Payment for charge assignment ${id}`,
-    createdBy: recordedBy
+  // Create the transaction and flip the assignment to paid atomically - a
+  // previous version of this function performed these as two separate,
+  // non-atomic writes, so a crash/error between them could leave a posted
+  // ledger transaction with no assignment ever marked paid against it (or
+  // vice versa).
+  const postPayment = db.transaction(() => {
+    const transaction = TransactionModel.createTransaction({
+      receiptNumber,
+      transactionType: 'student_charge',
+      amount: paymentAmount,
+      studentId: existingAssignment.student_id,
+      description: `Payment for charge: ${charge.name}`,
+      paymentMethodId: paymentData.paymentMethodId,
+      transactionDate: new Date().toISOString().split('T')[0],
+      reference: paymentData.reference || null,
+      notes: paymentData.notes || `Payment for charge assignment ${id}`,
+      createdBy: recordedBy
+    });
+
+    const updatedAssignment = StudentChargeAssignmentModel.markAssignmentAsPaid(
+      id,
+      transaction.id,
+      new Date().toISOString()
+    );
+
+    return { transaction, updatedAssignment };
   });
 
-  // Mark assignment as paid
-  const updatedAssignment = StudentChargeAssignmentModel.markAssignmentAsPaid(
-    id,
-    transaction.id,
-    new Date().toISOString()
-  );
+  const { transaction, updatedAssignment } = postPayment();
 
   return {
     assignment: updatedAssignment,
@@ -324,12 +337,26 @@ export const markAssignmentAsPaid = async (id, paymentData, recordedBy) => {
 };
 
 /**
- * Mark an assignment as unpaid (reverse payment)
+ * Reverse a paid assignment's payment (owner decision 6: posted financial
+ * records are never hard-deleted/silently un-posted - corrections are
+ * reversal transactions).
+ *
+ * Marking an assignment back to "unpaid" previously just flipped the
+ * `paid` flag and cleared `payment_transaction_id` without touching the
+ * linked `transactions` row at all - the posted ledger entry for the
+ * original payment stayed in the ledger (and in daily totals) completely
+ * untouched, while the assignment silently looked unpaid again. This now
+ * atomically posts a negated reversal transaction, marks the original
+ * transaction reversed, and marks the assignment unpaid while preserving
+ * (not clearing) the link to the original payment transaction for audit
+ * purposes.
+ *
  * @param {number} id - Assignment ID
  * @param {number} reversedBy - User ID who reversed the payment
- * @returns {Object} - Updated assignment object
+ * @param {string} [reason] - Optional reversal reason
+ * @returns {Object} - { assignment, reversalTransactionId }
  */
-export const markAssignmentAsUnpaid = (id, reversedBy) => {
+export const markAssignmentAsUnpaid = (id, reversedBy, reason = null) => {
   const existingAssignment = StudentChargeAssignmentModel.getStudentChargeAssignmentById(id);
   if (!existingAssignment) {
     throw new Error(`Assignment with ID ${id} not found`);
@@ -339,10 +366,58 @@ export const markAssignmentAsUnpaid = (id, reversedBy) => {
     throw new Error(`Assignment with ID ${id} is not paid`);
   }
 
-  // Note: In a production system, you might want to create a credit note transaction
-  // instead of just marking as unpaid. This is a simplified version.
-  
-  return StudentChargeAssignmentModel.markAssignmentAsUnpaid(id);
+  const amount = parseFloat(existingAssignment.amount);
+  const amountCents = toCents(amount);
+  const originalTransactionId = existingAssignment.payment_transaction_id;
+
+  const insertReversalTx = db.prepare(`
+    INSERT INTO transactions
+      (receipt_number, transaction_type, amount, amount_cents, student_id,
+       transaction_date, description, is_reversal, reverses_transaction_id, created_by, updated_by)
+    VALUES (?, 'student_charge', ?, ?, ?, date('now'), ?, 1, ?, ?, ?)
+  `);
+  const markOriginalTxReversed = db.prepare(`
+    UPDATE transactions
+    SET is_reversed = 1, reversed_by = ?, reversed_at = CURRENT_TIMESTAMP,
+        reversal_reason = ?, reversal_transaction_id = ?
+    WHERE id = ?
+  `);
+  const markAssignmentReversed = db.prepare(`
+    UPDATE student_charge_assignments
+    SET paid = 0, is_reversed = 1, reversed_by = ?, reversed_at = CURRENT_TIMESTAMP,
+        reversal_reason = ?, reversal_transaction_id = ?
+    WHERE id = ? AND paid = 1
+  `);
+
+  const reverseAtomically = db.transaction(() => {
+    const receiptNumber = generateReceiptNumber();
+    const reversalTxResult = insertReversalTx.run(
+      receiptNumber, -amount, -amountCents, existingAssignment.student_id,
+      `Reversal of charge payment for assignment #${id}${reason ? `: ${reason}` : ''}`,
+      originalTransactionId || null, reversedBy, reversedBy
+    );
+    const reversalTransactionId = reversalTxResult.lastInsertRowid;
+
+    if (originalTransactionId) {
+      markOriginalTxReversed.run(reversedBy, reason, reversalTransactionId, originalTransactionId);
+    }
+
+    const changes = markAssignmentReversed.run(reversedBy, reason, reversalTransactionId, id).changes;
+    if (changes !== 1) {
+      throw new Error('Assignment was modified concurrently; reversal aborted');
+    }
+
+    return reversalTransactionId;
+  });
+
+  const reversalTransactionId = reverseAtomically();
+
+  logFinancialAction('REVERSAL', 'student_charge_assignments', id, existingAssignment, { reversalTransactionId, reason }, { userId: reversedBy });
+
+  return {
+    assignment: StudentChargeAssignmentModel.getStudentChargeAssignmentById(id),
+    reversalTransactionId
+  };
 };
 
 /**

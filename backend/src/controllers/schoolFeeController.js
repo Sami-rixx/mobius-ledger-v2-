@@ -431,7 +431,8 @@ export const updateSchoolFeePayment = (req, res) => {
 };
 
 /**
- * Delete a school fee payment
+ * Reverse a posted school fee payment (posted financial records are never
+ * hard-deleted - see schoolFeeService.deleteSchoolFeePayment).
  * DELETE /api/school-fees/:id
  */
 export const deleteSchoolFeePayment = (req, res) => {
@@ -445,18 +446,17 @@ export const deleteSchoolFeePayment = (req, res) => {
       });
     }
 
-    const deleted = schoolFeeService.deleteSchoolFeePayment(id);
-    
-    if (!deleted) {
-      return res.status(404).json({
-        success: false,
-        error: 'School fee payment not found'
-      });
+    const result = schoolFeeService.deleteSchoolFeePayment(id, req.user.id, req.body?.reason || null);
+
+    if (!result.success) {
+      const statusCode = result.error === 'School fee payment not found' ? 404 : 400;
+      return res.status(statusCode).json(result);
     }
 
     res.json({
       success: true,
-      message: 'School fee payment deleted successfully'
+      message: result.message,
+      data: result.data
     });
   } catch (error) {
     res.status(500).json({

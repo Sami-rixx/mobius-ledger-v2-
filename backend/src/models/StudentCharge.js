@@ -1,5 +1,6 @@
 import db from '../config/database.js';
 import { resolveOrder } from '../utils/sortUtils.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * Student Charge Model
@@ -244,8 +245,8 @@ export const createStudentCharge = (chargeData) => {
 
   const query = `
     INSERT INTO ${TABLE} 
-      (name, description, amount, charge_type, class_id, due_date, created_by, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (name, description, amount, amount_cents, charge_type, class_id, due_date, created_by, updated_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const stmt = db.prepare(query);
@@ -253,6 +254,7 @@ export const createStudentCharge = (chargeData) => {
     name,
     description,
     amount,
+    toCents(amount),
     chargeType,
     classId || null,
     dueDate || null,
@@ -300,6 +302,8 @@ export const updateStudentCharge = (id, chargeData, updatedBy) => {
   if (amount !== undefined) {
     updates.push(`amount = ?`);
     params.push(amount);
+    updates.push(`amount_cents = ?`);
+    params.push(toCents(amount));
   }
   if (chargeType !== undefined) {
     updates.push(`charge_type = ?`);

@@ -1,5 +1,6 @@
 import db from '../config/database.js';
 import { resolveOrder } from '../utils/sortUtils.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * Student Charge Assignment Model
@@ -264,12 +265,12 @@ export const createStudentChargeAssignment = (assignmentData) => {
 
   const query = `
     INSERT INTO ${TABLE} 
-      (charge_id, student_id, amount, notes)
-    VALUES (?, ?, ?, ?)
+      (charge_id, student_id, amount, amount_cents, notes)
+    VALUES (?, ?, ?, ?, ?)
   `;
 
   const stmt = db.prepare(query);
-  const result = stmt.run(chargeId, studentId, finalAmount, notes || null);
+  const result = stmt.run(chargeId, studentId, finalAmount, toCents(finalAmount), notes || null);
 
   return getStudentChargeAssignmentById(result.lastInsertRowid);
 };
@@ -323,6 +324,8 @@ export const updateStudentChargeAssignment = (id, assignmentData) => {
   if (amount !== undefined) {
     updates.push(`amount = ?`);
     params.push(amount);
+    updates.push(`amount_cents = ?`);
+    params.push(toCents(amount));
   }
   if (paid !== undefined) {
     updates.push(`paid = ?`);
