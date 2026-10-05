@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requirePermission } from '../middleware/auth.js';
+import { requireIdempotencyKey } from '../middleware/idempotency.js';
 import * as ExpenseController from '../controllers/expenseController.js';
 
 /**
@@ -36,7 +37,9 @@ router.get('/statistics', requirePermission('expenses.read'), ExpenseController.
 router.get('/search', requirePermission('expenses.read'), ExpenseController.searchExpenses);
 
 // POST /api/expenses - Create a new expense record
-router.post('/', requirePermission('expenses.create'), ExpenseController.createExpense);
+// Idempotency-Key required (owner decision 8, P0): this is a money-moving
+// POST, so a safe retry must never create a duplicate expense record.
+router.post('/', requirePermission('expenses.create'), requireIdempotencyKey, ExpenseController.createExpense);
 
 // PUT /api/expenses/:id - Update an expense record
 router.put('/:id', requirePermission('expenses.update'), ExpenseController.updateExpense);

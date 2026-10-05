@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requirePermission } from '../middleware/auth.js';
+import { requireIdempotencyKey } from '../middleware/idempotency.js';
 import * as DirectorWithdrawalController from '../controllers/directorWithdrawalController.js';
 
 /**
@@ -36,7 +37,9 @@ router.get('/search', requirePermission('withdrawals.read'), DirectorWithdrawalC
 router.get('/count', requirePermission('withdrawals.read'), DirectorWithdrawalController.getWithdrawalsCount);
 
 // POST /api/withdrawals - Create a new director withdrawal
-router.post('/', requirePermission('withdrawals.create'), DirectorWithdrawalController.createWithdrawal);
+// Idempotency-Key required (owner decision 8, P0): a safe retry must never
+// create a duplicate pending withdrawal request.
+router.post('/', requirePermission('withdrawals.create'), requireIdempotencyKey, DirectorWithdrawalController.createWithdrawal);
 
 // PUT /api/withdrawals/:id - Update a director withdrawal
 router.put('/:id', requirePermission('withdrawals.update'), DirectorWithdrawalController.updateWithdrawal);

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requirePermission } from '../middleware/auth.js';
+import { requireIdempotencyKey } from '../middleware/idempotency.js';
 import * as schoolFeeController from '../controllers/schoolFeeController.js';
 
 /**
@@ -36,7 +37,9 @@ router.get('/statistics', requirePermission('fees.read'), schoolFeeController.ge
 router.get('/summary', requirePermission('fees.read'), schoolFeeController.getSchoolFeeSummary);
 
 // POST /api/school-fees - Create a new school fee payment
-router.post('/', requirePermission('fees.create'), schoolFeeController.createSchoolFeePayment);
+// Idempotency-Key required (owner decision 8, P0): this is a money-moving
+// POST, so a safe retry must never post a duplicate fee payment.
+router.post('/', requirePermission('fees.create'), requireIdempotencyKey, schoolFeeController.createSchoolFeePayment);
 
 // PUT /api/school-fees/:id - Update a school fee payment
 router.put('/:id', requirePermission('fees.update'), schoolFeeController.updateSchoolFeePayment);

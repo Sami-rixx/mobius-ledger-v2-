@@ -5,6 +5,7 @@
 
 import { Router } from 'express';
 import { requirePermission } from '../middleware/auth.js';
+import { requireIdempotencyKey } from '../middleware/idempotency.js';
 import {
   listTransactions,
   countTransactions,
@@ -33,7 +34,9 @@ router.get('/:id', requirePermission('transactions.read'), getSingleTransaction)
 router.get('/receipt/:receiptNumber', requirePermission('transactions.read'), getTransactionByReceiptHandler);
 
 // POST /api/transactions - Create new transaction
-router.post('/', requirePermission('transactions.create'), createTransaction);
+// Idempotency-Key required (owner decision 8, P0): a safe retry must never
+// post a duplicate ledger transaction.
+router.post('/', requirePermission('transactions.create'), requireIdempotencyKey, createTransaction);
 
 // PUT /api/transactions/:id - Update transaction
 router.put('/:id', requirePermission('transactions.update'), updateTransaction);

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requirePermission } from '../middleware/auth.js';
+import { requireIdempotencyKey } from '../middleware/idempotency.js';
 import * as studentChargeAssignmentController from '../controllers/studentChargeAssignmentController.js';
 
 /**
@@ -51,7 +52,9 @@ router.post('/', requirePermission('charges.create'), studentChargeAssignmentCon
 router.post('/bulk', requirePermission('charges.create'), studentChargeAssignmentController.createMultipleStudentChargeAssignments);
 
 // POST /api/charges/assignments/:id/pay - Mark an assignment as paid
-router.post('/:id/pay', requirePermission('charges.update'), studentChargeAssignmentController.markAssignmentAsPaid);
+// Idempotency-Key required (owner decision 8, P0): this posts a real
+// ledger transaction, so a safe retry must never post payment twice.
+router.post('/:id/pay', requirePermission('charges.update'), requireIdempotencyKey, studentChargeAssignmentController.markAssignmentAsPaid);
 
 // POST /api/charges/assignments/:id/unpay - Mark an assignment as unpaid
 router.post('/:id/unpay', requirePermission('charges.update'), studentChargeAssignmentController.markAssignmentAsUnpaid);

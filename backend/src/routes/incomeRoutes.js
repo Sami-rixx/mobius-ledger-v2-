@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requirePermission } from '../middleware/auth.js';
+import { requireIdempotencyKey } from '../middleware/idempotency.js';
 import * as IncomeController from '../controllers/incomeController.js';
 
 /**
@@ -33,7 +34,9 @@ router.get('/date-range', requirePermission('income.read'), IncomeController.get
 router.get('/statistics', requirePermission('income.read'), IncomeController.getIncomeStatistics);
 
 // POST /api/income - Create a new income record
-router.post('/', requirePermission('income.create'), IncomeController.createIncome);
+// Idempotency-Key required (owner decision 8, P0): this is a money-moving
+// POST, so a safe retry must never create a duplicate income record.
+router.post('/', requirePermission('income.create'), requireIdempotencyKey, IncomeController.createIncome);
 
 // PUT /api/income/:id - Update an income record
 router.put('/:id', requirePermission('income.update'), IncomeController.updateIncome);
