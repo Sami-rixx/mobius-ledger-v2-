@@ -29,6 +29,44 @@ if (!fs.existsSync(EXPORT_DIR)) {
   fs.mkdirSync(EXPORT_DIR, { recursive: true });
 }
 
+/**
+ * SECURITY (path traversal): every function below that reads, writes, or
+ * deletes a file by name previously did `path.join(SOME_DIR, filename)`
+ * with `filename` taken directly from client input (a query string, body
+ * field, or route param). path.join() normalizes `..` segments, so a
+ * filename like `../../../../etc/passwd` (or a crafted name escaping
+ * BACKUP_DIR/EXPORT_DIR) would resolve to an arbitrary path on disk -
+ * readable, writable, or deletable depending on the endpoint. This let an
+ * authorized-but-not-fully-trusted caller of the import/export API delete
+ * or overwrite files far outside the intended backup/export directories.
+ *
+ * sanitizeFilename() strips any directory component and enforces a strict
+ * allowlisted charset so the result can never contain a path separator or
+ * resolve to `.`/`..`; resolveWithinDir() then double-checks (defense in
+ * depth) that the final resolved path still lives inside the intended
+ * directory before any filesystem operation touches it.
+ */
+function sanitizeFilename(filename) {
+  if (typeof filename !== 'string') return null;
+  const trimmed = filename.trim();
+  if (!trimmed) return null;
+  const base = path.basename(trimmed);
+  if (base === '.' || base === '..') return null;
+  if (!/^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$/.test(base)) return null;
+  return base;
+}
+
+function resolveWithinDir(dir, filename) {
+  const safeName = sanitizeFilename(filename);
+  if (!safeName) return null;
+  const resolvedDir = path.resolve(dir);
+  const resolvedPath = path.resolve(resolvedDir, safeName);
+  if (resolvedPath !== resolvedDir && !resolvedPath.startsWith(resolvedDir + path.sep)) {
+    return null;
+  }
+  return resolvedPath;
+}
+
 // Import/Export status constants
 const IMPORT_EXPORT_STATUS = {
   PENDING: 'pending',
@@ -167,7 +205,15 @@ const ImportExport = {
   // Export database to SQL
   async exportDatabase(filename = null) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupFilename = filename || `backup-${timestamp}.sql`;
+    let backupFilename;
+    if (filename) {
+      backupFilename = sanitizeFilename(filename);
+      if (!backupFilename) {
+        return { success: false, error: 'Invalid filename', message: 'Filename must not contain path separators or special characters' };
+      }
+    } else {
+      backupFilename = `backup-${timestamp}.sql`;
+    }
     const filepath = path.join(BACKUP_DIR, backupFilename);
     try {
       const tables = await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all();
@@ -220,7 +266,15 @@ const ImportExport = {
       return { success: false, error: 'Unsupported table', message: `Table ${tableName} not supported` };
     }
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const csvFilename = filename || `${tableName}-${timestamp}.csv`;
+    let csvFilename;
+    if (filename) {
+      csvFilename = sanitizeFilename(filename);
+      if (!csvFilename) {
+        return { success: false, error: 'Invalid filename', message: 'Filename must not contain path separators or special characters' };
+      }
+    } else {
+      csvFilename = `${tableName}-${timestamp}.csv`;
+    }
     const filepath = path.join(EXPORT_DIR, csvFilename);
     try {
       const rows = await db.prepare(`SELECT * FROM ${tableName}`).all();
@@ -303,7 +357,8 @@ const ImportExport = {
 
   // Restore backup
   async restoreBackup(filename) {
-    const fp = path.join(BACKUP_DIR, filename);
+    const fp = resolveWithinDir(BACKUP_DIR, filename);
+    if (!fp) return { success: false, error: 'Invalid filename', message: 'Filename must not contain path separators or special characters' };
     if (!fs.existsSync(fp)) return { success: false, error: 'Not found', message: `Backup ${filename} not found` };
     return this.importDatabase(fp);
   },
@@ -330,7 +385,8 @@ const ImportExport = {
 
   // Delete backup
   async deleteBackup(filename) {
-    const fp = path.join(BACKUP_DIR, filename);
+    const fp = resolveWithinDir(BACKUP_DIR, filename);
+    if (!fp) return { success: false, error: 'Invalid filename' };
     if (!fs.existsSync(fp)) return { success: false, error: 'Not found' };
     try { await fs.promises.unlink(fp); return { success: true, message: 'Deleted' }; }
     catch (e) { return { success: false, error: e.message }; }
@@ -338,7 +394,8 @@ const ImportExport = {
 
   // Delete export
   async deleteExport(filename) {
-    const fp = path.join(EXPORT_DIR, filename);
+    const fp = resolveWithinDir(EXPORT_DIR, filename);
+    if (!fp) return { success: false, error: 'Invalid filename' };
     if (!fs.existsSync(fp)) return { success: false, error: 'Not found' };
     try { await fs.promises.unlink(fp); return { success: true, message: 'Deleted' }; }
     catch (e) { return { success: false, error: e.message }; }

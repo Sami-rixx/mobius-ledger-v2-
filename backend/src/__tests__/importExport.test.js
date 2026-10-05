@@ -473,4 +473,90 @@ describe('ImportExport Module', () => {
       expect(importExportRoutes).toBeDefined();
     });
   });
+
+  // SECURITY REGRESSION: deleteBackup/deleteExport/restoreBackup/exportDatabase/
+  // exportToCSV previously did `path.join(DIR, filename)` with a raw,
+  // client-controlled filename. path.join() normalizes `..` segments, so a
+  // filename like `../../../../etc/passwd` escaped BACKUP_DIR/EXPORT_DIR
+  // entirely, letting an authorized-but-not-fully-trusted API caller read,
+  // overwrite, or delete arbitrary files on the server filesystem.
+  describe('Path traversal protection', () => {
+    const ImportExport = __ImportExport;
+    let canaryPath;
+    let canaryContent;
+
+    beforeAll(() => {
+      // A file that lives OUTSIDE both BACKUP_DIR and EXPORT_DIR, used as
+      // the traversal target. If any of the guards below regress, this file
+      // would be deleted or its content exposed.
+      canaryPath = path.join(ImportExport.BACKUP_DIR, '..', 'traversal-canary.txt');
+      canaryContent = 'canary-' + Date.now();
+      fs.writeFileSync(canaryPath, canaryContent);
+    });
+
+    afterAll(() => {
+      try { fs.unlinkSync(canaryPath); } catch { /* already gone */ }
+    });
+
+    it('deleteBackup rejects a filename that attempts to traverse out of BACKUP_DIR', async () => {
+      const result = await ImportExport.deleteBackup('../traversal-canary.txt');
+      expect(result.success).toBe(false);
+      expect(fs.existsSync(canaryPath)).toBe(true);
+      expect(fs.readFileSync(canaryPath, 'utf8')).toBe(canaryContent);
+    });
+
+    it('deleteExport rejects a filename that attempts to traverse out of EXPORT_DIR', async () => {
+      const result = await ImportExport.deleteExport('../../traversal-canary.txt');
+      expect(result.success).toBe(false);
+      expect(fs.existsSync(canaryPath)).toBe(true);
+    });
+
+    it('restoreBackup neutralizes a traversal attempt (strips to basename) instead of escaping BACKUP_DIR', async () => {
+      // "../traversal-canary.txt" is sanitized down to the harmless basename
+      // "traversal-canary.txt", which does not exist inside BACKUP_DIR - so
+      // the call safely fails closed ("Not found") rather than reading the
+      // real canary file that lives one directory above BACKUP_DIR.
+      const result = await ImportExport.restoreBackup('../traversal-canary.txt');
+      expect(result.success).toBe(false);
+      expect(result.error).not.toContain(canaryContent);
+    });
+
+    it('restoreBackup rejects an absolute path disguised as a filename without reading it', async () => {
+      const result = await ImportExport.restoreBackup('/etc/passwd');
+      expect(result.success).toBe(false);
+    });
+
+    it('deleteBackup still works normally for a legitimate filename inside BACKUP_DIR', async () => {
+      const legitPath = path.join(ImportExport.BACKUP_DIR, 'legit-backup-test.sql');
+      fs.writeFileSync(legitPath, '-- test');
+      const result = await ImportExport.deleteBackup('legit-backup-test.sql');
+      expect(result.success).toBe(true);
+      expect(fs.existsSync(legitPath)).toBe(false);
+    });
+
+    it('exportDatabase never writes outside BACKUP_DIR even when given a traversal-style filename', async () => {
+      const outsideTarget = path.join(ImportExport.BACKUP_DIR, '..', '..', 'traversal-write-attempt.sql');
+      const result = await ImportExport.exportDatabase('../../traversal-write-attempt.sql');
+
+      // The traversal segments are stripped to a harmless basename, so the
+      // write either lands safely inside BACKUP_DIR or is rejected outright
+      // - either way, nothing is ever written outside BACKUP_DIR.
+      expect(fs.existsSync(outsideTarget)).toBe(false);
+      if (result.success) {
+        expect(path.dirname(path.resolve(result.filepath))).toBe(path.resolve(ImportExport.BACKUP_DIR));
+        fs.unlinkSync(result.filepath);
+      }
+    });
+
+    it('exportToCSV never writes outside EXPORT_DIR even when given a traversal-style filename', async () => {
+      const outsideTarget = path.join(ImportExport.EXPORT_DIR, '..', '..', 'traversal-write-attempt.csv');
+      const result = await ImportExport.exportToCSV('students', '../../traversal-write-attempt.csv');
+
+      expect(fs.existsSync(outsideTarget)).toBe(false);
+      if (result.success) {
+        expect(path.dirname(path.resolve(result.filepath))).toBe(path.resolve(ImportExport.EXPORT_DIR));
+        fs.unlinkSync(result.filepath);
+      }
+    });
+  });
 });

@@ -182,14 +182,23 @@ const importExportController = {
         });
       }
       
-      // Validate that the file is within allowed directories
-      const backupDir = importExportService.BACKUP_DIR || path.join(__dirname, '../../backups');
-      const exportDir = importExportService.EXPORT_DIR || path.join(__dirname, '../../exports');
-      
+      // Validate that the file is within allowed directories.
+      // SECURITY: this previously also allowed any path under the entire
+      // repository root (`../../../` from this controller), which made the
+      // backupDir/exportDir restriction meaningless - an authorized caller
+      // of this endpoint could point filepath at arbitrary source files and
+      // have their content executed as SQL via db.exec(). Restoring/importing
+      // a "database" must only ever be possible from the two directories
+      // this API itself manages. The prefix check also now requires a path
+      // separator boundary (or an exact match) so a sibling directory whose
+      // name merely starts with the same characters (e.g. "backups-evil")
+      // can never be mistaken for being inside the allowed directory.
+      const backupDir = path.resolve(importExportService.BACKUP_DIR || path.join(__dirname, '../../backups'));
+      const exportDir = path.resolve(importExportService.EXPORT_DIR || path.join(__dirname, '../../exports'));
       const resolvedPath = path.resolve(filepath);
-      if (!resolvedPath.startsWith(path.resolve(backupDir)) && 
-          !resolvedPath.startsWith(path.resolve(exportDir)) &&
-          !resolvedPath.startsWith(path.resolve(__dirname, '../../../'))) {
+      const isWithin = (dir) => resolvedPath === dir || resolvedPath.startsWith(dir + path.sep);
+
+      if (!isWithin(backupDir) && !isWithin(exportDir)) {
         return res.status(403).json({
           success: false,
           error: 'Access denied',
@@ -293,12 +302,15 @@ const importExportController = {
         });
       }
       
-      // Validate that the file is within allowed directories
-      const exportDir = importExportService.EXPORT_DIR || path.join(__dirname, '../../exports');
+      // Validate that the file is within allowed directories (see the
+      // identical, more-detailed rationale in importDatabase() above - the
+      // repo-root allowance has been removed and the prefix check now
+      // requires a real path-separator boundary).
+      const exportDir = path.resolve(importExportService.EXPORT_DIR || path.join(__dirname, '../../exports'));
       const resolvedPath = path.resolve(filepath);
-      
-      if (!resolvedPath.startsWith(path.resolve(exportDir)) &&
-          !resolvedPath.startsWith(path.resolve(__dirname, '../../../'))) {
+      const isWithin = (dir) => resolvedPath === dir || resolvedPath.startsWith(dir + path.sep);
+
+      if (!isWithin(exportDir)) {
         return res.status(403).json({
           success: false,
           error: 'Access denied',
