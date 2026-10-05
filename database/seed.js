@@ -5,10 +5,32 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Database path
-const DB_PATH = path.resolve(__dirname, 'mobius_ledger.db');
+// SECURITY / DATA-SAFETY (owner requirement: "db:seed / production seed
+// must never run destructively under NODE_ENV=production"): this script
+// unconditionally DELETEs transactions, students, classes, withdrawals,
+// audit trail entries, and more, then inserts fabricated demo data. It
+// must never be runnable against a real production database - there is no
+// confirmation prompt, no dry-run mode, and the deletes are irreversible
+// outside of a backup restore. Fail closed and refuse to run at all
+// whenever NODE_ENV=production, regardless of how the script was invoked
+// (npm run db:seed, a deploy script, a cron job, etc).
+if (process.env.NODE_ENV === 'production') {
+  console.error(
+    'Refusing to run: this is a DESTRUCTIVE demo-data seed script ' +
+    '(it deletes transactions, students, withdrawals, audit trail entries, ' +
+    'and more) and must never be run against a production database. ' +
+    'Aborting because NODE_ENV=production.'
+  );
+  process.exit(1);
+}
+
+// Database path resolution mirrors backend/src/config/database.js so this
+// script can never silently seed/wipe a different file than the one the
+// running application actually reads from (DATABASE_PATH always wins).
+const DB_PATH = process.env.DATABASE_PATH || path.resolve(__dirname, 'mobius_ledger.db');
 
 console.log('Seeding Mobius Ledger database with demo data...');
+console.log(`Target database: ${DB_PATH}`);
 
 try {
   const db = new Database(DB_PATH);
