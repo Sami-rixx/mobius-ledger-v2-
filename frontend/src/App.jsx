@@ -1,5 +1,8 @@
-import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import HomePage from '@pages/HomePage';
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import { LoginPage } from '@pages/Login';
+import { Button } from '@components/index.js';
 import {
   StudentListPage,
   StudentCreatePage,
@@ -114,10 +117,38 @@ import {
   ImportExportDetailPage
 } from '@pages/ImportExport';
 
-function App() {
+/**
+ * AppShell - the actual navigation + routed content. Split out from App()
+ * so it can call useAuth() (which requires being rendered underneath
+ * AuthProvider).
+ *
+ * SECURITY NOTE (owner requirement: "frontend guards are UX-only, never a
+ * security boundary"): the gate below only decides what to *render* for a
+ * human using the browser. It has no bearing on API authorization, which
+ * is enforced entirely server-side (see backend/src/middleware/auth.js
+ * and requirePermission()) regardless of what this component does - a
+ * request forged without going through this UI at all is still checked
+ * the same way. This is proven independently by the backend's
+ * authorization-matrix/IDOR/privilege-escalation test suites, not by any
+ * frontend test.
+ */
+function AppShell() {
+  const { isAuthenticated, loading, user, logout } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="app-loading" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <p>Loading…</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
   return (
-    <Router>
-      <div className="app">
+    <div className="app">
         {/* Navigation */}
         <nav className="navigation">
           <div className="nav-container">
@@ -188,6 +219,12 @@ function App() {
               <NavLink to="/roles" className="nav-link" end>
                 Roles
               </NavLink>
+            </div>
+            <div className="nav-user" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#fff' }}>
+              {user && <span className="nav-username">{user.fullName || user.username}</span>}
+              <Button variant="outline" size="sm" onClick={logout}>
+                Log Out
+              </Button>
             </div>
           </div>
         </nav>
@@ -288,6 +325,9 @@ function App() {
             <Route path="/roles/create" element={<RoleCreatePage />} />
             <Route path="/roles/:id" element={<RoleDetailPage />} />
             <Route path="/roles/edit/:id" element={<RoleEditPage />} />
+            {/* Any other unmatched path falls back to the home page for an
+                authenticated user (there is no public 404 page). */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
 
@@ -298,7 +338,16 @@ function App() {
           </div>
         </footer>
       </div>
-    </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppShell />
+      </Router>
+    </AuthProvider>
   );
 }
 
