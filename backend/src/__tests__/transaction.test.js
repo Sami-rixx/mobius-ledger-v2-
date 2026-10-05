@@ -22,7 +22,7 @@ import {
   getTransactionByReceipt,
   createTransactionRecord,
   updateTransactionRecord,
-  deleteTransactionRecord,
+  reverseTransactionRecord,
   searchTransactions,
   getTransactionStatistics,
   getTransactionCountByFilter
@@ -212,17 +212,147 @@ describe('Transaction Service', () => {
       expect(result.error).toContain('Invalid transaction ID');
     });
 
-    test('should reject invalid data', () => {
-      const result = updateTransactionRecord(1, {});
+    test('should reject updates to a non-existent transaction', () => {
+      const result = updateTransactionRecord(999999, { description: 'x' });
       expect(result.success).toBe(false);
+      expect(result.error).toBe('Transaction not found');
+    });
+
+    test('should reject a patch that would make the record invalid (e.g. negative amount)', () => {
+      const created = createTransactionRecord({
+        transactionType: 'lunch_fee',
+        amount: 50,
+        transactionDate: '2026-02-01'
+      });
+      expect(created.success).toBe(true);
+
+      // Even though amount changes are also blocked by the immutability
+      // guard below, invalid data is still rejected up front by validation.
+      const result = updateTransactionRecord(created.data.id, { amount: -5 });
+      expect(result.success).toBe(false);
+    });
+
+    test('allows editing non-financial metadata on a posted transaction', () => {
+      const created = createTransactionRecord({
+        transactionType: 'lunch_fee',
+        amount: 150,
+        transactionDate: '2026-02-01',
+        description: 'Original description'
+      });
+      expect(created.success).toBe(true);
+
+      const result = updateTransactionRecord(created.data.id, { description: 'Corrected description' });
+      expect(result.success).toBe(true);
+      expect(result.data.description).toBe('Corrected description');
+    });
+
+    test('rejects changing the amount of an already-posted transaction (immutability guard)', () => {
+      const created = createTransactionRecord({
+        transactionType: 'lunch_fee',
+        amount: 150,
+        transactionDate: '2026-02-01'
+      });
+      expect(created.success).toBe(true);
+
+      const result = updateTransactionRecord(created.data.id, { amount: 999 });
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/immutable/i);
+
+      // Confirm the amount genuinely was not changed.
+      const unchanged = getTransaction(created.data.id);
+      expect(parseFloat(unchanged.amount)).toBe(150);
+    });
+
+    test('rejects changing the transaction type of an already-posted transaction', () => {
+      const created = createTransactionRecord({
+        transactionType: 'lunch_fee',
+        amount: 80,
+        transactionDate: '2026-02-01'
+      });
+
+      const result = updateTransactionRecord(created.data.id, { transactionType: 'income' });
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/immutable/i);
+    });
+
+    test('rejects changing the transaction date of an already-posted transaction', () => {
+      const created = createTransactionRecord({
+        transactionType: 'lunch_fee',
+        amount: 80,
+        transactionDate: '2026-02-01'
+      });
+
+      const result = updateTransactionRecord(created.data.id, { transactionDate: '2026-03-01' });
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/immutable/i);
     });
   });
 
-  describe('deleteTransactionRecord', () => {
+  describe('reverseTransactionRecord', () => {
     test('should reject invalid ID', () => {
-      const result = deleteTransactionRecord(null);
+      const result = reverseTransactionRecord(null);
       expect(result.success).toBe(false);
       expect(result.error).toContain('Invalid transaction ID');
+    });
+
+    test('should return not found for a non-existent transaction', () => {
+      const result = reverseTransactionRecord(999999);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Transaction not found');
+    });
+
+    test('reverses a non-entity-backed transaction (e.g. lunch_fee) atomically, preserving the original row', () => {
+      const created = createTransactionRecord({
+        transactionType: 'lunch_fee',
+        amount: 200,
+        transactionDate: '2026-02-02'
+      });
+      expect(created.success).toBe(true);
+
+      const result = reverseTransactionRecord(created.data.id, null, 'Test reversal');
+      expect(result.success).toBe(true);
+      expect(result.data.reversalTransactionId).toBeTruthy();
+
+      const original = getTransaction(created.data.id);
+      expect(original).toBeDefined();
+      expect(original.is_reversed).toBe(1);
+
+      const reversal = getTransaction(result.data.reversalTransactionId);
+      expect(reversal).toBeDefined();
+      expect(parseFloat(reversal.amount)).toBe(-200);
+      expect(reversal.is_reversal).toBe(1);
+      expect(reversal.transaction_type).toBe('lunch_fee');
+    });
+
+    test('rejects reversing an already-reversed transaction', () => {
+      const created = createTransactionRecord({
+        transactionType: 'lunch_fee',
+        amount: 60,
+        transactionDate: '2026-02-03'
+      });
+      const first = reverseTransactionRecord(created.data.id);
+      expect(first.success).toBe(true);
+
+      const second = reverseTransactionRecord(created.data.id);
+      expect(second.success).toBe(false);
+      expect(second.error).toMatch(/already been reversed/i);
+    });
+
+    test('rejects reversing entity-backed transaction types through the generic endpoint', () => {
+      const created = createTransactionRecord({
+        transactionType: 'income',
+        amount: 500,
+        transactionDate: '2026-02-04'
+      });
+      expect(created.success).toBe(true);
+
+      const result = reverseTransactionRecord(created.data.id);
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/dedicated record/i);
+
+      // The transaction must be untouched - not reversed by the rejected call.
+      const unchanged = getTransaction(created.data.id);
+      expect(unchanged.is_reversed).toBe(0);
     });
   });
 
@@ -279,7 +409,7 @@ describe('Transaction Module Exports', () => {
     expect(getTransactionByReceipt).toBeDefined();
     expect(createTransactionRecord).toBeDefined();
     expect(updateTransactionRecord).toBeDefined();
-    expect(deleteTransactionRecord).toBeDefined();
+    expect(reverseTransactionRecord).toBeDefined();
     expect(searchTransactions).toBeDefined();
     expect(getTransactionStatistics).toBeDefined();
     expect(getTransactionCountByFilter).toBeDefined();

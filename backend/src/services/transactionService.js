@@ -17,11 +17,24 @@ import {
   getTransactionByReceiptNumber,
   createTransaction,
   updateTransaction,
-  deleteTransaction,
   getTransactionsByStudent,
   getTransactionsByDateRange
 } from '../models/Transaction.js';
 import { generateReceiptNumber } from '../utils/receiptGenerator.js';
+import { toCents } from '../utils/money.js';
+import db from '../config/database.js';
+import { logFinancialAction } from './auditTrailService.js';
+
+// Transaction types that are posted via a dedicated entity table/service
+// (income, expenses, school_fee_payments, student_charge_assignments,
+// director_withdrawals) which each already implement their own atomic
+// create + reversal flow. Reversing one of these through the generic
+// /api/transactions endpoint would mark only the `transactions` row
+// reversed while leaving its owning entity row (and whatever UI/report
+// reads that entity row) completely unaware - creating two diverging
+// "sources of truth" for the same money event. Those types must be
+// reversed through their own entity-specific endpoint instead.
+const ENTITY_BACKED_TYPES = ['income', 'expense', 'school_fee', 'student_charge', 'director_withdrawal'];
 
 // Valid transaction types
 const VALID_TYPES = ['income', 'expense', 'school_fee', 'lunch_fee', 'student_charge', 'director_withdrawal'];
@@ -206,13 +219,57 @@ export const updateTransactionRecord = (id, data, userContext = {}) => {
   if (!id || isNaN(id)) {
     return { success: false, error: 'Invalid transaction ID' };
   }
-  
-  // Validate data
-  const validation = validateTransaction(data);
+
+  const existing = getTransactionById(id);
+  if (!existing) {
+    return { success: false, error: 'Transaction not found' };
+  }
+
+  // Validate the resulting record, not just the (possibly partial) patch -
+  // this is a partial-update endpoint (e.g. just correcting a description),
+  // and validateTransaction() always requires transactionType/amount to be
+  // present. Previously calling it directly against the raw partial `data`
+  // meant ANY partial update that didn't resend transactionType and amount
+  // was rejected as "invalid data", even though nothing about the request
+  // was actually wrong.
+  const effective = {
+    transactionType: data.transactionType !== undefined ? data.transactionType : existing.transaction_type,
+    amount: data.amount !== undefined ? data.amount : existing.amount,
+    transactionDate: data.transactionDate !== undefined ? data.transactionDate : existing.transaction_date,
+    receiptNumber: data.receiptNumber !== undefined ? data.receiptNumber : existing.receipt_number
+  };
+  const validation = validateTransaction(effective);
   if (!validation.isValid) {
     return { success: false, error: validation.errors.join(', ') };
   }
-  
+
+  if (existing.is_reversed) {
+    return { success: false, error: 'This transaction has been reversed and can no longer be edited', statusCode: 409 };
+  }
+
+  // IMMUTABILITY GUARD (owner decision 6): once a transaction is posted to
+  // the ledger, its core financial facts - the amount and the transaction
+  // type - may never be silently edited. Previously this endpoint allowed
+  // changing the amount/type of any already-posted transaction with no
+  // restriction at all, which (a) bypassed every reversal mechanism built
+  // for income/expenses/school fees/student charges/withdrawals, and (b)
+  // permanently desynced the daily_ledger running totals, since the
+  // daily_ledger triggers only react to INSERT/DELETE on `transactions`,
+  // never UPDATE - an edited amount/date is never reflected in the ledger
+  // totals that were computed at insert time. transaction_date is locked
+  // for the same reason (it determines which daily_ledger row absorbed the
+  // original amount). Corrections must go through a reversal instead.
+  const attemptsAmountChange = data.amount !== undefined && toCents(parseFloat(data.amount)) !== existing.amount_cents;
+  const attemptsTypeChange = data.transactionType !== undefined && data.transactionType !== existing.transaction_type;
+  const attemptsDateChange = data.transactionDate !== undefined && data.transactionDate !== existing.transaction_date;
+  if (attemptsAmountChange || attemptsTypeChange || attemptsDateChange) {
+    return {
+      success: false,
+      error: 'Posted transactions are immutable: amount, transaction type and transaction date cannot be edited. Create a reversal instead.',
+      statusCode: 409
+    };
+  }
+
   // Set audit fields
   const transactionData = {
     ...data,
@@ -221,11 +278,6 @@ export const updateTransactionRecord = (id, data, userContext = {}) => {
   };
   
   try {
-    const existing = getTransactionById(id);
-    if (!existing) {
-      return { success: false, error: 'Transaction not found' };
-    }
-    
     const transaction = updateTransaction(id, transactionData);
     return { success: true, data: transaction };
   } catch (error) {
@@ -234,23 +286,94 @@ export const updateTransactionRecord = (id, data, userContext = {}) => {
 };
 
 /**
- * Delete a transaction
+ * Reverse a posted transaction (owner decision 6: posted financial records
+ * are never hard-deleted - corrections are reversal transactions that
+ * preserve the original record).
+ *
+ * Transaction types that are posted via a dedicated entity table (income,
+ * expenses, school fees, student charges, director withdrawals) must be
+ * reversed through that entity's own service/endpoint instead, since each
+ * of those already atomically keeps its own table's `is_reversed` flag in
+ * sync with the transaction row - reversing only the `transactions` row
+ * here would leave the owning entity record looking unreversed. This
+ * generic path is for transactions with no such owning entity (manually
+ * created ledger entries).
+ *
  * @param {number} id - Transaction ID
+ * @param {number} [reversedBy] - Authenticated user id performing the reversal
+ * @param {string} [reason] - Optional reversal reason
  * @returns {Object} - Success status
  */
-export const deleteTransactionRecord = (id) => {
+export const reverseTransactionRecord = (id, reversedBy = null, reason = null) => {
   if (!id || isNaN(id)) {
     return { success: false, error: 'Invalid transaction ID' };
   }
-  
+
+  const existing = getTransactionById(id);
+  if (!existing) {
+    return { success: false, error: 'Transaction not found' };
+  }
+
+  if (existing.is_reversed) {
+    return { success: false, error: 'This transaction has already been reversed' };
+  }
+
+  if (existing.is_reversal) {
+    return { success: false, error: 'A reversal transaction cannot itself be reversed' };
+  }
+
+  if (ENTITY_BACKED_TYPES.includes(existing.transaction_type)) {
+    return {
+      success: false,
+      error: `Transactions of type '${existing.transaction_type}' are posted via a dedicated record and must be reversed through its own endpoint (e.g. DELETE /api/income/:id, /api/expenses/:id, /api/school-fees/:id, /api/charges/assignments/:id/unpay, or the withdrawal workflow), not the generic transactions endpoint.`,
+      statusCode: 409
+    };
+  }
+
   try {
-    const existing = getTransactionById(id);
-    if (!existing) {
-      return { success: false, error: 'Transaction not found' };
-    }
-    
-    const deleted = deleteTransaction(id);
-    return { success: deleted, data: deleted ? existing : null };
+    const amount = parseFloat(existing.amount);
+    const amountCents = existing.amount_cents != null ? existing.amount_cents : toCents(amount);
+
+    const insertReversalTx = db.prepare(`
+      INSERT INTO transactions
+        (receipt_number, transaction_type, amount, amount_cents, category_id, student_id,
+         description, payment_method_id, transaction_date, notes, is_reversal,
+         reverses_transaction_id, created_by, updated_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, date('now'), ?, 1, ?, ?, ?)
+    `);
+    const markOriginalReversed = db.prepare(`
+      UPDATE transactions
+      SET is_reversed = 1, reversed_by = ?, reversed_at = CURRENT_TIMESTAMP,
+          reversal_reason = ?, reversal_transaction_id = ?
+      WHERE id = ? AND is_reversed = 0
+    `);
+
+    const reverseAtomically = db.transaction(() => {
+      const receiptNumber = generateReceiptNumber();
+      const reversalTxResult = insertReversalTx.run(
+        receiptNumber, existing.transaction_type, -amount, -amountCents, existing.category_id || null,
+        existing.student_id || null, `Reversal of transaction #${id}${reason ? `: ${reason}` : ''}`,
+        existing.payment_method_id || null, reason, id, reversedBy, reversedBy
+      );
+      const reversalTransactionId = reversalTxResult.lastInsertRowid;
+
+      const changes = markOriginalReversed.run(reversedBy, reason, reversalTransactionId, id).changes;
+      if (changes !== 1) {
+        throw new Error('Transaction was modified concurrently; reversal aborted');
+      }
+
+      return reversalTransactionId;
+    });
+
+    const reversalTransactionId = reverseAtomically();
+
+    logFinancialAction('REVERSAL', 'transactions', id, existing, { reversalTransactionId, reason }, { userId: reversedBy });
+
+    return {
+      success: true,
+      message: 'Transaction reversed successfully (original record preserved for audit)',
+      data: { reversalTransactionId }
+    };
   } catch (error) {
     return { success: false, error: error.message };
   }
@@ -374,7 +497,7 @@ export default {
   getTransactionByReceipt,
   createTransactionRecord,
   updateTransactionRecord,
-  deleteTransactionRecord,
+  reverseTransactionRecord,
   getTransactionsByStudentPaginated,
   getTransactionsByDateRangePaginated,
   searchTransactions,

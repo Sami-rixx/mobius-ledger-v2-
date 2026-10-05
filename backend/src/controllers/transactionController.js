@@ -18,7 +18,7 @@ import {
   getTransactionByReceipt,
   createTransactionRecord,
   updateTransactionRecord,
-  deleteTransactionRecord,
+  reverseTransactionRecord,
   searchTransactions,
   getTransactionStatistics,
   getTransactionCountByFilter
@@ -206,7 +206,7 @@ export const updateTransaction = (req, res) => {
     const result = updateTransactionRecord(parseInt(id), transactionData, userContext);
     
     if (!result.success) {
-      return res.status(400).json({
+      return res.status(result.statusCode || 400).json({
         success: false,
         error: result.error
       });
@@ -226,15 +226,19 @@ export const updateTransaction = (req, res) => {
 
 /**
  * DELETE /api/transactions/:id
- * Delete a transaction
+ * Reverse a posted transaction (posted financial records are never
+ * hard-deleted - see transactionService.reverseTransactionRecord).
  */
 export const deleteTransaction = (req, res) => {
   try {
     const { id } = req.params;
-    const result = deleteTransactionRecord(parseInt(id));
+    const reversedBy = req.user.id;
+    const reason = req.body?.reason || null;
+    const result = reverseTransactionRecord(parseInt(id), reversedBy, reason);
     
     if (!result.success) {
-      return res.status(400).json({
+      const statusCode = result.statusCode || (result.error === 'Transaction not found' ? 404 : 400);
+      return res.status(statusCode).json({
         success: false,
         error: result.error
       });
@@ -243,7 +247,7 @@ export const deleteTransaction = (req, res) => {
     res.json({
       success: true,
       data: result.data,
-      message: 'Transaction deleted successfully'
+      message: result.message
     });
   } catch (error) {
     res.status(500).json({
