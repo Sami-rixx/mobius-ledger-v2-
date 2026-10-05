@@ -3,6 +3,8 @@ import * as IncomeCategoryModel from '../models/IncomeCategory.js';
 import * as TransactionModel from '../models/Transaction.js';
 import db from '../config/database.js';
 import { generateReceiptNumber } from '../utils/receiptGenerator.js';
+import { toCents } from '../utils/money.js';
+import { logFinancialAction } from './auditTrailService.js';
 
 /**
  * Income Service
@@ -293,43 +295,53 @@ export const createIncome = async (data) => {
   }
 
   try {
-    // Create income record
-    const incomeData = {
-      receiptNumber,
-      amount: amountNum,
-      incomeCategoryId,
-      description,
-      payerName,
-      payerContact,
-      paymentMethodId,
-      incomeDate,
-      notes,
-      isVerified: false,
-      createdBy,
-      updatedBy: createdBy
-    };
+    // Create the income record AND its backing ledger transaction
+    // atomically in a single SQLite transaction. Previously these were two
+    // separate, unwrapped writes (IncomeModel.create() then
+    // TransactionModel.createTransaction()) - if the second write failed
+    // (e.g. a DB error, a disk-full condition, process crash) the income
+    // row would be left orphaned with no corresponding ledger entry,
+    // silently corrupting the daily ledger. better-sqlite3 transactions
+    // must be plain synchronous functions, so this performs the raw
+    // synchronous inserts directly rather than calling the async model
+    // wrapper functions (which would break atomicity if awaited mid-
+    // transaction).
+    const amountCents = toCents(amountNum);
+    const txDescription = description || `Income: ${category.name}`;
 
-    const incomeRecord = await IncomeModel.create(incomeData);
+    const insertIncome = db.prepare(`
+      INSERT INTO income
+        (receipt_number, amount, amount_cents, income_category_id, description, payer_name, payer_contact, payment_method_id, income_date, notes, is_verified, created_by, updated_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+    `);
+    const insertTransaction = db.prepare(`
+      INSERT INTO transactions
+        (receipt_number, transaction_type, amount, amount_cents, income_category_id, payment_method_id, transaction_date, description, created_by, updated_by)
+      VALUES (?, 'income', ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const linkTransaction = db.prepare('UPDATE income SET transaction_id = ? WHERE id = ?');
 
-    // Create associated transaction
-    // NOTE: TransactionModel.createTransaction() destructures camelCase keys
-    // (see models/Transaction.js) - this previously used snake_case keys and
-    // called a non-existent `TransactionModel.create()`, which threw
-    // "TypeError: TransactionModel.create is not a function" and made every
-    // income creation fail.
-    const transactionData = {
-      receiptNumber,
-      transactionType: 'income',
-      amount: amountNum,
-      incomeCategoryId,
-      paymentMethodId,
-      transactionDate: incomeDate,
-      description: description || `Income: ${category.name}`,
-      createdBy,
-      updatedBy: createdBy
-    };
+    const createAtomically = db.transaction(() => {
+      const incomeResult = insertIncome.run(
+        receiptNumber, amountNum, amountCents, incomeCategoryId, description || null,
+        payerName, payerContact || null, paymentMethodId || null, incomeDate, notes || null,
+        createdBy, createdBy
+      );
+      const incomeId = incomeResult.lastInsertRowid;
 
-    await TransactionModel.createTransaction(transactionData);
+      const txResult = insertTransaction.run(
+        receiptNumber, amountNum, amountCents, incomeCategoryId, paymentMethodId || null,
+        incomeDate, txDescription, createdBy, createdBy
+      );
+      const transactionId = txResult.lastInsertRowid;
+
+      linkTransaction.run(transactionId, incomeId);
+
+      return incomeId;
+    });
+
+    const incomeId = createAtomically();
+    const incomeRecord = await IncomeModel.getById(incomeId);
 
     return {
       success: true,
@@ -441,7 +453,26 @@ export const updateIncome = async (id, data) => {
  * @param {number} id - Income record ID
  * @returns {Object} - Success response
  */
-export const deleteIncome = async (id) => {
+/**
+ * "Delete" a posted income record.
+ *
+ * SECURITY / FINANCIAL INTEGRITY (owner decision: posted financial records
+ * are immutable and are never hard-deleted): this previously called
+ * `IncomeModel.deleteById(id)`, permanently destroying the row (and, since
+ * there was no FK cascade guard, silently leaving its linked `transactions`
+ * row and any downstream reports pointing at a vanished record). It now
+ * performs a reversal instead - the original income row and its linked
+ * transaction are preserved untouched, a negated reversal transaction is
+ * posted against the ledger, and the income row is flagged `is_reversed`
+ * so reports/ledgers can exclude it going forward while audit history
+ * remains complete. The response envelope (`{ success: true }`) is kept
+ * backward compatible with existing callers/tests.
+ *
+ * @param {number} id - Income record ID
+ * @param {number} reversedBy - authenticated user performing the reversal
+ * @param {string} [reason] - reason for the reversal/correction
+ */
+export const deleteIncome = async (id, reversedBy, reason = null) => {
   const existing = await IncomeModel.getById(id);
   if (!existing) {
     return {
@@ -450,17 +481,70 @@ export const deleteIncome = async (id) => {
     };
   }
 
-  try {
-    await IncomeModel.deleteById(id);
-    return {
-      success: true,
-      message: 'Income record deleted successfully'
-    };
-  } catch (error) {
-    console.error('Error deleting income:', error);
+  if (existing.is_reversed) {
     return {
       success: false,
-      error: 'Failed to delete income record'
+      error: 'This income record has already been reversed'
+    };
+  }
+
+  try {
+    const amount = parseFloat(existing.amount);
+    const amountCents = toCents(amount);
+
+    const insertReversalTx = db.prepare(`
+      INSERT INTO transactions
+        (receipt_number, transaction_type, amount, amount_cents, income_category_id, payment_method_id,
+         transaction_date, description, is_reversal, reverses_transaction_id, created_by, updated_by)
+      VALUES (?, 'income', ?, ?, ?, ?, date('now'), ?, 1, ?, ?, ?)
+    `);
+    const markOriginalTxReversed = db.prepare(`
+      UPDATE transactions
+      SET is_reversed = 1, reversed_by = ?, reversed_at = CURRENT_TIMESTAMP,
+          reversal_reason = ?, reversal_transaction_id = ?
+      WHERE id = ?
+    `);
+    const markIncomeReversed = db.prepare(`
+      UPDATE income
+      SET is_reversed = 1, reversed_by = ?, reversed_at = CURRENT_TIMESTAMP, reversal_reason = ?
+      WHERE id = ? AND is_reversed = 0
+    `);
+
+    const reverseAtomically = db.transaction(() => {
+      const receiptNumber = generateReceiptNumber();
+      const reversalTxResult = insertReversalTx.run(
+        receiptNumber, -amount, -amountCents, existing.income_category_id, existing.payment_method_id || null,
+        `Reversal of income #${id}${reason ? `: ${reason}` : ''}`, existing.transaction_id || null,
+        reversedBy, reversedBy
+      );
+      const reversalTransactionId = reversalTxResult.lastInsertRowid;
+
+      if (existing.transaction_id) {
+        markOriginalTxReversed.run(reversedBy, reason, reversalTransactionId, existing.transaction_id);
+      }
+
+      const changes = markIncomeReversed.run(reversedBy, reason, id).changes;
+      if (changes !== 1) {
+        throw new Error('Income record was modified concurrently; reversal aborted');
+      }
+
+      return reversalTransactionId;
+    });
+
+    const reversalTransactionId = reverseAtomically();
+
+    logFinancialAction('REVERSAL', 'income', id, existing, { reversalTransactionId, reason }, { userId: reversedBy });
+
+    return {
+      success: true,
+      message: 'Income record reversed successfully (original record preserved for audit)',
+      data: { reversalTransactionId }
+    };
+  } catch (error) {
+    console.error('Error reversing income:', error);
+    return {
+      success: false,
+      error: 'Failed to reverse income record'
     };
   }
 };

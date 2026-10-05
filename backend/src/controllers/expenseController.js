@@ -502,7 +502,7 @@ export const deleteExpense = async (req, res, next) => {
       });
     }
 
-    const result = await expenseService.deleteExpense(id);
+    const result = await expenseService.deleteExpense(id, req.user.id, req.body?.reason || null);
 
     if (!result.success) {
       return res.status(result.error.includes('not found') ? 404 : 400).json(result);

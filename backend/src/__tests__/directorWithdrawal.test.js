@@ -144,6 +144,14 @@ describe('Director Withdrawal Module', () => {
     const userResult = db.prepare('INSERT OR IGNORE INTO users (username, full_name, email) VALUES (?, ?, ?)').run('testuser', 'Test User', 'test@example.com');
     const userId = userResult.lastInsertRowid || db.prepare('SELECT id FROM users WHERE username = ?').get('testuser').id;
 
+    // A second, distinct user acting as the approver/rejecter - withdrawal
+    // maker-checker (owner decision: creator can never approve/reject their
+    // own withdrawal) requires two different actors to exercise the
+    // legitimate approve/reject path; using the same user for both would
+    // now always be rejected as self-approval.
+    const approverResult = db.prepare('INSERT OR IGNORE INTO users (username, full_name, email) VALUES (?, ?, ?)').run('testapprover', 'Test Approver', 'approver@example.com');
+    const approverId = approverResult.lastInsertRowid || db.prepare('SELECT id FROM users WHERE username = ?').get('testapprover').id;
+
     db.prepare('INSERT OR IGNORE INTO payment_methods (name, description) VALUES (?, ?)').run('Cash', 'Cash payment');
     db.prepare('INSERT OR IGNORE INTO payment_methods (name, description) VALUES (?, ?)').run('Bank Transfer', 'Bank transfer payment');
     
@@ -154,6 +162,7 @@ describe('Director Withdrawal Module', () => {
     
     // Store userId for tests
     global.testUserId = userId;
+    global.testApproverId = approverId;
     global.testPaymentMethodId = paymentMethodId;
     // db is the shared real singleton (used by every other test file in
     // this worker too) - do not close it here.
@@ -169,9 +178,9 @@ describe('Director Withdrawal Module', () => {
       // updated_by (both NOT NULL FKs) then made the users delete below
       // throw "FOREIGN KEY constraint failed". Delete by the test user's
       // id as well so every withdrawal this suite created is removed.
-      db.prepare('DELETE FROM director_withdrawals WHERE purpose LIKE ? OR created_by = ? OR updated_by = ?')
-        .run('%Test%', global.testUserId, global.testUserId);
-      db.prepare('DELETE FROM users WHERE username = ?').run('testuser');
+      db.prepare('DELETE FROM director_withdrawals WHERE purpose LIKE ? OR created_by = ? OR updated_by = ? OR created_by = ? OR updated_by = ?')
+        .run('%Test%', global.testUserId, global.testUserId, global.testApproverId, global.testApproverId);
+      db.prepare('DELETE FROM users WHERE username = ? OR username = ?').run('testuser', 'testapprover');
       db.prepare('DELETE FROM payment_methods WHERE name = ? OR name = ?').run('Cash', 'Bank Transfer');
     } catch (error) {
       console.error('Error cleaning up test data:', error.message);
@@ -456,7 +465,7 @@ describe('Director Withdrawal Module', () => {
           // Approve it first
           await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
 
           // Try to delete approved withdrawal
@@ -492,7 +501,7 @@ describe('Director Withdrawal Module', () => {
         if (createResult.success) {
           const approveResult = await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId,
+            global.testApproverId,
             'Approval notes'
           );
 
@@ -514,13 +523,13 @@ describe('Director Withdrawal Module', () => {
           // Approve it first
           await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
 
           // Try to approve again
           const approveResult = await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
 
           expect(approveResult.success).toBe(false);
@@ -538,6 +547,99 @@ describe('Director Withdrawal Module', () => {
       });
     });
 
+    describe('Withdrawal maker-checker: self-approval/self-rejection', () => {
+      it('must reject an attempt by the creator to approve their own withdrawal', async () => {
+        const createResult = await directorWithdrawalService.createWithdrawal({
+          amount: 1000,
+          purpose: 'Test Purpose for Self-Approval',
+          recipientName: 'Test Recipient'
+        }, global.testUserId);
+
+        expect(createResult.success).toBe(true);
+
+        const approveResult = await directorWithdrawalService.approveWithdrawal(
+          createResult.data.id,
+          global.testUserId,
+          'Approving my own request'
+        );
+
+        expect(approveResult.success).toBe(false);
+        expect(approveResult.error.toLowerCase()).toContain('own');
+
+        // The withdrawal must remain pending - a rejected self-approval
+        // attempt must not have any side effect on its status.
+        const stillPending = await directorWithdrawalService.getWithdrawalById(createResult.data.id);
+        expect(stillPending.data.status).toBe('pending');
+      });
+
+      it('must reject an attempt by the creator to reject their own withdrawal', async () => {
+        const createResult = await directorWithdrawalService.createWithdrawal({
+          amount: 1000,
+          purpose: 'Test Purpose for Self-Rejection',
+          recipientName: 'Test Recipient'
+        }, global.testUserId);
+
+        expect(createResult.success).toBe(true);
+
+        const rejectResult = await directorWithdrawalService.rejectWithdrawal(
+          createResult.data.id,
+          global.testUserId,
+          'Rejecting my own request'
+        );
+
+        expect(rejectResult.success).toBe(false);
+        expect(rejectResult.error.toLowerCase()).toContain('own');
+
+        const stillPending = await directorWithdrawalService.getWithdrawalById(createResult.data.id);
+        expect(stillPending.data.status).toBe('pending');
+      });
+
+      it('allows approval by a different, authorized user', async () => {
+        const createResult = await directorWithdrawalService.createWithdrawal({
+          amount: 1000,
+          purpose: 'Test Purpose for Cross-User Approval',
+          recipientName: 'Test Recipient'
+        }, global.testUserId);
+
+        const approveResult = await directorWithdrawalService.approveWithdrawal(
+          createResult.data.id,
+          global.testApproverId,
+          'Approved by a different user'
+        );
+
+        expect(approveResult.success).toBe(true);
+        expect(approveResult.data.status).toBe('approved');
+      });
+
+      it('atomically posts an approved withdrawal to the transactions ledger', async () => {
+        const createResult = await directorWithdrawalService.createWithdrawal({
+          amount: 2500,
+          purpose: 'Test Purpose for Ledger Posting',
+          recipientName: 'Test Recipient'
+        }, global.testUserId);
+
+        const approveResult = await directorWithdrawalService.approveWithdrawal(
+          createResult.data.id,
+          global.testApproverId
+        );
+
+        expect(approveResult.success).toBe(true);
+        expect(approveResult.data.transaction_id).toBeTruthy();
+
+        // NOTE: use __realDb explicitly here, not the `db` variable from the
+        // enclosing scope - the nested 'Director Withdrawal Service' describe
+        // block shadows `db` in its own beforeEach with a disconnected,
+        // on-disk `new Database(TEST_DB_PATH)` fixture file that the actual
+        // service under test never reads or writes through (see the
+        // comment above the `__realDb` import for the historical bug this
+        // caused elsewhere in this file).
+        const postedTransaction = __realDb.prepare('SELECT * FROM transactions WHERE id = ?').get(approveResult.data.transaction_id);
+        expect(postedTransaction).toBeDefined();
+        expect(postedTransaction.transaction_type).toBe('director_withdrawal');
+        expect(parseFloat(postedTransaction.amount)).toBe(2500);
+      });
+    });
+
     describe('rejectWithdrawal', () => {
       it('should reject a pending withdrawal with a reason', async () => {
         // First create a withdrawal
@@ -550,7 +652,7 @@ describe('Director Withdrawal Module', () => {
         if (createResult.success) {
           const rejectResult = await directorWithdrawalService.rejectWithdrawal(
             createResult.data.id,
-            global.testUserId,
+            global.testApproverId,
             'Insufficient funds'
           );
 
@@ -582,13 +684,13 @@ describe('Director Withdrawal Module', () => {
           // Approve it first
           await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
 
           // Try to reject approved withdrawal
           const rejectResult = await directorWithdrawalService.rejectWithdrawal(
             createResult.data.id,
-            global.testUserId,
+            global.testApproverId,
             'Reason'
           );
 
@@ -621,7 +723,7 @@ describe('Director Withdrawal Module', () => {
           // Approve it first
           await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
 
           // Mark as completed
@@ -700,7 +802,7 @@ describe('Director Withdrawal Module', () => {
           // Approve and complete it
           await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
           await directorWithdrawalService.completeWithdrawal(
             createResult.data.id,

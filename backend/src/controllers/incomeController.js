@@ -497,7 +497,7 @@ export const deleteIncome = async (req, res, next) => {
       });
     }
 
-    const result = await incomeService.deleteIncome(id);
+    const result = await incomeService.deleteIncome(id, req.user.id, req.body?.reason || null);
 
     if (!result.success) {
       return res.status(result.error.includes('not found') ? 404 : 400).json(result);

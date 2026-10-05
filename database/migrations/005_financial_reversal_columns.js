@@ -13,7 +13,7 @@ export default {
   id: '005_financial_reversal_columns',
   description: 'Add reversal/correction tracking columns to financial tables',
   up(db) {
-    const targets = ['income', 'expenses', 'director_withdrawals'];
+    const targets = ['income', 'expenses', 'director_withdrawals', 'transactions'];
     for (const table of targets) {
       if (!tableExists(db, table)) continue;
       addColumnIfMissing(db, table, 'is_reversed', 'INTEGER NOT NULL DEFAULT 0');

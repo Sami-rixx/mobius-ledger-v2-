@@ -3,6 +3,8 @@ import * as ExpenseCategoryModel from '../models/ExpenseCategory.js';
 import * as TransactionModel from '../models/Transaction.js';
 import db from '../config/database.js';
 import { generateReceiptNumber } from '../utils/receiptGenerator.js';
+import { toCents } from '../utils/money.js';
+import { logFinancialAction } from './auditTrailService.js';
 
 /**
  * Expense Service
@@ -304,40 +306,46 @@ export const createExpense = async (data) => {
   }
 
   try {
-    // Create expense record
-    const expenseData = {
-      amount: amountNum,
-      expenseCategoryId,
-      description,
-      vendorName,
-      vendorContact,
-      paymentMethodId,
-      expenseDate,
-      receiptNumber,
-      notes,
-      isVerified: false,
-      createdBy,
-      updatedBy: createdBy
-    };
+    // Create the expense record AND its backing ledger transaction
+    // atomically (see incomeService.createIncome for the detailed
+    // rationale - two previously-unwrapped writes could leave an orphaned
+    // expense row with no ledger entry on partial failure).
+    const amountCents = toCents(amountNum);
+    const txDescription = description || `Expense: ${category.name}`;
 
-    const expenseRecord = await ExpenseModel.create(expenseData);
+    const insertExpense = db.prepare(`
+      INSERT INTO expenses
+        (receipt_number, amount, amount_cents, expense_category_id, description, vendor_name, vendor_contact, payment_method_id, expense_date, notes, is_verified, created_by, updated_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+    `);
+    const insertTransaction = db.prepare(`
+      INSERT INTO transactions
+        (receipt_number, transaction_type, amount, amount_cents, expense_category_id, payment_method_id, transaction_date, description, created_by, updated_by)
+      VALUES (?, 'expense', ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const linkTransaction = db.prepare('UPDATE expenses SET transaction_id = ? WHERE id = ?');
 
-    // Create associated transaction
-    // NOTE: see incomeService.js for why this must use camelCase keys and
-    // call createTransaction() (not the non-existent `.create()`).
-    const transactionData = {
-      receiptNumber,
-      transactionType: 'expense',
-      amount: amountNum,
-      expenseCategoryId,
-      paymentMethodId,
-      transactionDate: expenseDate,
-      description: description || `Expense: ${category.name}`,
-      createdBy,
-      updatedBy: createdBy
-    };
+    const createAtomically = db.transaction(() => {
+      const expenseResult = insertExpense.run(
+        receiptNumber, amountNum, amountCents, expenseCategoryId, description || null,
+        vendorName, vendorContact || null, paymentMethodId || null, expenseDate, notes || null,
+        createdBy, createdBy
+      );
+      const expenseId = expenseResult.lastInsertRowid;
 
-    await TransactionModel.createTransaction(transactionData);
+      const txResult = insertTransaction.run(
+        receiptNumber, amountNum, amountCents, expenseCategoryId, paymentMethodId || null,
+        expenseDate, txDescription, createdBy, createdBy
+      );
+      const transactionId = txResult.lastInsertRowid;
+
+      linkTransaction.run(transactionId, expenseId);
+
+      return expenseId;
+    });
+
+    const expenseId = createAtomically();
+    const expenseRecord = await ExpenseModel.getById(expenseId);
 
     return {
       success: true,
@@ -445,11 +453,17 @@ export const updateExpense = async (id, data) => {
 };
 
 /**
- * Delete an expense record
+ * "Delete" a posted expense record via reversal (see
+ * incomeService.deleteIncome for the full rationale - posted financial
+ * records are immutable and are never hard-deleted; `ExpenseModel.deleteById`
+ * still exists as a low-level primitive, but is no longer called from this
+ * service's public delete path).
  * @param {number} id - Expense record ID
+ * @param {number} [reversedBy] - authenticated user performing the reversal
+ * @param {string} [reason] - reason for the reversal/correction
  * @returns {Object} - Success response
  */
-export const deleteExpense = async (id) => {
+export const deleteExpense = async (id, reversedBy = null, reason = null) => {
   const existing = await ExpenseModel.getById(id);
   if (!existing) {
     return {
@@ -458,17 +472,70 @@ export const deleteExpense = async (id) => {
     };
   }
 
-  try {
-    await ExpenseModel.deleteById(id);
-    return {
-      success: true,
-      message: 'Expense record deleted successfully'
-    };
-  } catch (error) {
-    console.error('Error deleting expense:', error);
+  if (existing.is_reversed) {
     return {
       success: false,
-      error: 'Failed to delete expense record'
+      error: 'This expense record has already been reversed'
+    };
+  }
+
+  try {
+    const amount = parseFloat(existing.amount);
+    const amountCents = toCents(amount);
+
+    const insertReversalTx = db.prepare(`
+      INSERT INTO transactions
+        (receipt_number, transaction_type, amount, amount_cents, expense_category_id, payment_method_id,
+         transaction_date, description, is_reversal, reverses_transaction_id, created_by, updated_by)
+      VALUES (?, 'expense', ?, ?, ?, ?, date('now'), ?, 1, ?, ?, ?)
+    `);
+    const markOriginalTxReversed = db.prepare(`
+      UPDATE transactions
+      SET is_reversed = 1, reversed_by = ?, reversed_at = CURRENT_TIMESTAMP,
+          reversal_reason = ?, reversal_transaction_id = ?
+      WHERE id = ?
+    `);
+    const markExpenseReversed = db.prepare(`
+      UPDATE expenses
+      SET is_reversed = 1, reversed_by = ?, reversed_at = CURRENT_TIMESTAMP, reversal_reason = ?
+      WHERE id = ? AND is_reversed = 0
+    `);
+
+    const reverseAtomically = db.transaction(() => {
+      const receiptNumber = generateReceiptNumber();
+      const reversalTxResult = insertReversalTx.run(
+        receiptNumber, -amount, -amountCents, existing.expense_category_id, existing.payment_method_id || null,
+        `Reversal of expense #${id}${reason ? `: ${reason}` : ''}`, existing.transaction_id || null,
+        reversedBy, reversedBy
+      );
+      const reversalTransactionId = reversalTxResult.lastInsertRowid;
+
+      if (existing.transaction_id) {
+        markOriginalTxReversed.run(reversedBy, reason, reversalTransactionId, existing.transaction_id);
+      }
+
+      const changes = markExpenseReversed.run(reversedBy, reason, id).changes;
+      if (changes !== 1) {
+        throw new Error('Expense record was modified concurrently; reversal aborted');
+      }
+
+      return reversalTransactionId;
+    });
+
+    const reversalTransactionId = reverseAtomically();
+
+    logFinancialAction('REVERSAL', 'expenses', id, existing, { reversalTransactionId, reason }, { userId: reversedBy });
+
+    return {
+      success: true,
+      message: 'Expense record reversed successfully (original record preserved for audit)',
+      data: { reversalTransactionId }
+    };
+  } catch (error) {
+    console.error('Error reversing expense:', error);
+    return {
+      success: false,
+      error: 'Failed to reverse expense record'
     };
   }
 };

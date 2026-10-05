@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * Expense Model
@@ -290,6 +291,7 @@ export async function create(data) {
   const query = `
     INSERT INTO ${TABLE} (
       ${FIELDS.AMOUNT},
+      amount_cents,
       ${FIELDS.EXPENSE_CATEGORY_ID},
       ${FIELDS.DESCRIPTION},
       ${FIELDS.VENDOR_NAME},
@@ -302,11 +304,12 @@ export async function create(data) {
       ${FIELDS.IS_VERIFIED},
       ${FIELDS.CREATED_BY},
       ${FIELDS.UPDATED_BY}
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
     amount,
+    toCents(amount),
     expenseCategoryId,
     description,
     vendorName,
@@ -358,6 +361,8 @@ export async function update(id, data) {
   if (amount !== undefined) {
     updates.push(`${FIELDS.AMOUNT} = ?`);
     params.push(amount);
+    updates.push(`amount_cents = ?`);
+    params.push(toCents(amount));
   }
   if (expenseCategoryId !== undefined) {
     updates.push(`${FIELDS.EXPENSE_CATEGORY_ID} = ?`);

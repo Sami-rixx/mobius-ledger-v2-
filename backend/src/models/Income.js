@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * Income Model
@@ -287,6 +288,7 @@ export async function create(data) {
     INSERT INTO ${TABLE} (
       ${FIELDS.RECEIPT_NUMBER},
       ${FIELDS.AMOUNT},
+      amount_cents,
       ${FIELDS.INCOME_CATEGORY_ID},
       ${FIELDS.DESCRIPTION},
       ${FIELDS.PAYER_NAME},
@@ -298,12 +300,13 @@ export async function create(data) {
       ${FIELDS.IS_VERIFIED},
       ${FIELDS.CREATED_BY},
       ${FIELDS.UPDATED_BY}
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
     receiptNumber,
     amount,
+    toCents(amount),
     incomeCategoryId,
     description,
     payerName,
@@ -358,6 +361,8 @@ export async function update(id, data) {
   if (amount !== undefined) {
     updates.push(`${FIELDS.AMOUNT} = ?`);
     params.push(amount);
+    updates.push(`amount_cents = ?`);
+    params.push(toCents(amount));
   }
   if (incomeCategoryId !== undefined) {
     updates.push(`${FIELDS.INCOME_CATEGORY_ID} = ?`);

@@ -1,4 +1,6 @@
 import db from '../config/database.js';
+import { resolveOrder } from '../utils/sortUtils.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * Transaction Model
@@ -41,6 +43,33 @@ const FIELDS = {
   CREATED_BY: 'created_by',
   UPDATED_BY: 'updated_by'
 };
+
+// Allowlist of symbolic sort keys -> real column expressions (prevents
+// ORDER BY SQL injection from client-supplied orderBy/orderDir values).
+const TRANSACTION_SORT_COLUMNS = {
+  amount: 'amount',
+  category_id: 'category_id',
+  created_at: 'created_at',
+  created_by: 'created_by',
+  description: 'description',
+  expense_category_id: 'expense_category_id',
+  id: 'id',
+  income_category_id: 'income_category_id',
+  is_verified: 'is_verified',
+  notes: 'notes',
+  payment_method_id: 'payment_method_id',
+  receipt_number: 'receipt_number',
+  reference: 'reference',
+  student_id: 'student_id',
+  transaction_date: 'transaction_date',
+  transaction_time: 'transaction_time',
+  transaction_type: 'transaction_type',
+  updated_at: 'updated_at',
+  updated_by: 'updated_by',
+  verified_at: 'verified_at',
+  verified_by: 'verified_by'
+};
+
 
 // Valid transaction types
 const VALID_TYPES = ['income', 'expense', 'school_fee', 'lunch_fee', 'student_charge', 'director_withdrawal'];
@@ -105,7 +134,8 @@ export const getAllTransactions = (options = {}) => {
     query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const __sort = resolveOrder(TRANSACTION_SORT_COLUMNS, 'transaction_date', 'DESC', orderBy, orderDir);
+  query += ` ORDER BY ${__sort.column} ${__sort.direction} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);
@@ -206,17 +236,18 @@ export const createTransaction = (data) => {
 
   const stmt = db.prepare(`
     INSERT INTO ${TABLE} 
-    (receipt_number, transaction_type, amount, category_id, income_category_id, 
+    (receipt_number, transaction_type, amount, amount_cents, category_id, income_category_id, 
      expense_category_id, student_id, description, payment_method_id, 
      transaction_date, transaction_time, reference, notes, is_verified, 
      verified_by, verified_at, created_by, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
     receiptNumber,
     transactionType,
     amount,
+    toCents(amount),
     categoryId,
     incomeCategoryId,
     expenseCategoryId,
@@ -269,9 +300,11 @@ export const updateTransaction = (id, data) => {
     updatedBy
   } = data;
 
+  const resolvedAmount = amount || existing.amount;
+
   const stmt = db.prepare(`
     UPDATE ${TABLE} 
-    SET receipt_number = ?, transaction_type = ?, amount = ?, category_id = ?, 
+    SET receipt_number = ?, transaction_type = ?, amount = ?, amount_cents = ?, category_id = ?, 
         income_category_id = ?, expense_category_id = ?, student_id = ?, 
         description = ?, payment_method_id = ?, transaction_date = ?, 
         transaction_time = ?, reference = ?, notes = ?, is_verified = ?, 
@@ -282,7 +315,8 @@ export const updateTransaction = (id, data) => {
   stmt.run(
     receiptNumber || existing.receipt_number,
     transactionType || existing.transaction_type,
-    amount || existing.amount,
+    resolvedAmount,
+    toCents(resolvedAmount),
     categoryId || existing.category_id,
     incomeCategoryId || existing.income_category_id,
     expenseCategoryId || existing.expense_category_id,

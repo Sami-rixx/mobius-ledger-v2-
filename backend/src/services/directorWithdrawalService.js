@@ -4,6 +4,9 @@ import * as PaymentMethodModel from '../models/PaymentMethod.js';
 import * as UserModel from '../models/User.js';
 import db from '../config/database.js';
 import { WITHDRAWAL_STATUS } from '../models/DirectorWithdrawal.js';
+import { generateReceiptNumber } from '../utils/receiptGenerator.js';
+import { toCents } from '../utils/money.js';
+import { logFinancialAction } from './auditTrailService.js';
 
 /**
  * Director Withdrawal Service
@@ -528,17 +531,97 @@ export const approveWithdrawal = async (id, approvedBy, notes = null) => {
       };
     }
 
-    // Check if approver exists
-    const approver = await UserModel.getById(approvedBy);
-    if (!approver) {
+    // SECURITY / SEPARATION OF DUTIES (owner decision: strict maker-checker
+    // - the creator of a withdrawal request can never approve their own
+    // request, regardless of role). This is enforced here in the service
+    // layer (not just via UI affordances) so it cannot be bypassed by
+    // calling the API directly.
+    if (Number(currentWithdrawal.created_by) === Number(approvedBy)) {
       return {
         success: false,
-        error: 'Approver not found',
+        error: 'Withdrawal creator cannot approve their own withdrawal request. A different authorized user must approve it.',
+        statusCode: 403
+      };
+    }
+
+    // Check if approver exists and is active
+    const approver = await UserModel.getById(approvedBy);
+    if (!approver || approver.is_active === false) {
+      return {
+        success: false,
+        error: 'Approver not found or inactive',
         statusCode: 400
       };
     }
 
-    const record = await DirectorWithdrawalModel.approve(id, approvedBy, notes);
+    // Atomically post the approved withdrawal to the ledger AND flip its
+    // status in a single SQLite transaction: previously `approve()` only
+    // updated the withdrawal row and never created a corresponding
+    // `transactions` row, so approved withdrawals silently never affected
+    // the daily ledger/summary totals. The WHERE status = 'pending' guard
+    // on the UPDATE prevents a race where two concurrent approval requests
+    // could otherwise both succeed and post the withdrawal twice.
+    const amountNum = parseFloat(currentWithdrawal.amount);
+    const amountCents = toCents(amountNum);
+    const receiptNumber = generateReceiptNumber();
+
+    const insertTransaction = db.prepare(`
+      INSERT INTO transactions
+        (receipt_number, transaction_type, amount, amount_cents, payment_method_id,
+         transaction_date, description, reference, created_by, updated_by)
+      VALUES (?, 'director_withdrawal', ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const updateWithdrawal = db.prepare(`
+      UPDATE director_withdrawals SET
+        status = ?,
+        approved_by = ?,
+        approved_at = CURRENT_TIMESTAMP,
+        transaction_id = ?,
+        notes = COALESCE(notes, '') || ?,
+        updated_by = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND status = 'pending'
+    `);
+
+    const approveAtomically = db.transaction(() => {
+      const txResult = insertTransaction.run(
+        receiptNumber,
+        amountNum,
+        amountCents,
+        currentWithdrawal.payment_method_id || null,
+        currentWithdrawal.withdrawal_date,
+        `Director withdrawal: ${currentWithdrawal.purpose}`,
+        `withdrawal:${id}`,
+        approvedBy,
+        approvedBy
+      );
+      const transactionId = txResult.lastInsertRowid;
+
+      const result = updateWithdrawal.run(
+        WITHDRAWAL_STATUS.APPROVED,
+        approvedBy,
+        transactionId,
+        notes ? `\nApproval note: ${notes}` : '',
+        approvedBy,
+        id
+      );
+
+      if (result.changes !== 1) {
+        // Someone else changed the withdrawal's status concurrently
+        // between our check above and this update - abort the whole
+        // transaction (including the transaction insert) rather than
+        // leaving an orphaned ledger entry.
+        throw new Error('Withdrawal status changed concurrently; approval aborted');
+      }
+
+      return transactionId;
+    });
+
+    approveAtomically();
+
+    const record = await DirectorWithdrawalModel.getById(id);
+
+    logFinancialAction('WITHDRAWAL_APPROVED', 'director_withdrawals', id, currentWithdrawal, record, { userId: approvedBy });
 
     return {
       success: true,
@@ -595,17 +678,30 @@ export const rejectWithdrawal = async (id, rejectedBy, reason) => {
       };
     }
 
-    // Check if rejecter exists
-    const rejecter = await UserModel.getById(rejectedBy);
-    if (!rejecter) {
+    // SECURITY / SEPARATION OF DUTIES: the creator of a withdrawal request
+    // can never reject (or approve) their own request. Enforced here in the
+    // service layer so it cannot be bypassed by calling the API directly.
+    if (Number(currentWithdrawal.created_by) === Number(rejectedBy)) {
       return {
         success: false,
-        error: 'Rejecter not found',
+        error: 'Withdrawal creator cannot reject their own withdrawal request. A different authorized user must reject it.',
+        statusCode: 403
+      };
+    }
+
+    // Check if rejecter exists
+    const rejecter = await UserModel.getById(rejectedBy);
+    if (!rejecter || rejecter.is_active === false) {
+      return {
+        success: false,
+        error: 'Rejecter not found or inactive',
         statusCode: 400
       };
     }
 
     const record = await DirectorWithdrawalModel.reject(id, rejectedBy, reason);
+
+    logFinancialAction('WITHDRAWAL_REJECTED', 'director_withdrawals', id, currentWithdrawal, record, { userId: rejectedBy });
 
     return {
       success: true,
