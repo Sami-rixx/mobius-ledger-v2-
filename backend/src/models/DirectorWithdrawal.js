@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * Director Withdrawal Model
@@ -35,6 +36,7 @@ const WITHDRAWAL_STATUS = {
 const FIELDS = {
   ID: 'id',
   AMOUNT: 'amount',
+  AMOUNT_CENTS: 'amount_cents',
   LABEL: 'label',
   PURPOSE: 'purpose',
   DESCRIPTION: 'description',
@@ -228,6 +230,7 @@ export async function create(data) {
   const query = `
     INSERT INTO ${TABLE} (
       ${FIELDS.AMOUNT},
+      ${FIELDS.AMOUNT_CENTS},
       ${FIELDS.LABEL},
       ${FIELDS.PURPOSE},
       ${FIELDS.DESCRIPTION},
@@ -241,11 +244,12 @@ export async function create(data) {
       ${FIELDS.UPDATED_BY},
       ${FIELDS.CREATED_AT},
       ${FIELDS.UPDATED_AT}
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   `;
 
   const params = [
     amount,
+    toCents(amount),
     label,
     purpose,
     description,
@@ -315,6 +319,8 @@ export async function update(id, data) {
   if (amount !== undefined) {
     updates.push(`${FIELDS.AMOUNT} = ?`);
     params.push(amount);
+    updates.push(`${FIELDS.AMOUNT_CENTS} = ?`);
+    params.push(toCents(amount));
   }
   if (label !== undefined) {
     updates.push(`${FIELDS.LABEL} = ?`);

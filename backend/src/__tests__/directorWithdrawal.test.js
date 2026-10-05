@@ -299,6 +299,9 @@ describe('Director Withdrawal Module', () => {
         expect(result.data.recipient_name).toBe('Test Recipient');
         expect(result.data.status).toBe('pending');
         expect(result.data.is_pending).toBe(true);
+        // amount_cents must always be populated and consistent with amount
+        // (owner decision 7: no partially-migrated dual-unit state).
+        expect(result.data.amount_cents).toBe(100000);
       });
 
       it('should fail validation for missing amount', async () => {
