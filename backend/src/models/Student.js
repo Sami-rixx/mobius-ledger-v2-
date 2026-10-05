@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { resolveOrder } from '../utils/sortUtils.js';
 
 /**
  * Student Model
@@ -34,6 +35,24 @@ const FIELDS = {
   CREATED_BY: 'created_by',
   UPDATED_BY: 'updated_by'
 };
+
+// Allowlist of symbolic sort keys -> real column expressions (prevents
+// ORDER BY SQL injection from client-supplied orderBy/orderDir values).
+const STUDENT_SORT_COLUMNS = {
+  'last_name, first_name': 's.last_name, s.first_name',
+  's.admission_number': 's.admission_number',
+  's.class_id': 's.class_id',
+  's.created_at': 's.created_at',
+  's.date_of_birth': 's.date_of_birth',
+  's.first_name': 's.first_name',
+  's.gender': 's.gender',
+  's.id': 's.id',
+  's.last_name': 's.last_name',
+  's.status': 's.status',
+  's.updated_at': 's.updated_at',
+  class_name: 'c.name'
+};
+
 
 // Valid status values
 const VALID_STATUSES = ['Active', 'Inactive', 'Graduated', 'Transferred'];
@@ -91,7 +110,8 @@ export const getAllStudents = (options = {}) => {
   }
 
   // Add ordering and pagination
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const __sort = resolveOrder(STUDENT_SORT_COLUMNS, 'last_name, first_name', 'ASC', orderBy, orderDir);
+  query += ` ORDER BY ${__sort.column} ${__sort.direction} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);

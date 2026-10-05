@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { resolveOrder } from '../utils/sortUtils.js';
 
 /**
  * Student Charge Assignment Model
@@ -40,6 +41,23 @@ const FIELDS = {
   PAYMENT_TRANSACTION_ID: 'payment_transaction_id',
   NOTES: 'notes'
 };
+
+// Allowlist of symbolic sort keys -> real column expressions (prevents
+// ORDER BY SQL injection from client-supplied orderBy/orderDir values).
+const STUDENT_CHARGE_ASSIGNMENT_SORT_COLUMNS = {
+  'sca.amount': 'sca.amount',
+  'sca.assigned_at': 'sca.assigned_at',
+  'sca.charge_id': 'sca.charge_id',
+  'sca.id': 'sca.id',
+  'sca.paid': 'sca.paid',
+  'sca.paid_at': 'sca.paid_at',
+  'sca.student_id': 'sca.student_id',
+  last_name: 's.last_name',
+  admission_number: 's.admission_number',
+  class_name: 'c.name',
+  receipt_number: 't.receipt_number'
+};
+
 
 /**
  * Get all student charge assignments with optional filtering
@@ -124,8 +142,9 @@ export const getAllStudentChargeAssignments = (options = {}) => {
     query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
+  const __sort = resolveOrder(STUDENT_CHARGE_ASSIGNMENT_SORT_COLUMNS, 'sca.assigned_at', 'DESC', orderBy, orderDir);
   query += `
-    ORDER BY ${orderBy} ${orderDir}
+    ORDER BY ${__sort.column} ${__sort.direction}
     LIMIT ? OFFSET ?
   `;
 

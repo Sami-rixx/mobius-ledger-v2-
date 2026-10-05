@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { resolveOrder } from '../utils/sortUtils.js';
 
 /**
  * Student Charge Model
@@ -45,6 +46,25 @@ const FIELDS = {
   CREATED_BY: 'created_by',
   UPDATED_BY: 'updated_by'
 };
+
+// Allowlist of symbolic sort keys -> real column expressions (prevents
+// ORDER BY SQL injection from client-supplied orderBy/orderDir values).
+const STUDENT_CHARGE_SORT_COLUMNS = {
+  'sc.amount': 'sc.amount',
+  'sc.charge_type': 'sc.charge_type',
+  'sc.class_id': 'sc.class_id',
+  'sc.created_at': 'sc.created_at',
+  'sc.due_date': 'sc.due_date',
+  'sc.id': 'sc.id',
+  'sc.is_active': 'sc.is_active',
+  'sc.name': 'sc.name',
+  'sc.updated_at': 'sc.updated_at',
+  class_name: 'c.name',
+  assignment_count: 'assignment_count',
+  total_paid: 'total_paid',
+  total_assigned: 'total_assigned'
+};
+
 
 // Valid charge types
 const VALID_CHARGE_TYPES = ['individual', 'all', 'class', 'grade', 'custom'];
@@ -120,9 +140,10 @@ export const getAllStudentCharges = (options = {}) => {
     query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
+  const __sort = resolveOrder(STUDENT_CHARGE_SORT_COLUMNS, 'sc.created_at', 'DESC', orderBy, orderDir);
   query += `
     GROUP BY sc.id
-    ORDER BY ${orderBy} ${orderDir}
+    ORDER BY ${__sort.column} ${__sort.direction}
     LIMIT ? OFFSET ?
   `;
 

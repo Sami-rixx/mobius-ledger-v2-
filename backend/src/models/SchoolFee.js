@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { resolveOrder } from '../utils/sortUtils.js';
 
 /**
  * School Fee Model
@@ -34,6 +35,24 @@ const FIELDS = {
   CREATED_BY: 'created_by',
   UPDATED_BY: 'updated_by'
 };
+
+// Allowlist of symbolic sort keys -> real column expressions (prevents
+// ORDER BY SQL injection from client-supplied orderBy/orderDir values).
+const SCHOOL_FEE_SORT_COLUMNS = {
+  'sfp.academic_year': 'sfp.academic_year',
+  'sfp.amount': 'sfp.amount',
+  'sfp.created_at': 'sfp.created_at',
+  'sfp.id': 'sfp.id',
+  'sfp.payment_date': 'sfp.payment_date',
+  'sfp.student_id': 'sfp.student_id',
+  'sfp.term': 'sfp.term',
+  'sfp.updated_at': 'sfp.updated_at',
+  admission_number: 's.admission_number',
+  last_name: 's.last_name',
+  class_name: 'c.name',
+  receipt_number: 't.receipt_number'
+};
+
 
 // Valid term values
 const VALID_TERMS = ['Term 1', 'Term 2', 'Term 3'];
@@ -113,7 +132,8 @@ export const getAllSchoolFeePayments = (options = {}) => {
   }
 
   // Add ordering and pagination
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const __sort = resolveOrder(SCHOOL_FEE_SORT_COLUMNS, 'sfp.payment_date', 'DESC', orderBy, orderDir);
+  query += ` ORDER BY ${__sort.column} ${__sort.direction} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);

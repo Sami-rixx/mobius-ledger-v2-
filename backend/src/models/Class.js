@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { resolveOrder } from '../utils/sortUtils.js';
 
 /**
  * Class Model
@@ -24,6 +25,20 @@ const FIELDS = {
   CREATED_BY: 'created_by',
   UPDATED_BY: 'updated_by'
 };
+
+// Allowlist of symbolic sort keys -> real column expressions (prevents
+// ORDER BY SQL injection from client-supplied orderBy/orderDir values).
+const CLASS_SORT_COLUMNS = {
+  created_at: 'created_at',
+  created_by: 'created_by',
+  description: 'description',
+  id: 'id',
+  is_active: 'is_active',
+  name: 'name',
+  updated_at: 'updated_at',
+  updated_by: 'updated_by'
+};
+
 
 /**
  * Get all classes with optional filtering
@@ -68,7 +83,8 @@ export const getAllClasses = (options = {}) => {
   }
 
   // Add ordering and pagination
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const __sort = resolveOrder(CLASS_SORT_COLUMNS, 'name', 'ASC', orderBy, orderDir);
+  query += ` ORDER BY ${__sort.column} ${__sort.direction} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);

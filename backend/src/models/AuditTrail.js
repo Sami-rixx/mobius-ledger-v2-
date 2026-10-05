@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { resolveOrder } from '../utils/sortUtils.js';
 
 /**
  * AuditTrail Model
@@ -33,6 +34,17 @@ const FIELDS = {
 
 // Valid actions
 const VALID_ACTIONS = ['CREATE', 'UPDATE', 'DELETE'];
+
+// Allowlist of symbolic sort keys -> real column expressions (prevents
+// ORDER BY SQL injection from client-supplied orderBy/orderDir values).
+const AUDIT_SORT_COLUMNS = {
+  id: 'id',
+  action: 'action',
+  table_name: 'table_name',
+  record_id: 'record_id',
+  user_id: 'user_id',
+  created_at: 'created_at'
+};
 
 // Valid table names for financial operations
 const TRACKED_TABLES = [
@@ -109,7 +121,8 @@ export const getAllAuditTrails = (options = {}) => {
     query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const sort = resolveOrder(AUDIT_SORT_COLUMNS, 'created_at', 'DESC', orderBy, orderDir);
+  query += ` ORDER BY ${sort.column} ${sort.direction} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);
@@ -203,7 +216,8 @@ export const getAuditTrailByTable = (tableName, options = {}) => {
   let query = `SELECT * FROM ${TABLE} WHERE table_name = ?`;
   const params = [tableName];
 
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const sort = resolveOrder(AUDIT_SORT_COLUMNS, 'created_at', 'DESC', orderBy, orderDir);
+  query += ` ORDER BY ${sort.column} ${sort.direction} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);

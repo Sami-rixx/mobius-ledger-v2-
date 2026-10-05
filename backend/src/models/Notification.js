@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { resolveOrder } from '../utils/sortUtils.js';
 
 /**
  * Notification Model
@@ -31,6 +32,26 @@ const FIELDS = {
   CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at'
 };
+
+// Allowlist of symbolic sort keys -> real column expressions (prevents
+// ORDER BY SQL injection from client-supplied orderBy/orderDir values).
+const NOTIFICATION_SORT_COLUMNS = {
+  created_at: 'created_at',
+  id: 'id',
+  is_active: 'is_active',
+  is_read: 'is_read',
+  message: 'message',
+  priority: 'priority',
+  related_id: 'related_id',
+  related_table: 'related_table',
+  scheduled_at: 'scheduled_at',
+  sent_at: 'sent_at',
+  title: 'title',
+  type: 'type',
+  updated_at: 'updated_at',
+  user_id: 'user_id'
+};
+
 
 // Notification types
 const NOTIFICATION_TYPES = {
@@ -124,7 +145,8 @@ export const getAllNotifications = (options = {}) => {
     query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const __sort = resolveOrder(NOTIFICATION_SORT_COLUMNS, FIELDS.CREATED_AT, 'DESC', orderBy, orderDir);
+  query += ` ORDER BY ${__sort.column} ${__sort.direction} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   try {
