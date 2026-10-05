@@ -1,3 +1,4 @@
+import { safeErrorMessage } from '../utils/safeError.js';
 import * as directorWithdrawalService from '../services/directorWithdrawalService.js';
 import { WITHDRAWAL_STATUS } from '../models/DirectorWithdrawal.js';
 
@@ -88,7 +89,7 @@ export const getWithdrawals = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch withdrawals',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -138,7 +139,7 @@ export const getAllWithdrawals = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch all withdrawals',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -176,7 +177,7 @@ export const getWithdrawalById = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch withdrawal',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -263,7 +264,7 @@ export const createWithdrawal = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to create withdrawal',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -349,7 +350,7 @@ export const updateWithdrawal = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update withdrawal',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -393,7 +394,7 @@ export const deleteWithdrawal = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete withdrawal',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -444,7 +445,7 @@ export const approveWithdrawal = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to approve withdrawal',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -502,7 +503,7 @@ export const rejectWithdrawal = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to reject withdrawal',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -557,7 +558,7 @@ export const completeWithdrawal = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to complete withdrawal',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -608,7 +609,7 @@ export const cancelWithdrawal = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to cancel withdrawal',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -627,7 +628,7 @@ export const getWithdrawalStatistics = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch withdrawal statistics',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -646,7 +647,7 @@ export const getAllLabels = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch labels',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -702,7 +703,7 @@ export const getPendingWithdrawals = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch pending withdrawals',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -767,7 +768,7 @@ export const searchWithdrawals = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to search withdrawals',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };
@@ -820,7 +821,7 @@ export const getWithdrawalsCount = async (req, res, next) => {
     res.status(500).json({
       success: false,
       error: 'Failed to get withdrawal count',
-      details: error.message
+      details: safeErrorMessage(error)
     });
   }
 };

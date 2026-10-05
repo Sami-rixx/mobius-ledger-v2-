@@ -1,3 +1,4 @@
+import { safeErrorMessage } from '../utils/safeError.js';
 import * as dailySummaryService from '../services/dailySummaryService.js';
 
 /**
@@ -67,7 +68,7 @@ export const getDailySummaries = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -92,7 +93,7 @@ export const getAllDailySummaries = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -124,7 +125,7 @@ export const getDailySummaryByDate = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -156,7 +157,7 @@ export const getDailySummaryById = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -179,7 +180,7 @@ export const getLatestDailySummary = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -215,7 +216,7 @@ export const getDailySummariesByDateRange = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -247,7 +248,7 @@ export const getDailySummariesByMonth = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -279,7 +280,7 @@ export const getDailySummariesByWeek = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -311,7 +312,7 @@ export const generateAndSaveDailySummary = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -343,7 +344,7 @@ export const generateDailySummary = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -375,7 +376,7 @@ export const createDailySummary = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -410,7 +411,7 @@ export const updateDailySummary = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -442,7 +443,7 @@ export const deleteDailySummary = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -471,7 +472,7 @@ export const getDailySummaryStatistics = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -507,7 +508,7 @@ export const generateDailySummariesForRange = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -539,7 +540,7 @@ export const getWeeklySummary = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -571,7 +572,7 @@ export const getMonthlySummary = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };

@@ -3,6 +3,7 @@
  * HTTP request handlers for import and export operations
  */
 
+import { safeErrorMessage } from '../utils/safeError.js';
 import importExportService from '../services/importExportService.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -40,7 +41,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to retrieve import/export logs'
       });
     }
@@ -63,7 +64,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to count import/export logs'
       });
     }
@@ -94,7 +95,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to retrieve import/export log'
       });
     }
@@ -116,7 +117,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to retrieve import/export statistics'
       });
     }
@@ -157,7 +158,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to export database'
       });
     }
@@ -216,7 +217,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to import database'
       });
     }
@@ -268,7 +269,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to export to CSV'
       });
     }
@@ -331,7 +332,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to import from CSV'
       });
     }
@@ -372,7 +373,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to create backup'
       });
     }
@@ -415,7 +416,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to restore backup'
       });
     }
@@ -438,7 +439,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to list backups'
       });
     }
@@ -461,7 +462,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to list exports'
       });
     }
@@ -504,7 +505,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to delete backup'
       });
     }
@@ -547,7 +548,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to delete export'
       });
     }
@@ -570,7 +571,7 @@ const importExportController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: safeErrorMessage(error),
         message: 'Failed to retrieve supported tables'
       });
     }

@@ -1,3 +1,4 @@
+import { safeErrorMessage } from '../utils/safeError.js';
 import * as analyticsService from '../services/analyticsService.js';
 
 /**
@@ -35,7 +36,7 @@ export const getDashboardData = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -77,7 +78,7 @@ export const getIncomeVsExpense = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -120,7 +121,7 @@ export const getIncomeByCategory = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -163,7 +164,7 @@ export const getExpensesByCategory = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -206,7 +207,7 @@ export const getTopIncomeSources = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -249,7 +250,7 @@ export const getTopExpenses = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -278,7 +279,7 @@ export const getOverallStatistics = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -320,7 +321,7 @@ export const getIncomeTrends = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -362,7 +363,7 @@ export const getExpenseTrends = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -404,7 +405,7 @@ export const getNetFlowTrends = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -441,7 +442,7 @@ export const getRecentDailySummaries = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -470,7 +471,7 @@ export const getDailySummaryStatistics = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };

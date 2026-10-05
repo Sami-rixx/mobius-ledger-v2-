@@ -9,6 +9,7 @@
  * - Permission validation and management
  */
 
+import { safeErrorMessage } from '../utils/safeError.js';
 import {
   validatePermission,
   createPermission,
@@ -64,7 +65,7 @@ export const listPermissions = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -84,7 +85,7 @@ export const countPermissions = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -112,7 +113,7 @@ export const getSinglePermission = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -140,7 +141,7 @@ export const getPermissionByNameHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -162,7 +163,7 @@ export const getPermissionsByModuleHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -183,7 +184,7 @@ export const checkPermissionExists = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -211,7 +212,7 @@ export const searchPermissionsHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -230,7 +231,7 @@ export const getPermissionStatsHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -249,7 +250,7 @@ export const getPermissionModulesHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -268,7 +269,7 @@ export const getPermissionCountByModuleHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -289,7 +290,7 @@ export const createPermissionHandler = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -319,7 +320,7 @@ export const updatePermissionHandler = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -347,7 +348,7 @@ export const deletePermissionHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };

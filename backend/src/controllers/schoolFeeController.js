@@ -1,3 +1,4 @@
+import { safeErrorMessage } from '../utils/safeError.js';
 import * as schoolFeeService from '../services/schoolFeeService.js';
 
 /**
@@ -62,7 +63,7 @@ export const getSchoolFeePayments = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -90,7 +91,7 @@ export const getAllSchoolFeePayments = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -126,7 +127,7 @@ export const getSchoolFeePaymentById = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -155,7 +156,7 @@ export const getSchoolFeePaymentsByStudent = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -184,7 +185,7 @@ export const getStudentSchoolFeeBalance = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -210,7 +211,7 @@ export const getStudentsInArrears = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -236,7 +237,7 @@ export const getSchoolFeeStatistics = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -256,7 +257,7 @@ export const getSchoolFeeSummary = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -336,7 +337,7 @@ export const createSchoolFeePayment = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -425,7 +426,7 @@ export const updateSchoolFeePayment = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -461,7 +462,7 @@ export const deleteSchoolFeePayment = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };

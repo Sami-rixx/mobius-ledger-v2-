@@ -9,6 +9,7 @@
  * - Status codes
  */
 
+import { safeErrorMessage } from '../utils/safeError.js';
 import {
   validateNotification,
   getPaginatedNotifications,
@@ -78,7 +79,7 @@ export const listNotifications = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -117,7 +118,7 @@ export const countNotifications = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -145,7 +146,7 @@ export const getSingleNotification = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -167,7 +168,7 @@ export const createNotificationHandler = (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -197,7 +198,7 @@ export const updateNotificationHandler = (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -225,7 +226,7 @@ export const deleteNotificationHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -254,7 +255,7 @@ export const markAsReadHandler = (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -284,7 +285,7 @@ export const markAllAsReadHandler = (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -305,7 +306,7 @@ export const getUnreadCountHandler = (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -327,7 +328,7 @@ export const getActiveByUserHandler = (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -357,7 +358,7 @@ export const searchNotificationsHandler = (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -379,7 +380,7 @@ export const createSystemNotificationHandler = (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -401,7 +402,7 @@ export const createUserNotificationHandler = (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -421,7 +422,7 @@ export const getStatisticsHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -439,7 +440,7 @@ export const getTypesHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -457,7 +458,7 @@ export const getPrioritiesHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };

@@ -1,3 +1,4 @@
+import { safeErrorMessage } from '../utils/safeError.js';
 import * as expenseService from '../services/expenseService.js';
 
 /**
@@ -98,7 +99,7 @@ export const getExpenses = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -141,7 +142,7 @@ export const getAllExpenses = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -173,7 +174,7 @@ export const getExpenseById = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -205,7 +206,7 @@ export const getExpenseByReceiptNumber = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -260,7 +261,7 @@ export const getExpensesByCategory = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -292,7 +293,7 @@ export const getExpensesByDateRange = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -320,7 +321,7 @@ export const getExpenseStatistics = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -394,7 +395,7 @@ export const createExpense = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -480,7 +481,7 @@ export const updateExpense = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -512,7 +513,7 @@ export const deleteExpense = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -549,7 +550,7 @@ export const verifyExpense = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -603,7 +604,7 @@ export const searchExpenses = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };

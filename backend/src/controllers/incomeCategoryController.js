@@ -1,3 +1,4 @@
+import { safeErrorMessage } from '../utils/safeError.js';
 import * as incomeCategoryService from '../services/incomeCategoryService.js';
 
 /**
@@ -85,7 +86,7 @@ export const getIncomeCategories = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -134,7 +135,7 @@ export const getAllIncomeCategories = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -152,7 +153,7 @@ export const getActiveIncomeCategories = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -184,7 +185,7 @@ export const getIncomeCategoryById = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -216,7 +217,7 @@ export const getIncomeCategoryByName = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -272,7 +273,7 @@ export const createIncomeCategory = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -336,7 +337,7 @@ export const updateIncomeCategory = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -368,7 +369,7 @@ export const deleteIncomeCategory = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -386,7 +387,7 @@ export const getIncomeCategoriesWithUsage = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -432,7 +433,7 @@ export const getIncomeCategoryCount = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };

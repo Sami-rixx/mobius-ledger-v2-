@@ -9,6 +9,7 @@
  * - Session validation and management
  */
 
+import { safeErrorMessage } from '../utils/safeError.js';
 import {
   validateSession,
   getPaginatedSessions,
@@ -94,7 +95,7 @@ export const listSessions = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -123,7 +124,7 @@ export const countSessions = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -159,7 +160,7 @@ export const getSingleSession = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -195,7 +196,7 @@ export const getSessionByTokenHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -223,7 +224,7 @@ export const getActiveSessionsByUserHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -253,7 +254,7 @@ export const createUserSession = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -299,7 +300,7 @@ export const updateUserSessionHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -335,7 +336,7 @@ export const deactivateUserSessionHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -364,7 +365,7 @@ export const deactivateAllUserSessionsHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -384,7 +385,7 @@ export const deactivateExpiredSessionsHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -420,7 +421,7 @@ export const deleteUserSessionHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -448,7 +449,7 @@ export const deleteAllUserSessionsHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -485,7 +486,7 @@ export const validateSessionTokenHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -523,7 +524,7 @@ export const extendSessionHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -542,7 +543,7 @@ export const getSessionStatsHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };

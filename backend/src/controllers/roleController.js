@@ -9,6 +9,7 @@
  * - Role validation and management
  */
 
+import { safeErrorMessage } from '../utils/safeError.js';
 import {
   validateRole,
   createRole,
@@ -63,7 +64,7 @@ export const listRoles = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -82,7 +83,7 @@ export const countRoles = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -110,7 +111,7 @@ export const getSingleRole = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -138,7 +139,7 @@ export const getRoleByNameHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -165,7 +166,7 @@ export const getDefaultRoleHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -186,7 +187,7 @@ export const checkRoleExists = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -214,7 +215,7 @@ export const searchRolesHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -233,7 +234,7 @@ export const getRolesWithPermissionCountHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -252,7 +253,7 @@ export const getRoleStatsHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -271,7 +272,7 @@ export const getDefaultRoleNamesHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -292,7 +293,7 @@ export const createRoleHandler = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -322,7 +323,7 @@ export const updateRoleHandler = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -350,7 +351,7 @@ export const deleteRoleHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -386,7 +387,7 @@ export const setDefaultRoleHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };

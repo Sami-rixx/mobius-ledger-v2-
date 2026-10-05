@@ -9,6 +9,7 @@
  * - Role-permission validation and management
  */
 
+import { safeErrorMessage } from '../utils/safeError.js';
 import {
   validateRolePermissionAssignment,
   assignPermissionToRole,
@@ -61,7 +62,7 @@ export const listRolePermissions = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -80,7 +81,7 @@ export const countRolePermissions = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -108,7 +109,7 @@ export const getSingleRolePermission = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -136,7 +137,7 @@ export const getRolePermissionByRoleAndPermissionHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -157,7 +158,7 @@ export const getPermissionsForRoleHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -178,7 +179,7 @@ export const getPermissionIdsForRoleHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -199,7 +200,7 @@ export const getRolesForPermissionHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -220,7 +221,7 @@ export const checkRoleHasPermissionHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -250,7 +251,7 @@ export const checkRoleHasAnyPermissionHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -271,7 +272,7 @@ export const getPermissionCountForRoleHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -292,7 +293,7 @@ export const getRoleCountForPermissionHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -311,7 +312,7 @@ export const getRolePermissionStatsHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -332,7 +333,7 @@ export const createRolePermissionHandler = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -360,7 +361,7 @@ export const removePermissionFromRoleHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -388,7 +389,7 @@ export const removeAllPermissionsFromRoleHandler = (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };
@@ -417,7 +418,7 @@ export const replaceRolePermissionsHandler = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error.message
+      error: safeErrorMessage(error)
     });
   }
 };

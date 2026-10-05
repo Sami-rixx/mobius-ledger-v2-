@@ -1,3 +1,4 @@
+import { safeErrorMessage } from '../utils/safeError.js';
 import {
   getPaginatedDailyLedgers,
   getDailyLedgerById,
@@ -37,7 +38,7 @@ import {
 function formatErrorResponse(error, statusCode = 400) {
   return {
     success: false,
-    error: error.message || 'An error occurred',
+    error: safeErrorMessage(error) || 'An error occurred',
     statusCode
   };
 }
