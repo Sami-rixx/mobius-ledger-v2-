@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { UserSessionCard, Pagination, Spinner, Alert } from './index.js';
-import { getSessions, deactivateSession, deleteSession, extendSession } from '../services/userSessionService.js';
+import { getSessions, deactivateSession } from '../services/userSessionService.js';
 
 /**
  * UserSessionList Component
@@ -79,27 +79,9 @@ function UserSessionList({
     }
   };
 
-  // Handle extend
-  const handleExtend = async (session) => {
-    try {
-      await extendSession(session.id, 24);
-      fetchSessions(currentPage);
-    } catch (err) {
-      setError(err.message || 'Failed to extend session');
-    }
-  };
-
-  // Handle delete
-  const handleDelete = async (session) => {
-    try {
-      if (window.confirm(`Are you sure you want to delete session #${session.id}?`)) {
-        await deleteSession(session.id);
-        fetchSessions(currentPage);
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to delete session');
-    }
-  };
+  // NOTE: extend/delete session endpoints were removed server-side —
+  // sessions can only be revoked (deactivated). History rows are purged
+  // through the admin cleanup endpoint, never deleted individually.
 
   // Loading state
   if (loading) {
@@ -141,8 +123,6 @@ function UserSessionList({
             session={session}
             showActions={true}
             onDeactivate={handleDeactivate}
-            onExtend={handleExtend}
-            onDelete={handleDelete}
             onView={onSessionClick}
           />
         ))}

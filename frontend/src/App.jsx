@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { AuthProvider, RequireAuth, useAuth } from '@/hooks';
+import { LoginPage } from '@pages/Login';
 import HomePage from '@pages/HomePage';
 import {
   StudentListPage,
@@ -83,8 +85,6 @@ import {
 } from '@pages/Notifications';
 import {
   UserSessionListPage,
-  UserSessionCreatePage,
-  UserSessionEditPage,
   UserSessionDetailPage
 } from '@pages/UserSessions';
 import {
@@ -114,10 +114,11 @@ import {
   ImportExportDetailPage
 } from '@pages/ImportExport';
 
-function App() {
+function AppLayout() {
+  const { user, logout } = useAuth();
+
   return (
-    <Router>
-      <div className="app">
+    <div className="app">
         {/* Navigation */}
         <nav className="navigation">
           <div className="nav-container">
@@ -188,6 +189,12 @@ function App() {
               <NavLink to="/roles" className="nav-link" end>
                 Roles
               </NavLink>
+            </div>
+            <div className="nav-user">
+              <span className="nav-username">{user?.fullName || user?.username}</span>
+              <button type="button" className="nav-logout" onClick={logout}>
+                Sign out
+              </button>
             </div>
           </div>
         </nav>
@@ -275,9 +282,7 @@ function App() {
             <Route path="/notifications/:id" element={<NotificationDetailPage />} />
             {/* UserSession Routes */}
             <Route path="/user-sessions" element={<UserSessionListPage />} />
-            <Route path="/user-sessions/create" element={<UserSessionCreatePage />} />
             <Route path="/user-sessions/:id" element={<UserSessionDetailPage />} />
-            <Route path="/user-sessions/edit/:id" element={<UserSessionEditPage />} />
             {/* Permission Routes */}
             <Route path="/permissions" element={<PermissionListPage />} />
             <Route path="/permissions/create" element={<PermissionCreatePage />} />
@@ -291,13 +296,35 @@ function App() {
           </Routes>
         </main>
 
-        {/* Footer */}
-        <footer className="app-footer">
-          <div className="footer-container">
-            <p>&copy; {new Date().getFullYear()} Mobius Muse. All rights reserved.</p>
-          </div>
-        </footer>
-      </div>
+      {/* Footer */}
+      <footer className="app-footer">
+        <div className="footer-container">
+          <p>&copy; {new Date().getFullYear()} Mobius Muse. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <Routes>
+          {/* Public: login */}
+          <Route path="/login" element={<LoginPage />} />
+          {/* Everything else requires a session (UX guard; the API is the
+              real security boundary) */}
+          <Route
+            path="/*"
+            element={(
+              <RequireAuth>
+                <AppLayout />
+              </RequireAuth>
+            )}
+          />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }

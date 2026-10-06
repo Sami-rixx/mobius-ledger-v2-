@@ -1,5 +1,6 @@
 // Export all API services
 export { api, ApiClient } from './api.js';
+export * as authApi from './authService.js';
 export * from './studentService.js';
 export * from './classService.js';
 export * from './schoolFeeService.js';

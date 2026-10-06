@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Alert, Spinner, UserSessionCard } from '@/components';
-import { getSessionById, deactivateSession, deleteSession, extendSession } from '@/services';
+import { getSessionById, deactivateSession } from '@/services';
 import { useNavigate, useParams } from 'react-router-dom';
 
 /**
@@ -14,8 +14,6 @@ function UserSessionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isExtending, setIsExtending] = useState(false);
   const [isDeactivating, setIsDeactivating] = useState(false);
 
   // Load session data
@@ -69,58 +67,8 @@ function UserSessionDetailPage() {
     }
   }, [id, loadSession]);
 
-  // Handle extend
-  const handleExtend = useCallback(async () => {
-    setIsExtending(true);
-    try {
-      const result = await extendSession(parseInt(id), 24);
-      
-      if (result.success) {
-        setSuccess('Session extended by 24 hours');
-        // Reload the session to show updated expiration
-        await loadSession();
-      } else {
-        setError(result.error || 'Failed to extend session');
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to extend session');
-      console.error('Error extending session:', err);
-    } finally {
-      setIsExtending(false);
-    }
-  }, [id, loadSession]);
-
-  // Handle delete
-  const handleDelete = useCallback(async () => {
-    if (!window.confirm(`Are you sure you want to delete session #${id}? This action cannot be undone.`)) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      const result = await deleteSession(parseInt(id));
-      
-      if (result.success) {
-        setSuccess('Session deleted successfully');
-        // Navigate back to list after a short delay
-        setTimeout(() => {
-          navigate('/user-sessions');
-        }, 1000);
-      } else {
-        setError(result.error || 'Failed to delete session');
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to delete session');
-      console.error('Error deleting session:', err);
-    } finally {
-      setIsDeleting(false);
-    }
-  }, [id, navigate]);
-
-  // Handle edit
-  const handleEdit = useCallback(() => {
-    navigate(`/user-sessions/edit/${id}`);
-  }, [id, navigate]);
+  // NOTE: sessions can no longer be extended, edited or individually
+  // deleted — the server-side API only supports revocation (deactivate).
 
   // Handle back
   const handleBack = useCallback(() => {
@@ -197,38 +145,16 @@ function UserSessionDetailPage() {
             <Button variant="outline" onClick={handleBack}>
               Back to List
             </Button>
-            
-            <Button variant="primary" onClick={handleEdit}>
-              Edit Session
-            </Button>
-            
+
             {session?.is_active === 1 && (
-              <>
-                <Button 
-                  variant="primary" 
-                  onClick={handleExtend} 
-                  disabled={isExtending}
-                >
-                  {isExtending ? 'Extending...' : 'Extend by 24 Hours'}
-                </Button>
-                
-                <Button 
-                  variant="warning" 
-                  onClick={handleDeactivate} 
-                  disabled={isDeactivating}
-                >
-                  {isDeactivating ? 'Deactivating...' : 'Deactivate Session'}
-                </Button>
-              </>
+              <Button 
+                variant="warning" 
+                onClick={handleDeactivate} 
+                disabled={isDeactivating}
+              >
+                {isDeactivating ? 'Deactivating...' : 'Deactivate Session'}
+              </Button>
             )}
-            
-            <Button 
-              variant="danger" 
-              onClick={handleDelete} 
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting...' : 'Delete Session'}
-            </Button>
           </div>
         </Card>
       </main>

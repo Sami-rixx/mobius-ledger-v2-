@@ -20,13 +20,28 @@ class ApiClient {
    */
   async request(method, endpoint, data = null, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      // CSRF defense: the backend rejects state-changing requests without
+      // this custom header (cannot be attached cross-site without CORS).
+      'X-Requested-With': 'XMLHttpRequest',
+      ...options.headers,
+    };
+
+    // Money-moving POSTs require an Idempotency-Key; attach one to every
+    // POST so retries of the same logical submit can be deduplicated.
+    if (method === 'POST' && !headers['Idempotency-Key']) {
+      headers['Idempotency-Key'] =
+        (globalThis.crypto?.randomUUID?.() || `k-${Date.now()}-${Math.floor(Math.random() * 1e12)}`);
+    }
+
     const config = {
       method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
       ...options,
+      headers,
+      // Send the HttpOnly session cookie with every API request. The token
+      // itself is never readable from JavaScript.
+      credentials: 'include',
     };
 
     if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
@@ -35,10 +50,19 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      
+
+      if (response.status === 401 && !endpoint.startsWith('/auth/')) {
+        // Session expired or revoked: route the user to the login screen.
+        // This is UX only - the server is the security boundary.
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          window.location.assign('/login');
+        }
+        throw new Error('Your session has expired. Please sign in again.');
+      }
+
       if (!response.ok) {
         const errorData = await this.parseErrorResponse(response);
-        throw new Error(errorData.message || 'Request failed');
+        throw new Error(errorData.message || errorData.error || 'Request failed');
       }
 
       // Parse response based on content type

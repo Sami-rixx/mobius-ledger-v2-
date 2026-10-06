@@ -89,7 +89,9 @@ function ImportExportBackupPage() {
 
     setActionLoading(true);
     try {
-      const result = await restoreBackup({ filename: backup.filename });
+      // The server requires an explicit confirmation echo of the filename
+      // (maker-checker style guard) and creates a pre-restore backup.
+      const result = await restoreBackup({ filename: backup.filename, confirm: backup.filename });
       window.alert(`Backup restored successfully: ${result.data.message || 'Restoration complete'}`);
       loadData();
     } catch (err) {

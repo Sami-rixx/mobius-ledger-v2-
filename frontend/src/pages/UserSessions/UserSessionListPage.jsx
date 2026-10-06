@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Alert, Spinner, Pagination, UserSessionTable, UserSessionFilter } from '@/components';
-import { getSessions, getSessionStats, deactivateSession, deleteSession, extendSession } from '@/services';
+import { getSessions, getSessionStats, deactivateSession, cleanupExpiredSessions } from '@/services';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -14,7 +14,6 @@ function UserSessionListPage() {
   const [filters, setFilters] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [deleting, setDeleting] = useState(false);
   const [statistics, setStatistics] = useState(null);
   const [actionMessage, setActionMessage] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -109,50 +108,26 @@ function UserSessionListPage() {
     }
   };
 
-  // Handle extend
-  const handleExtend = async (session) => {
-    try {
-      await extendSession(session.id, 24);
-      setActionMessage('Session extended by 24 hours');
-      loadSessions(pagination?.page || 1);
-      
-      // Clear message after 3 seconds
-      setTimeout(() => setActionMessage(null), 3000);
-    } catch (err) {
-      setError(err.message || 'Failed to extend session');
-    }
-  };
-
-  // Handle delete
-  const handleDelete = async (session) => {
-    if (!window.confirm(`Are you sure you want to delete session #${session.id}? This action cannot be undone.`)) {
+  // NOTE: sessions can no longer be extended or individually deleted —
+  // the server only supports revocation (deactivate) and bulk cleanup of
+  // expired sessions. Session rows are audit-relevant history.
+  const handleCleanup = async () => {
+    if (!window.confirm('Purge expired and inactive sessions?')) {
       return;
     }
-
-    setDeleting(true);
     try {
-      await deleteSession(session.id);
-      setActionMessage('Session deleted successfully');
-      // Reload the list
+      await cleanupExpiredSessions();
+      setActionMessage('Expired sessions cleaned up');
       loadSessions(pagination?.page || 1);
-      
-      // Clear message after 3 seconds
       setTimeout(() => setActionMessage(null), 3000);
     } catch (err) {
-      setError(err.message || 'Failed to delete session');
-    } finally {
-      setDeleting(false);
+      setError(err.message || 'Failed to clean up sessions');
     }
   };
 
   // Handle view
   const handleView = useCallback((session) => {
     navigate(`/user-sessions/${session.id}`);
-  }, [navigate]);
-
-  // Handle create new session
-  const handleCreate = useCallback(() => {
-    navigate('/user-sessions/create');
   }, [navigate]);
 
   return (
@@ -191,11 +166,11 @@ function UserSessionListPage() {
               </div>
               <div className="stat-item">
                 <span className="stat-label">Inactive:</span>
-                <span className="stat-value stat-value-danger">{statistics.inactive}</span>
+                <span className="stat-value stat-value-danger">{(statistics.total || 0) - (statistics.active || 0)}</span>
               </div>
               <div className="stat-item">
-                <span className="stat-label">Active %:</span>
-                <span className="stat-value">{statistics.activePercentage}%</span>
+                <span className="stat-label">Users:</span>
+                <span className="stat-value">{statistics.users || 0}</span>
               </div>
             </div>
           </Card>
@@ -204,8 +179,8 @@ function UserSessionListPage() {
         {/* Actions */}
         <Card className="actions-card">
           <div className="actions-bar">
-            <Button variant="primary" onClick={handleCreate} disabled={loading || refreshing}>
-              Create New Session
+            <Button variant="outline" onClick={handleCleanup} disabled={loading || refreshing}>
+              Clean Up Expired
             </Button>
             <Button variant="outline" onClick={handleRefresh} disabled={loading || refreshing}>
               {refreshing ? 'Refreshing...' : 'Refresh'}
@@ -239,8 +214,6 @@ function UserSessionListPage() {
               sessions={sessions}
               showActions={true}
               onDeactivate={handleDeactivate}
-              onExtend={handleExtend}
-              onDelete={handleDelete}
               onView={handleView}
             />
           </Card>
