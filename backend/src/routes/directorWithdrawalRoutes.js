@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
+import { idempotency } from '../middleware/idempotency.js';
 import * as DirectorWithdrawalController from '../controllers/directorWithdrawalController.js';
 
 /**
@@ -11,49 +13,49 @@ import * as DirectorWithdrawalController from '../controllers/directorWithdrawal
 const router = Router();
 
 // GET /api/withdrawals - Get paginated list of director withdrawals
-router.get('/', DirectorWithdrawalController.getWithdrawals);
+router.get('/', requirePermission('withdrawals.read'), DirectorWithdrawalController.getWithdrawals);
 
 // GET /api/withdrawals/all - Get all director withdrawals without pagination
-router.get('/all', DirectorWithdrawalController.getAllWithdrawals);
+router.get('/all', requirePermission('withdrawals.read'), DirectorWithdrawalController.getAllWithdrawals);
 
 // GET /api/withdrawals/:id - Get a single director withdrawal by ID
-router.get('/:id', DirectorWithdrawalController.getWithdrawalById);
+router.get('/:id', requirePermission('withdrawals.read'), DirectorWithdrawalController.getWithdrawalById);
 
 // GET /api/withdrawals/statistics - Get withdrawal statistics
-router.get('/statistics', DirectorWithdrawalController.getWithdrawalStatistics);
+router.get('/statistics', requirePermission('withdrawals.read'), DirectorWithdrawalController.getWithdrawalStatistics);
 
 // GET /api/withdrawals/labels - Get all unique labels
-router.get('/labels', DirectorWithdrawalController.getAllLabels);
+router.get('/labels', requirePermission('withdrawals.read'), DirectorWithdrawalController.getAllLabels);
 
 // GET /api/withdrawals/pending - Get pending withdrawals (awaiting approval)
-router.get('/pending', DirectorWithdrawalController.getPendingWithdrawals);
+router.get('/pending', requirePermission('withdrawals.read'), DirectorWithdrawalController.getPendingWithdrawals);
 
 // GET /api/withdrawals/search - Search withdrawals
-router.get('/search', DirectorWithdrawalController.searchWithdrawals);
+router.get('/search', requirePermission('withdrawals.read'), DirectorWithdrawalController.searchWithdrawals);
 
 // GET /api/withdrawals/count - Get count of withdrawals
-router.get('/count', DirectorWithdrawalController.getWithdrawalsCount);
+router.get('/count', requirePermission('withdrawals.read'), DirectorWithdrawalController.getWithdrawalsCount);
 
 // POST /api/withdrawals - Create a new director withdrawal
-router.post('/', DirectorWithdrawalController.createWithdrawal);
+router.post('/', requirePermission('withdrawals.create'), idempotency(), DirectorWithdrawalController.createWithdrawal);
 
 // PUT /api/withdrawals/:id - Update a director withdrawal
-router.put('/:id', DirectorWithdrawalController.updateWithdrawal);
+router.put('/:id', requirePermission('withdrawals.create'), DirectorWithdrawalController.updateWithdrawal);
 
 // DELETE /api/withdrawals/:id - Delete a director withdrawal
-router.delete('/:id', DirectorWithdrawalController.deleteWithdrawal);
+router.delete('/:id', requirePermission('withdrawals.create'), DirectorWithdrawalController.deleteWithdrawal);
 
 // POST /api/withdrawals/:id/approve - Approve a director withdrawal
-router.post('/:id/approve', DirectorWithdrawalController.approveWithdrawal);
+router.post('/:id/approve', requirePermission('withdrawals.approve'), DirectorWithdrawalController.approveWithdrawal);
 
 // POST /api/withdrawals/:id/reject - Reject a director withdrawal
-router.post('/:id/reject', DirectorWithdrawalController.rejectWithdrawal);
+router.post('/:id/reject', requirePermission('withdrawals.reject'), DirectorWithdrawalController.rejectWithdrawal);
 
 // POST /api/withdrawals/:id/complete - Mark a director withdrawal as completed
-router.post('/:id/complete', DirectorWithdrawalController.completeWithdrawal);
+router.post('/:id/complete', requirePermission('withdrawals.approve'), DirectorWithdrawalController.completeWithdrawal);
 
 // POST /api/withdrawals/:id/cancel - Cancel a director withdrawal
-router.post('/:id/cancel', DirectorWithdrawalController.cancelWithdrawal);
+router.post('/:id/cancel', requirePermission('withdrawals.create'), DirectorWithdrawalController.cancelWithdrawal);
 
 /**
  * Director Withdrawal Routes Summary:

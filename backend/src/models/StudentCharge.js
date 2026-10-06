@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
 
 /**
  * Student Charge Model
@@ -120,9 +121,16 @@ export const getAllStudentCharges = (options = {}) => {
     query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
+  const safeOrder = parseOrder(
+    orderBy === 'sc.created_at' ? undefined : orderBy,
+    orderDir,
+    ['sc.created_at', 'created_at', 'sc.name', 'name', 'sc.amount', 'amount', 'sc.charge_type', 'sc.id'],
+    'sc.created_at',
+    'DESC'
+  );
   query += `
     GROUP BY sc.id
-    ORDER BY ${orderBy} ${orderDir}
+    ORDER BY ${safeOrder.field} ${safeOrder.dir}
     LIMIT ? OFFSET ?
   `;
 

@@ -1,7 +1,8 @@
 import * as ExpenseModel from '../models/Expense.js';
+import db from '../config/database.js';
+import { recordAuditEvent, recordAuditEventStrict, AUDIT } from './auditService.js';
 import * as ExpenseCategoryModel from '../models/ExpenseCategory.js';
 import * as TransactionModel from '../models/Transaction.js';
-import db from '../config/database.js';
 import { generateReceiptNumber } from '../utils/receiptGenerator.js';
 
 /**
@@ -304,40 +305,47 @@ export const createExpense = async (data) => {
   }
 
   try {
-    // Create expense record
-    const expenseData = {
-      amount: amountNum,
-      expenseCategoryId,
-      description,
-      vendorName,
-      vendorContact,
-      paymentMethodId,
-      expenseDate,
-      receiptNumber,
-      notes,
-      isVerified: false,
-      createdBy,
-      updatedBy: createdBy
-    };
+    // ATOMIC financial write (specification §11): expense row + linked
+    // transaction + audit event commit together or not at all, with
+    // amount_cents written on both records (owner decision D8).
+    const createTx = db.transaction(() => {
+      const transaction = TransactionModel.createTransaction({
+        receiptNumber,
+        transactionType: 'expense',
+        amount: amountNum,
+        expenseCategoryId,
+        paymentMethodId,
+        transactionDate: expenseDate,
+        description: description || `Expense: ${category.name}`,
+        createdBy,
+        updatedBy: createdBy
+      });
 
-    const expenseRecord = await ExpenseModel.create(expenseData);
+      const inserted = db.prepare(`
+        INSERT INTO expenses (
+          amount, amount_cents, expense_category_id, description,
+          vendor_name, vendor_contact, payment_method_id, transaction_id,
+          expense_date, receipt_number, notes, is_verified, created_by, updated_by
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+      `).run(
+        amountNum, Math.round(amountNum * 100), expenseCategoryId, description ?? null,
+        vendorName, vendorContact ?? null, paymentMethodId ?? null, transaction.id,
+        expenseDate, receiptNumber, notes ?? null, createdBy ?? null, createdBy ?? null
+      );
 
-    // Create associated transaction
-    // NOTE: see incomeService.js for why this must use camelCase keys and
-    // call createTransaction() (not the non-existent `.create()`).
-    const transactionData = {
-      receiptNumber,
-      transactionType: 'expense',
-      amount: amountNum,
-      expenseCategoryId,
-      paymentMethodId,
-      transactionDate: expenseDate,
-      description: description || `Expense: ${category.name}`,
-      createdBy,
-      updatedBy: createdBy
-    };
+      recordAuditEventStrict({
+        action: AUDIT.CREATE,
+        tableName: 'expenses',
+        recordId: inserted.lastInsertRowid,
+        newValues: { receiptNumber, amount: amountNum, expenseCategoryId, transactionId: transaction.id },
+        userId: createdBy ?? null
+      });
 
-    await TransactionModel.createTransaction(transactionData);
+      return inserted.lastInsertRowid;
+    });
+
+    const expenseId = createTx();
+    const expenseRecord = await ExpenseModel.getById(expenseId);
 
     return {
       success: true,
@@ -387,15 +395,29 @@ export const updateExpense = async (id, data) => {
     };
   }
 
-  // If amount is provided, validate it's positive
-  if (amount !== undefined) {
-    const amountNum = parseFloat(amount);
-    if (isNaN(amountNum) || amountNum <= 0) {
-      return {
-        success: false,
-        error: 'Amount must be a positive number'
-      };
-    }
+  // POSTED-RECORD IMMUTABILITY (owner decision / specification §11):
+  // expense records are posted financial records. Monetary facts are
+  // immutable — corrections use POST /api/expenses/:id/reverse.
+  if (amount !== undefined && parseFloat(amount) !== parseFloat(existing.amount)) {
+    return {
+      success: false,
+      statusCode: 409,
+      error: 'Posted expense amounts are immutable. Reverse this record and create a new one instead.'
+    };
+  }
+  if (expenseDate !== undefined && expenseDate !== existing.expense_date) {
+    return {
+      success: false,
+      statusCode: 409,
+      error: 'Posted expense dates are immutable. Reverse this record and create a new one instead.'
+    };
+  }
+  if (existing.reversed_by_id || existing.reversal_of_id) {
+    return {
+      success: false,
+      statusCode: 409,
+      error: 'Reversed or reversal records cannot be edited.'
+    };
   }
 
   // If expenseCategoryId is provided, validate it exists
@@ -426,6 +448,15 @@ export const updateExpense = async (id, data) => {
 
     const updatedRecord = await ExpenseModel.update(id, updateData);
 
+    recordAuditEvent({
+      action: AUDIT.UPDATE,
+      tableName: 'expenses',
+      recordId: id,
+      oldValues: { description: existing.description, notes: existing.notes, is_verified: existing.is_verified },
+      newValues: { description: updatedRecord.description, notes: updatedRecord.notes, is_verified: updatedRecord.is_verified },
+      userId: updatedBy ?? null
+    });
+
     return {
       success: true,
       message: 'Expense record updated successfully',
@@ -450,6 +481,8 @@ export const updateExpense = async (id, data) => {
  * @returns {Object} - Success response
  */
 export const deleteExpense = async (id) => {
+  // POSTED-RECORD IMMUTABILITY (owner decision): posted expenses are never
+  // hard-deleted. Corrections preserve history through reversal records.
   const existing = await ExpenseModel.getById(id);
   if (!existing) {
     return {
@@ -457,19 +490,98 @@ export const deleteExpense = async (id) => {
       error: 'Expense record not found'
     };
   }
+  return {
+    success: false,
+    statusCode: 409,
+    error: 'Posted expense records cannot be deleted. Use POST /api/expenses/:id/reverse to create a correcting reversal.'
+  };
+};
+
+/**
+ * Reverse a posted expense record: creates a compensating negative expense
+ * record and a compensating transaction, linked to the original.
+ */
+export const reverseExpense = async (id, actorId, reason = null) => {
+  const existing = await ExpenseModel.getById(id);
+  if (!existing) {
+    return { success: false, statusCode: 404, error: 'Expense record not found' };
+  }
+  if (existing.reversed_by_id) {
+    return { success: false, statusCode: 409, error: 'This expense record has already been reversed' };
+  }
+  if (existing.reversal_of_id) {
+    return { success: false, statusCode: 409, error: 'Reversal records cannot themselves be reversed' };
+  }
 
   try {
-    await ExpenseModel.deleteById(id);
+    const reversalReceipt = generateReceiptNumber();
+    const reverseTx = db.transaction(() => {
+      const reversalTransaction = TransactionModel.createTransaction({
+        receiptNumber: reversalReceipt,
+        transactionType: 'expense',
+        amount: -parseFloat(existing.amount),
+        expenseCategoryId: existing.expense_category_id,
+        paymentMethodId: existing.payment_method_id,
+        transactionDate: new Date().toISOString().split('T')[0],
+        description: `Reversal of expense #${id}${reason ? `: ${reason}` : ''}`,
+        reference: `reversal:expense:${id}`,
+        createdBy: actorId,
+        updatedBy: actorId,
+        reversalOfId: existing.transaction_id ?? null
+      });
+
+      const inserted = db.prepare(`
+        INSERT INTO expenses (
+          amount, amount_cents, expense_category_id, description,
+          vendor_name, vendor_contact, payment_method_id, transaction_id,
+          expense_date, receipt_number, notes, is_verified, created_by, updated_by, reversal_of_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+      `).run(
+        -parseFloat(existing.amount),
+        -Math.round(parseFloat(existing.amount) * 100),
+        existing.expense_category_id,
+        `Reversal of expense #${id}${reason ? `: ${reason}` : ''}`,
+        existing.vendor_name,
+        existing.vendor_contact,
+        existing.payment_method_id,
+        reversalTransaction.id,
+        new Date().toISOString().split('T')[0],
+        reversalReceipt,
+        reason ?? null,
+        actorId,
+        actorId,
+        id
+      );
+
+      db.prepare('UPDATE expenses SET reversed_by_id = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+        .run(inserted.lastInsertRowid, actorId, id);
+      if (existing.transaction_id) {
+        db.prepare('UPDATE transactions SET reversed_by_id = ? WHERE id = ?')
+          .run(reversalTransaction.id, existing.transaction_id);
+      }
+
+      recordAuditEventStrict({
+        action: AUDIT.REVERSAL,
+        tableName: 'expenses',
+        recordId: id,
+        oldValues: { amount: existing.amount },
+        newValues: { reversal_id: inserted.lastInsertRowid, reason },
+        userId: actorId
+      });
+
+      return inserted.lastInsertRowid;
+    });
+
+    const reversalId = reverseTx();
+    const reversal = await ExpenseModel.getById(reversalId);
     return {
       success: true,
-      message: 'Expense record deleted successfully'
+      message: 'Expense record reversed successfully',
+      data: { original_id: id, reversal }
     };
   } catch (error) {
-    console.error('Error deleting expense:', error);
-    return {
-      success: false,
-      error: 'Failed to delete expense record'
-    };
+    console.error('Error reversing expense:', error);
+    return { success: false, error: 'Failed to reverse expense record' };
   }
 };
 
@@ -542,6 +654,7 @@ export default {
   createExpense,
   updateExpense,
   deleteExpense,
+  reverseExpense,
   verifyExpense,
   searchExpenses
 };

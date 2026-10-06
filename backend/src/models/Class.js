@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
 
 /**
  * Class Model
@@ -68,7 +69,8 @@ export const getAllClasses = (options = {}) => {
   }
 
   // Add ordering and pagination
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const safeOrder = parseOrder(orderBy === 'name' ? undefined : orderBy, orderDir, ['name', 'description', 'created_at', 'updated_at', 'id', 'is_active'], 'name', 'ASC');
+  query += ` ORDER BY ${safeOrder.field} ${safeOrder.dir} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);

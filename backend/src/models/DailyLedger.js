@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
 
 /**
  * DailyLedger Model
@@ -95,8 +96,9 @@ export async function getAll(options = {}) {
 
   // Validate orderBy to prevent SQL injection
   const validOrderFields = Object.values(FIELDS);
-  const safeOrderBy = validOrderFields.includes(orderBy) ? orderBy : FIELDS.DATE;
-  const safeOrderDirection = orderDirection === 'ASC' || orderDirection === 'DESC' ? orderDirection : 'DESC';
+  const safeOrder = parseOrder(orderBy, orderDirection, validOrderFields, FIELDS.DATE, 'DESC');
+  const safeOrderBy = safeOrder.field;
+  const safeOrderDirection = safeOrder.dir;
 
   const rows = await db.prepare(`SELECT * FROM ${TABLE} ${whereClause} ORDER BY ${safeOrderBy} ${safeOrderDirection} LIMIT ? OFFSET ?`).all([...params, limit, offset]);
   return rows;

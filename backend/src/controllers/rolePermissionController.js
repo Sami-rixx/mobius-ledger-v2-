@@ -59,7 +59,7 @@ export const listRolePermissions = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -78,7 +78,7 @@ export const countRolePermissions = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -106,7 +106,7 @@ export const getSingleRolePermission = (req, res) => {
       data: rolePermission
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -134,7 +134,7 @@ export const getRolePermissionByRoleAndPermissionHandler = (req, res) => {
       data: rolePermission
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -155,7 +155,7 @@ export const getPermissionsForRoleHandler = (req, res) => {
       data: permissions
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -176,7 +176,7 @@ export const getPermissionIdsForRoleHandler = (req, res) => {
       data: permissionIds
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -197,7 +197,7 @@ export const getRolesForPermissionHandler = (req, res) => {
       data: roleIds
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -218,7 +218,7 @@ export const checkRoleHasPermissionHandler = (req, res) => {
       hasPermission
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -248,7 +248,7 @@ export const checkRoleHasAnyPermissionHandler = (req, res) => {
       hasAnyPermission
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -269,7 +269,7 @@ export const getPermissionCountForRoleHandler = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -290,7 +290,7 @@ export const getRoleCountForPermissionHandler = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -309,7 +309,7 @@ export const getRolePermissionStatsHandler = (req, res) => {
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -358,7 +358,7 @@ export const removePermissionFromRoleHandler = (req, res) => {
       message: `Permission ${permissionId} removed from role ${roleId} successfully`
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -386,7 +386,7 @@ export const removeAllPermissionsFromRoleHandler = (req, res) => {
       message: `All permissions removed from role ${roleId} successfully`
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

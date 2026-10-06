@@ -22,6 +22,7 @@
  */
 
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
 import {
   listRolePermissions,
   countRolePermissions,
@@ -44,51 +45,51 @@ import {
 const router = Router();
 
 // GET /api/role-permissions - List role-permission assignments with pagination
-router.get('/', listRolePermissions);
+router.get('/', requirePermission('roles.manage'), listRolePermissions);
 
 // GET /api/role-permissions/count - Get role-permission assignment count
-router.get('/count', countRolePermissions);
+router.get('/count', requirePermission('roles.manage'), countRolePermissions);
 
 // GET /api/role-permissions/:id - Get a single role-permission assignment by ID
-router.get('/:id', getSingleRolePermission);
+router.get('/:id', requirePermission('roles.manage'), getSingleRolePermission);
 
 // GET /api/role-permissions/role/:roleId/permission/:permissionId - Get by role and permission
-router.get('/role/:roleId/permission/:permissionId', getRolePermissionByRoleAndPermissionHandler);
+router.get('/role/:roleId/permission/:permissionId', requirePermission('roles.manage'), getRolePermissionByRoleAndPermissionHandler);
 
 // GET /api/role-permissions/role/:roleId - Get all permissions for a role
-router.get('/role/:roleId', getPermissionsForRoleHandler);
+router.get('/role/:roleId', requirePermission('roles.manage'), getPermissionsForRoleHandler);
 
 // GET /api/role-permissions/role/:roleId/ids - Get permission IDs for a role
-router.get('/role/:roleId/ids', getPermissionIdsForRoleHandler);
+router.get('/role/:roleId/ids', requirePermission('roles.manage'), getPermissionIdsForRoleHandler);
 
 // GET /api/role-permissions/permission/:permissionId - Get all roles for a permission
-router.get('/permission/:permissionId', getRolesForPermissionHandler);
+router.get('/permission/:permissionId', requirePermission('roles.manage'), getRolesForPermissionHandler);
 
 // GET /api/role-permissions/role/:roleId/has-permission/:permissionId - Check if role has permission
-router.get('/role/:roleId/has-permission/:permissionId', checkRoleHasPermissionHandler);
+router.get('/role/:roleId/has-permission/:permissionId', requirePermission('roles.manage'), checkRoleHasPermissionHandler);
 
 // POST /api/role-permissions/role/:roleId/has-any-permission - Check if role has any of the given permissions
-router.post('/role/:roleId/has-any-permission', checkRoleHasAnyPermissionHandler);
+router.post('/role/:roleId/has-any-permission', requirePermission('roles.manage'), checkRoleHasAnyPermissionHandler);
 
 // GET /api/role-permissions/role/:roleId/permissions/count - Get permission count for a role
-router.get('/role/:roleId/permissions/count', getPermissionCountForRoleHandler);
+router.get('/role/:roleId/permissions/count', requirePermission('roles.manage'), getPermissionCountForRoleHandler);
 
 // GET /api/role-permissions/permission/:permissionId/roles/count - Get role count for a permission
-router.get('/permission/:permissionId/roles/count', getRoleCountForPermissionHandler);
+router.get('/permission/:permissionId/roles/count', requirePermission('roles.manage'), getRoleCountForPermissionHandler);
 
 // GET /api/role-permissions/statistics - Get role-permission statistics
-router.get('/statistics', getRolePermissionStatsHandler);
+router.get('/statistics', requirePermission('roles.manage'), getRolePermissionStatsHandler);
 
 // POST /api/role-permissions - Assign permission to role
-router.post('/', createRolePermissionHandler);
+router.post('/', requirePermission('roles.manage'), createRolePermissionHandler);
 
 // DELETE /api/role-permissions/role/:roleId/permission/:permissionId - Remove permission from role
-router.delete('/role/:roleId/permission/:permissionId', removePermissionFromRoleHandler);
+router.delete('/role/:roleId/permission/:permissionId', requirePermission('roles.manage'), removePermissionFromRoleHandler);
 
 // DELETE /api/role-permissions/role/:roleId - Remove all permissions from role
-router.delete('/role/:roleId', removeAllPermissionsFromRoleHandler);
+router.delete('/role/:roleId', requirePermission('roles.manage'), removeAllPermissionsFromRoleHandler);
 
 // PUT /api/role-permissions/role/:roleId - Replace all permissions for a role
-router.put('/role/:roleId', replaceRolePermissionsHandler);
+router.put('/role/:roleId', requirePermission('roles.manage'), replaceRolePermissionsHandler);
 
 export default router;

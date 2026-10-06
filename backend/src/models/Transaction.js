@@ -1,4 +1,6 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * Transaction Model
@@ -105,7 +107,8 @@ export const getAllTransactions = (options = {}) => {
     query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const safeOrder = parseOrder(orderBy === 'transaction_date' ? undefined : orderBy, orderDir, ['transaction_date', 'amount', 'created_at', 'receipt_number', 'transaction_type', 'id'], 'transaction_date', 'DESC');
+  query += ` ORDER BY ${safeOrder.field} ${safeOrder.dir} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);
@@ -201,22 +204,24 @@ export const createTransaction = (data) => {
     verifiedBy,
     verifiedAt,
     createdBy,
-    updatedBy
+    updatedBy,
+    reversalOfId
   } = data;
 
   const stmt = db.prepare(`
     INSERT INTO ${TABLE} 
-    (receipt_number, transaction_type, amount, category_id, income_category_id, 
+    (receipt_number, transaction_type, amount, amount_cents, category_id, income_category_id, 
      expense_category_id, student_id, description, payment_method_id, 
      transaction_date, transaction_time, reference, notes, is_verified, 
-     verified_by, verified_at, created_by, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     verified_by, verified_at, created_by, updated_by, reversal_of_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
     receiptNumber,
     transactionType,
     amount,
+    toCents(amount, { allowNegative: true }),
     categoryId,
     incomeCategoryId,
     expenseCategoryId,
@@ -231,7 +236,8 @@ export const createTransaction = (data) => {
     verifiedBy,
     verifiedAt,
     createdBy,
-    updatedBy
+    updatedBy,
+    reversalOfId ?? null
   );
 
   return getTransactionById(result.lastInsertRowid);
@@ -271,7 +277,7 @@ export const updateTransaction = (id, data) => {
 
   const stmt = db.prepare(`
     UPDATE ${TABLE} 
-    SET receipt_number = ?, transaction_type = ?, amount = ?, category_id = ?, 
+    SET receipt_number = ?, transaction_type = ?, amount = ?, amount_cents = ?, category_id = ?, 
         income_category_id = ?, expense_category_id = ?, student_id = ?, 
         description = ?, payment_method_id = ?, transaction_date = ?, 
         transaction_time = ?, reference = ?, notes = ?, is_verified = ?, 
@@ -283,6 +289,7 @@ export const updateTransaction = (id, data) => {
     receiptNumber || existing.receipt_number,
     transactionType || existing.transaction_type,
     amount || existing.amount,
+    toCents(amount || existing.amount, { allowNegative: true }),
     categoryId || existing.category_id,
     incomeCategoryId || existing.income_category_id,
     expenseCategoryId || existing.expense_category_id,

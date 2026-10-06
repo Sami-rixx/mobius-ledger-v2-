@@ -21,6 +21,8 @@ import {
   getTransactionsByStudent,
   getTransactionsByDateRange
 } from '../models/Transaction.js';
+import db from '../config/database.js';
+import { recordAuditEvent, recordAuditEventStrict, AUDIT } from './auditService.js';
 import { generateReceiptNumber } from '../utils/receiptGenerator.js';
 
 // Valid transaction types
@@ -189,6 +191,13 @@ export const createTransactionRecord = (data, userContext = {}) => {
   
   try {
     const transaction = createTransaction(transactionData);
+    recordAuditEvent({
+      action: AUDIT.CREATE,
+      tableName: 'transactions',
+      recordId: transaction.id,
+      newValues: { amount: transaction.amount, transaction_type: transaction.transaction_type, receipt_number: transaction.receipt_number },
+      userId: userContext.userId ?? null
+    });
     return { success: true, data: transaction };
   } catch (error) {
     return { success: false, error: error.message };
@@ -225,8 +234,32 @@ export const updateTransactionRecord = (id, data, userContext = {}) => {
     if (!existing) {
       return { success: false, error: 'Transaction not found' };
     }
-    
+
+    // POSTED-RECORD IMMUTABILITY (owner decision / specification §11):
+    // transactions are posted ledger entries. Amount, type and date are
+    // immutable — corrections go through reverseTransactionRecord().
+    if (data.amount !== undefined && parseFloat(data.amount) !== parseFloat(existing.amount)) {
+      return { success: false, statusCode: 409, error: 'Posted transaction amounts are immutable. Create a reversal instead.' };
+    }
+    if (data.transactionType !== undefined && data.transactionType !== existing.transaction_type) {
+      return { success: false, statusCode: 409, error: 'Posted transaction types are immutable. Create a reversal instead.' };
+    }
+    if (data.transactionDate !== undefined && data.transactionDate !== existing.transaction_date) {
+      return { success: false, statusCode: 409, error: 'Posted transaction dates are immutable. Create a reversal instead.' };
+    }
+    if (existing.reversed_by_id || existing.reversal_of_id) {
+      return { success: false, statusCode: 409, error: 'Reversed or reversal transactions cannot be edited.' };
+    }
+
     const transaction = updateTransaction(id, transactionData);
+    recordAuditEvent({
+      action: AUDIT.UPDATE,
+      tableName: 'transactions',
+      recordId: id,
+      oldValues: { description: existing.description },
+      newValues: { description: transaction.description },
+      userId: userContext.userId ?? null
+    });
     return { success: true, data: transaction };
   } catch (error) {
     return { success: false, error: error.message };
@@ -239,18 +272,71 @@ export const updateTransactionRecord = (id, data, userContext = {}) => {
  * @returns {Object} - Success status
  */
 export const deleteTransactionRecord = (id) => {
+  // POSTED-RECORD IMMUTABILITY (owner decision): ledger transactions are
+  // never hard-deleted. Corrections preserve history through reversals.
   if (!id || isNaN(id)) {
     return { success: false, error: 'Invalid transaction ID' };
   }
-  
+  const existing = getTransactionById(id);
+  if (!existing) {
+    return { success: false, error: 'Transaction not found' };
+  }
+  return {
+    success: false,
+    statusCode: 409,
+    error: 'Posted transactions cannot be deleted. Use POST /api/transactions/:id/reverse to create a correcting reversal.'
+  };
+};
+
+/**
+ * Reverse a posted transaction: creates a compensating transaction with the
+ * negated amount, linked both ways, inside one atomic SQLite transaction.
+ */
+export const reverseTransactionRecord = (id, actorId, reason = null) => {
+  if (!id || isNaN(id)) {
+    return { success: false, error: 'Invalid transaction ID' };
+  }
+  const existing = getTransactionById(id);
+  if (!existing) {
+    return { success: false, statusCode: 404, error: 'Transaction not found' };
+  }
+  if (existing.reversed_by_id) {
+    return { success: false, statusCode: 409, error: 'This transaction has already been reversed' };
+  }
+  if (existing.reversal_of_id) {
+    return { success: false, statusCode: 409, error: 'Reversal transactions cannot themselves be reversed' };
+  }
+
   try {
-    const existing = getTransactionById(id);
-    if (!existing) {
-      return { success: false, error: 'Transaction not found' };
-    }
-    
-    const deleted = deleteTransaction(id);
-    return { success: deleted, data: deleted ? existing : null };
+    const reverseTx = db.transaction(() => {
+      const reversal = createTransaction({
+        receiptNumber: generateReceiptNumber(),
+        transactionType: existing.transaction_type,
+        amount: -parseFloat(existing.amount),
+        studentId: existing.student_id,
+        incomeCategoryId: existing.income_category_id,
+        expenseCategoryId: existing.expense_category_id,
+        paymentMethodId: existing.payment_method_id,
+        transactionDate: new Date().toISOString().split('T')[0],
+        description: `Reversal of transaction #${id}${reason ? `: ${reason}` : ''}`,
+        reference: `reversal:${id}`,
+        createdBy: actorId,
+        updatedBy: actorId,
+        reversalOfId: id
+      });
+      db.prepare('UPDATE transactions SET reversed_by_id = ? WHERE id = ?').run(reversal.id, id);
+      recordAuditEventStrict({
+        action: AUDIT.REVERSAL,
+        tableName: 'transactions',
+        recordId: id,
+        oldValues: { amount: existing.amount },
+        newValues: { reversal_id: reversal.id, reason },
+        userId: actorId
+      });
+      return reversal;
+    });
+    const reversal = reverseTx();
+    return { success: true, data: { original_id: id, reversal } };
   } catch (error) {
     return { success: false, error: error.message };
   }

@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
 
 /**
  * Student Model
@@ -91,7 +92,8 @@ export const getAllStudents = (options = {}) => {
   }
 
   // Add ordering and pagination
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const safeOrder = parseOrder(orderBy === 'last_name, first_name' ? undefined : orderBy, orderDir, ['first_name', 'last_name', 'admission_number', 'created_at', 'updated_at', 'id', 'class_id', 'last_name, first_name'], 'last_name, first_name', 'ASC');
+  query += ` ORDER BY ${safeOrder.field} ${safeOrder.dir} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);

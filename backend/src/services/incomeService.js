@@ -1,7 +1,9 @@
 import * as IncomeModel from '../models/Income.js';
+import db from '../config/database.js';
+import { recordAuditEvent, recordAuditEventStrict, AUDIT } from './auditService.js';
+import { validateAmount } from '../utils/money.js';
 import * as IncomeCategoryModel from '../models/IncomeCategory.js';
 import * as TransactionModel from '../models/Transaction.js';
-import db from '../config/database.js';
 import { generateReceiptNumber } from '../utils/receiptGenerator.js';
 
 /**
@@ -293,43 +295,48 @@ export const createIncome = async (data) => {
   }
 
   try {
-    // Create income record
-    const incomeData = {
-      receiptNumber,
-      amount: amountNum,
-      incomeCategoryId,
-      description,
-      payerName,
-      payerContact,
-      paymentMethodId,
-      incomeDate,
-      notes,
-      isVerified: false,
-      createdBy,
-      updatedBy: createdBy
-    };
+    // ATOMIC financial write (specification §11): income row + linked
+    // transaction + audit event commit together or not at all. The income
+    // row stores the transaction id so the posted pair stays connected,
+    // and amount_cents is written on both records (owner decision D8).
+    const createTx = db.transaction(() => {
+      const transaction = TransactionModel.createTransaction({
+        receiptNumber,
+        transactionType: 'income',
+        amount: amountNum,
+        incomeCategoryId,
+        paymentMethodId,
+        transactionDate: incomeDate,
+        description: description || `Income: ${category.name}`,
+        createdBy,
+        updatedBy: createdBy
+      });
 
-    const incomeRecord = await IncomeModel.create(incomeData);
+      const inserted = db.prepare(`
+        INSERT INTO income (
+          receipt_number, amount, amount_cents, income_category_id, description,
+          payer_name, payer_contact, payment_method_id, transaction_id,
+          income_date, notes, is_verified, created_by, updated_by
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+      `).run(
+        receiptNumber, amountNum, Math.round(amountNum * 100), incomeCategoryId,
+        description ?? null, payerName, payerContact ?? null, paymentMethodId ?? null,
+        transaction.id, incomeDate, notes ?? null, createdBy ?? null, createdBy ?? null
+      );
 
-    // Create associated transaction
-    // NOTE: TransactionModel.createTransaction() destructures camelCase keys
-    // (see models/Transaction.js) - this previously used snake_case keys and
-    // called a non-existent `TransactionModel.create()`, which threw
-    // "TypeError: TransactionModel.create is not a function" and made every
-    // income creation fail.
-    const transactionData = {
-      receiptNumber,
-      transactionType: 'income',
-      amount: amountNum,
-      incomeCategoryId,
-      paymentMethodId,
-      transactionDate: incomeDate,
-      description: description || `Income: ${category.name}`,
-      createdBy,
-      updatedBy: createdBy
-    };
+      recordAuditEventStrict({
+        action: AUDIT.CREATE,
+        tableName: 'income',
+        recordId: inserted.lastInsertRowid,
+        newValues: { receiptNumber, amount: amountNum, incomeCategoryId, transactionId: transaction.id },
+        userId: createdBy ?? null
+      });
 
-    await TransactionModel.createTransaction(transactionData);
+      return inserted.lastInsertRowid;
+    });
+
+    const incomeId = createTx();
+    const incomeRecord = await IncomeModel.getById(incomeId);
 
     return {
       success: true,
@@ -379,15 +386,37 @@ export const updateIncome = async (id, data) => {
     };
   }
 
-  // If amount is provided, validate it's positive
-  if (amount !== undefined) {
-    const amountNum = parseFloat(amount);
-    if (isNaN(amountNum) || amountNum <= 0) {
-      return {
-        success: false,
-        error: 'Amount must be a positive number'
-      };
-    }
+  // POSTED-RECORD IMMUTABILITY (owner decision / specification §11):
+  // income records are posted financial records. Their monetary facts
+  // (amount, date, receipt number) are immutable — corrections must be
+  // made with a reversal (POST /api/income/:id/reverse) plus a new record.
+  if (amount !== undefined && parseFloat(amount) !== parseFloat(existing.amount)) {
+    return {
+      success: false,
+      statusCode: 409,
+      error: 'Posted income amounts are immutable. Reverse this record and create a new one instead.'
+    };
+  }
+  if (incomeDate !== undefined && incomeDate !== existing.income_date) {
+    return {
+      success: false,
+      statusCode: 409,
+      error: 'Posted income dates are immutable. Reverse this record and create a new one instead.'
+    };
+  }
+  if (receiptNumber !== undefined && receiptNumber !== existing.receipt_number) {
+    return {
+      success: false,
+      statusCode: 409,
+      error: 'Receipt numbers are immutable.'
+    };
+  }
+  if (existing.reversed_by_id || existing.reversal_of_id) {
+    return {
+      success: false,
+      statusCode: 409,
+      error: 'Reversed or reversal records cannot be edited.'
+    };
   }
 
   // If incomeCategoryId is provided, validate it exists
@@ -418,6 +447,15 @@ export const updateIncome = async (id, data) => {
 
     const updatedRecord = await IncomeModel.update(id, updateData);
 
+    recordAuditEvent({
+      action: AUDIT.UPDATE,
+      tableName: 'income',
+      recordId: id,
+      oldValues: { description: existing.description, notes: existing.notes, is_verified: existing.is_verified },
+      newValues: { description: updatedRecord.description, notes: updatedRecord.notes, is_verified: updatedRecord.is_verified },
+      userId: updatedBy ?? null
+    });
+
     return {
       success: true,
       message: 'Income record updated successfully',
@@ -442,6 +480,8 @@ export const updateIncome = async (id, data) => {
  * @returns {Object} - Success response
  */
 export const deleteIncome = async (id) => {
+  // POSTED-RECORD IMMUTABILITY (owner decision): posted income is never
+  // hard-deleted. Corrections preserve history through reversal records.
   const existing = await IncomeModel.getById(id);
   if (!existing) {
     return {
@@ -449,19 +489,99 @@ export const deleteIncome = async (id) => {
       error: 'Income record not found'
     };
   }
+  return {
+    success: false,
+    statusCode: 409,
+    error: 'Posted income records cannot be deleted. Use POST /api/income/:id/reverse to create a correcting reversal.'
+  };
+};
+
+/**
+ * Reverse a posted income record: creates a compensating negative income
+ * record and a compensating transaction, linked to the original. The
+ * original row is preserved (immutable ledger).
+ */
+export const reverseIncome = async (id, actorId, reason = null) => {
+  const existing = await IncomeModel.getById(id);
+  if (!existing) {
+    return { success: false, statusCode: 404, error: 'Income record not found' };
+  }
+  if (existing.reversed_by_id) {
+    return { success: false, statusCode: 409, error: 'This income record has already been reversed' };
+  }
+  if (existing.reversal_of_id) {
+    return { success: false, statusCode: 409, error: 'Reversal records cannot themselves be reversed' };
+  }
 
   try {
-    await IncomeModel.deleteById(id);
+    const reversalReceipt = generateReceiptNumber();
+    const reverseTx = db.transaction(() => {
+      const reversalTransaction = TransactionModel.createTransaction({
+        receiptNumber: reversalReceipt,
+        transactionType: 'income',
+        amount: -parseFloat(existing.amount),
+        incomeCategoryId: existing.income_category_id,
+        paymentMethodId: existing.payment_method_id,
+        transactionDate: new Date().toISOString().split('T')[0],
+        description: `Reversal of income ${existing.receipt_number}${reason ? `: ${reason}` : ''}`,
+        reference: `reversal:income:${id}`,
+        createdBy: actorId,
+        updatedBy: actorId,
+        reversalOfId: existing.transaction_id ?? null
+      });
+
+      const inserted = db.prepare(`
+        INSERT INTO income (
+          receipt_number, amount, amount_cents, income_category_id, description,
+          payer_name, payer_contact, payment_method_id, transaction_id,
+          income_date, notes, is_verified, created_by, updated_by, reversal_of_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+      `).run(
+        reversalReceipt,
+        -parseFloat(existing.amount),
+        -Math.round(parseFloat(existing.amount) * 100),
+        existing.income_category_id,
+        `Reversal of ${existing.receipt_number}${reason ? `: ${reason}` : ''}`,
+        existing.payer_name,
+        existing.payer_contact,
+        existing.payment_method_id,
+        reversalTransaction.id,
+        new Date().toISOString().split('T')[0],
+        reason ?? null,
+        actorId,
+        actorId,
+        id
+      );
+
+      db.prepare('UPDATE income SET reversed_by_id = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+        .run(inserted.lastInsertRowid, actorId, id);
+      if (existing.transaction_id) {
+        db.prepare('UPDATE transactions SET reversed_by_id = ? WHERE id = ?')
+          .run(reversalTransaction.id, existing.transaction_id);
+      }
+
+      recordAuditEventStrict({
+        action: AUDIT.REVERSAL,
+        tableName: 'income',
+        recordId: id,
+        oldValues: { amount: existing.amount, receipt_number: existing.receipt_number },
+        newValues: { reversal_id: inserted.lastInsertRowid, reason },
+        userId: actorId
+      });
+
+      return inserted.lastInsertRowid;
+    });
+
+    const reversalId = reverseTx();
+    const reversal = await IncomeModel.getById(reversalId);
     return {
       success: true,
-      message: 'Income record deleted successfully'
+      message: 'Income record reversed successfully',
+      data: { original_id: id, reversal }
     };
   } catch (error) {
-    console.error('Error deleting income:', error);
-    return {
-      success: false,
-      error: 'Failed to delete income record'
-    };
+    console.error('Error reversing income:', error);
+    return { success: false, error: 'Failed to reverse income record' };
   }
 };
 
@@ -541,6 +661,7 @@ export default {
   createIncome,
   updateIncome,
   deleteIncome,
+  reverseIncome,
   verifyIncome,
   getIncomeStatistics,
   getIncomeCount

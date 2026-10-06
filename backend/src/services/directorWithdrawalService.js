@@ -1,8 +1,10 @@
 import * as DirectorWithdrawalModel from '../models/DirectorWithdrawal.js';
 import * as TransactionModel from '../models/Transaction.js';
+import db from '../config/database.js';
+import { generateReceiptNumber } from '../utils/receiptGenerator.js';
+import { recordAuditEventStrict, recordAuditEvent, AUDIT } from './auditService.js';
 import * as PaymentMethodModel from '../models/PaymentMethod.js';
 import * as UserModel from '../models/User.js';
-import db from '../config/database.js';
 import { WITHDRAWAL_STATUS } from '../models/DirectorWithdrawal.js';
 
 /**
@@ -329,6 +331,14 @@ export const createWithdrawal = async (data, createdBy) => {
 
     const record = await DirectorWithdrawalModel.create(withdrawalData);
 
+    recordAuditEvent({
+      action: AUDIT.CREATE,
+      tableName: 'director_withdrawals',
+      recordId: record.id,
+      newValues: { amount: record.amount, purpose: record.purpose, status: record.status },
+      userId: createdBy
+    });
+
     return {
       success: true,
       message: 'Withdrawal created successfully and is pending approval',
@@ -378,15 +388,27 @@ export const updateWithdrawal = async (id, data, updatedBy) => {
       };
     }
 
-    // Check if status is being changed and validate transition
+    // POSTED-RECORD IMMUTABILITY (owner decision): once a withdrawal has
+    // left the pending (draft) state it is a posted financial record and
+    // can no longer be edited. Corrections happen through the dedicated
+    // reject/cancel/reversal flows.
+    if (currentWithdrawal.status !== WITHDRAWAL_STATUS.PENDING) {
+      return {
+        success: false,
+        error: `Cannot update a withdrawal that is ${currentWithdrawal.status}. Only pending withdrawals can be edited.`,
+        statusCode: 409
+      };
+    }
+
+    // Status transitions must go through the dedicated approve/reject/
+    // complete/cancel endpoints (which enforce maker-checker); the generic
+    // update endpoint can never change status.
     if (data.status && data.status !== currentWithdrawal.status) {
-      if (!validateStatusTransition(currentWithdrawal.status, data.status)) {
-        return {
-          success: false,
-          error: `Cannot transition from ${currentWithdrawal.status} to ${data.status}`,
-          statusCode: 400
-        };
-      }
+      return {
+        success: false,
+        error: 'Status cannot be changed through update. Use the approve/reject/complete/cancel endpoints.',
+        statusCode: 400
+      };
     }
 
     // Check if payment method exists (if provided)
@@ -418,6 +440,15 @@ export const updateWithdrawal = async (id, data, updatedBy) => {
     };
 
     const record = await DirectorWithdrawalModel.update(id, withdrawalData);
+
+    recordAuditEvent({
+      action: AUDIT.UPDATE,
+      tableName: 'director_withdrawals',
+      recordId: id,
+      oldValues: { amount: currentWithdrawal.amount, purpose: currentWithdrawal.purpose },
+      newValues: { amount: record.amount, purpose: record.purpose },
+      userId: updatedBy
+    });
 
     return {
       success: true,
@@ -485,6 +516,14 @@ export const deleteWithdrawal = async (id, deletedBy) => {
       };
     }
 
+    recordAuditEvent({
+      action: AUDIT.DELETE,
+      tableName: 'director_withdrawals',
+      recordId: id,
+      oldValues: { amount: currentWithdrawal.amount, purpose: currentWithdrawal.purpose, status: currentWithdrawal.status },
+      userId: deletedBy
+    });
+
     return {
       success: true,
       message: 'Withdrawal deleted successfully'
@@ -510,7 +549,7 @@ export const approveWithdrawal = async (id, approvedBy, notes = null) => {
   try {
     // Get current withdrawal
     const currentWithdrawal = await DirectorWithdrawalModel.getById(id);
-    
+
     if (!currentWithdrawal) {
       return {
         success: false,
@@ -538,14 +577,75 @@ export const approveWithdrawal = async (id, approvedBy, notes = null) => {
       };
     }
 
-    const record = await DirectorWithdrawalModel.approve(id, approvedBy, notes);
+    // MAKER-CHECKER (OWNER DECISION D6, specification §6): the creator of a
+    // withdrawal can NEVER approve that same withdrawal. Enforced here in
+    // the service layer, independent of any route/UI check.
+    if (Number(currentWithdrawal.created_by) === Number(approvedBy)) {
+      return {
+        success: false,
+        error: 'Separation of duties: you cannot approve a withdrawal you created yourself',
+        statusCode: 403
+      };
+    }
+
+    // ATOMIC approval (specification §6): status transition + linked
+    // financial transaction + ledger update (via trigger) + audit event
+    // either all commit or all roll back.
+    const approveTx = db.transaction(() => {
+      const statusChange = db.prepare(`
+        UPDATE director_withdrawals
+        SET status = ?, approved_by = ?, approved_at = CURRENT_TIMESTAMP,
+            notes = COALESCE(notes, '') || ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND status = ?
+      `).run(
+        WITHDRAWAL_STATUS.APPROVED,
+        approvedBy,
+        notes ? `\nApproval note: ${notes}` : '',
+        approvedBy,
+        id,
+        WITHDRAWAL_STATUS.PENDING
+      );
+      if (statusChange.changes !== 1) {
+        throw new Error('Withdrawal is no longer pending');
+      }
+
+      const transaction = TransactionModel.createTransaction({
+        receiptNumber: generateReceiptNumber(),
+        transactionType: 'director_withdrawal',
+        amount: currentWithdrawal.amount,
+        description: `Director withdrawal #${id}: ${currentWithdrawal.purpose}`,
+        paymentMethodId: currentWithdrawal.payment_method_id,
+        transactionDate: currentWithdrawal.withdrawal_date,
+        reference: `withdrawal:${id}`,
+        createdBy: approvedBy,
+        updatedBy: approvedBy
+      });
+
+      db.prepare('UPDATE director_withdrawals SET transaction_id = ? WHERE id = ?')
+        .run(transaction.id, id);
+
+      recordAuditEventStrict({
+        action: AUDIT.WITHDRAWAL_APPROVED,
+        tableName: 'director_withdrawals',
+        recordId: id,
+        oldValues: { status: WITHDRAWAL_STATUS.PENDING },
+        newValues: { status: WITHDRAWAL_STATUS.APPROVED, transaction_id: transaction.id, amount: currentWithdrawal.amount },
+        userId: approvedBy
+      });
+
+      return transaction;
+    });
+
+    const transaction = approveTx();
+    const record = await DirectorWithdrawalModel.getById(id);
 
     return {
       success: true,
       message: 'Withdrawal approved successfully',
       data: {
         ...record,
-        amount: parseFloat(record.amount)
+        amount: parseFloat(record.amount),
+        transaction_id: transaction.id
       }
     };
   } catch (error) {
@@ -605,7 +705,30 @@ export const rejectWithdrawal = async (id, rejectedBy, reason) => {
       };
     }
 
-    const record = await DirectorWithdrawalModel.reject(id, rejectedBy, reason);
+    // MAKER-CHECKER (OWNER DECISION D6): the creator of a withdrawal can
+    // never reject that same withdrawal either.
+    if (Number(currentWithdrawal.created_by) === Number(rejectedBy)) {
+      return {
+        success: false,
+        error: 'Separation of duties: you cannot reject a withdrawal you created yourself',
+        statusCode: 403
+      };
+    }
+
+    const rejectTx = db.transaction(() => {
+      const record = DirectorWithdrawalModel.reject(id, rejectedBy, reason);
+      recordAuditEventStrict({
+        action: AUDIT.WITHDRAWAL_REJECTED,
+        tableName: 'director_withdrawals',
+        recordId: id,
+        oldValues: { status: WITHDRAWAL_STATUS.PENDING },
+        newValues: { status: WITHDRAWAL_STATUS.REJECTED, reason },
+        userId: rejectedBy
+      });
+      return record;
+    });
+    await rejectTx();
+    const record = await DirectorWithdrawalModel.getById(id);
 
     return {
       success: true,
@@ -678,6 +801,14 @@ export const completeWithdrawal = async (id, updatedBy, transactionId = null) =>
 
     const record = await DirectorWithdrawalModel.markAsCompleted(id, updatedBy, transactionId);
 
+    recordAuditEvent({
+      action: AUDIT.WITHDRAWAL_COMPLETED,
+      tableName: 'director_withdrawals',
+      recordId: id,
+      newValues: { status: record.status, transaction_id: record.transaction_id },
+      userId: updatedBy
+    });
+
     return {
       success: true,
       message: 'Withdrawal marked as completed successfully',
@@ -735,7 +866,46 @@ export const cancelWithdrawal = async (id, updatedBy, reason = null) => {
       };
     }
 
-    const record = await DirectorWithdrawalModel.cancel(id, updatedBy, reason);
+    const cancelTx = db.transaction(() => {
+      DirectorWithdrawalModel.cancel(id, updatedBy, reason);
+      // If the withdrawal was already approved it has a posted financial
+      // transaction: cancelling must create a compensating REVERSAL
+      // transaction (never delete posted history).
+      if (currentWithdrawal.status === WITHDRAWAL_STATUS.APPROVED && currentWithdrawal.transaction_id) {
+        const original = TransactionModel.getTransactionById(currentWithdrawal.transaction_id);
+        if (original && !original.reversed_by_id) {
+          const reversal = TransactionModel.createTransaction({
+            transactionType: original.transaction_type,
+            amount: -original.amount,
+            description: `Reversal of transaction #${original.id} (withdrawal #${id} cancelled)` ,
+            paymentMethodId: original.payment_method_id,
+            transactionDate: new Date().toISOString().split('T')[0],
+            reference: `reversal:${original.id}`,
+            createdBy: updatedBy,
+            updatedBy: updatedBy,
+            reversalOfId: original.id
+          });
+          db.prepare('UPDATE transactions SET reversed_by_id = ? WHERE id = ?').run(reversal.id, original.id);
+          recordAuditEventStrict({
+            action: AUDIT.REVERSAL,
+            tableName: 'transactions',
+            recordId: original.id,
+            newValues: { reversal_id: reversal.id },
+            userId: updatedBy
+          });
+        }
+      }
+      recordAuditEventStrict({
+        action: AUDIT.WITHDRAWAL_CANCELLED,
+        tableName: 'director_withdrawals',
+        recordId: id,
+        oldValues: { status: currentWithdrawal.status },
+        newValues: { status: WITHDRAWAL_STATUS.CANCELLED, reason },
+        userId: updatedBy
+      });
+    });
+    cancelTx();
+    const record = await DirectorWithdrawalModel.getById(id);
 
     return {
       success: true,

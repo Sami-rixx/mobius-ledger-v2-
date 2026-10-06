@@ -16,12 +16,9 @@ import {
   getAuditTrailsByRecord,
   getAuditTrailsByTable,
   getRecentAuditTrails,
-  createAuditTrailRecord,
-  deleteAuditTrailRecord,
   searchAuditTrails,
   getAuditTrailStats,
   getAuditTrailCountByFilter,
-  logFinancialAction
 } from '../services/auditTrailService.js';
 
 // Default pagination
@@ -69,7 +66,7 @@ export const listAuditTrails = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -89,7 +86,7 @@ export const countAuditTrails = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -117,7 +114,7 @@ export const getSingleAuditTrail = (req, res) => {
       data: auditTrail
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -138,7 +135,7 @@ export const getAuditTrailsByRecordHandler = (req, res) => {
       data: auditTrails
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -165,7 +162,7 @@ export const getAuditTrailsByTableHandler = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -186,70 +183,7 @@ export const getRecentAuditTrailsHandler = (req, res) => {
       data: auditTrails
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-/**
- * Create a new audit trail entry
- * POST /api/audit-trail
- */
-export const createAuditTrailHandler = (req, res) => {
-  try {
-    const data = req.body;
-    const userContext = {
-      userId: req.user?.id,
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent')
-    };
-
-    const result = createAuditTrailRecord(data, userContext);
-    
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        error: result.error
-      });
-    }
-
-    res.status(201).json({
-      success: true,
-      data: result.data
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-/**
- * Delete an audit trail entry
- * DELETE /api/audit-trail/:id
- */
-export const deleteAuditTrailHandler = (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const result = deleteAuditTrailRecord(id);
-    
-    if (!result.success) {
-      return res.status(404).json({
-        success: false,
-        error: result.error
-      });
-    }
-
-    res.json({
-      success: true,
-      data: result.data,
-      message: 'Audit trail entry deleted successfully'
-    });
-  } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -271,7 +205,7 @@ export const searchAuditTrailsHandler = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -292,49 +226,7 @@ export const getAuditTrailStatsHandler = (req, res) => {
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-/**
- * Log a financial action to audit trail
- * POST /api/audit-trail/log-financial
- */
-export const logFinancialActionHandler = (req, res) => {
-  try {
-    const { action, tableName, recordId, oldValues, newValues } = req.body;
-    const userContext = {
-      userId: req.user?.id,
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent')
-    };
-
-    const result = logFinancialAction(
-      action,
-      tableName,
-      recordId,
-      oldValues,
-      newValues,
-      userContext
-    );
-
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        error: result.error
-      });
-    }
-
-    res.status(201).json({
-      success: true,
-      data: result.data,
-      warning: result.warning
-    });
-  } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -348,9 +240,6 @@ export default {
   getAuditTrailsByRecordHandler,
   getAuditTrailsByTableHandler,
   getRecentAuditTrailsHandler,
-  createAuditTrailHandler,
-  deleteAuditTrailHandler,
   searchAuditTrailsHandler,
   getAuditTrailStatsHandler,
-  logFinancialActionHandler
 };

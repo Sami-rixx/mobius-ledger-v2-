@@ -8,7 +8,8 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest --detectOpenHandles",
-    "db:setup": "node ../database/setup.js"
+    "db:setup": "node ../database/setup.js",
+    "bootstrap:admin": "node scripts/bootstrap-admin.js"
   },
   "keywords": [
     "finance",
@@ -19,8 +20,10 @@
   "author": "Sami-rixx",
   "license": "MIT",
   "dependencies": {
+    "argon2": "^0.45.1",
     "better-sqlite3": "^9.6.0",
     "compression": "^1.7.4",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",

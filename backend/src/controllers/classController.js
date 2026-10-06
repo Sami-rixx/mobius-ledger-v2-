@@ -194,7 +194,7 @@ export const createClass = (req, res, next) => {
     }
 
     // Extract created_by from request (future: from authenticated user)
-    const createdBy = req.user?.id || null;
+    const createdBy = req.user.id;
 
     const cls = ClassService.createClass(classData, createdBy);
 
@@ -235,7 +235,7 @@ export const updateClass = (req, res, next) => {
     }
 
     // Extract updated_by from request
-    const updatedBy = req.user?.id || null;
+    const updatedBy = req.user.id;
 
     const cls = ClassService.updateClass(parseInt(id), classData, updatedBy);
 
@@ -271,7 +271,7 @@ export const patchClass = (req, res, next) => {
     const classData = req.body;
 
     // Extract updated_by from request
-    const updatedBy = req.user?.id || null;
+    const updatedBy = req.user.id;
 
     const cls = ClassService.updateClass(parseInt(id), classData, updatedBy);
 
@@ -303,7 +303,7 @@ export const deleteClass = (req, res, next) => {
     }
 
     // Extract deleted_by from request
-    const deletedBy = req.user?.id || null;
+    const deletedBy = req.user.id;
 
     const deleted = ClassService.deleteClass(parseInt(id), deletedBy);
 

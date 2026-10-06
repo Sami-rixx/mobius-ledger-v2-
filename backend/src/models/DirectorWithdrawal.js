@@ -1,4 +1,6 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * Director Withdrawal Model
@@ -121,8 +123,9 @@ export async function getAll(options = {}) {
     FIELDS.STATUS,
     FIELDS.CREATED_AT
   ];
-  const orderField = validOrderFields.includes(orderBy) ? orderBy : FIELDS.WITHDRAWAL_DATE;
-  const validDirection = orderDirection === 'ASC' ? 'ASC' : 'DESC';
+  const safeOrder = parseOrder(orderBy, orderDirection, validOrderFields, FIELDS.WITHDRAWAL_DATE, 'DESC');
+  const orderField = safeOrder.field;
+  const validDirection = safeOrder.dir;
 
   const query = `
     SELECT ${TABLE}.*, 
@@ -228,6 +231,7 @@ export async function create(data) {
   const query = `
     INSERT INTO ${TABLE} (
       ${FIELDS.AMOUNT},
+      amount_cents,
       ${FIELDS.LABEL},
       ${FIELDS.PURPOSE},
       ${FIELDS.DESCRIPTION},
@@ -241,11 +245,12 @@ export async function create(data) {
       ${FIELDS.UPDATED_BY},
       ${FIELDS.CREATED_AT},
       ${FIELDS.UPDATED_AT}
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   `;
 
   const params = [
     amount,
+    toCents(amount),
     label,
     purpose,
     description,
@@ -315,6 +320,8 @@ export async function update(id, data) {
   if (amount !== undefined) {
     updates.push(`${FIELDS.AMOUNT} = ?`);
     params.push(amount);
+    updates.push(`amount_cents = ?`);
+    params.push(toCents(amount));
   }
   if (label !== undefined) {
     updates.push(`${FIELDS.LABEL} = ?`);

@@ -18,12 +18,12 @@ import {
   getAuditTrailByTable as getAuditTrailByTableModel,
   getRecentAuditTrails as getRecentAuditTrailsModel,
   createAuditTrail as createAuditTrailModel,
-  deleteAuditTrail as deleteAuditTrailModel,
   getAuditTrailStatistics as getAuditTrailStatisticsModel
 } from '../models/AuditTrail.js';
+import { AUDIT_ACTIONS } from '../db/migrations.js';
 
-// Valid action types
-const VALID_ACTIONS = ['CREATE', 'UPDATE', 'DELETE'];
+// Valid action types: expanded security taxonomy (specification §7)
+const VALID_ACTIONS = AUDIT_ACTIONS;
 
 // Default pagination
 const DEFAULT_PAGE = 1;
@@ -229,29 +229,6 @@ export const createAuditTrailRecord = (data, userContext = {}) => {
 };
 
 /**
- * Delete an audit trail entry
- * @param {number} id - Audit trail entry ID
- * @returns {Object} - Success status
- */
-export const deleteAuditTrailRecord = (id) => {
-  if (!id || isNaN(id)) {
-    return { success: false, error: 'Invalid audit trail ID' };
-  }
-  
-  try {
-    const existing = getAuditTrailByIdModel(id);
-    if (!existing) {
-      return { success: false, error: 'Audit trail entry not found' };
-    }
-    
-    const deleted = deleteAuditTrailModel(id);
-    return { success: deleted, data: deleted ? existing : null };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-};
-
-/**
  * Search audit trails
  * @param {Object} options - Search options
  * @returns {Object} - Paginated search results
@@ -334,7 +311,6 @@ export default {
   getAuditTrailsByTable,
   getRecentAuditTrails,
   createAuditTrailRecord,
-  deleteAuditTrailRecord,
   searchAuditTrails,
   getAuditTrailStats,
   getAuditTrailCountByFilter,

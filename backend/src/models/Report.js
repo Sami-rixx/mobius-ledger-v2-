@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
 
 /**
  * Report Model
@@ -117,8 +118,8 @@ export async function getAll(options = {}) {
   }
 
   // Add ordering
-  const orderByField = validOrderByFields.includes(orderBy) ? orderBy : FIELDS.CREATED_AT;
-  query += ` ORDER BY ${orderByField} ${orderDirection}`;
+  const safeOrder = parseOrder(orderBy, orderDirection, validOrderByFields, FIELDS.CREATED_AT, 'DESC');
+  query += ` ORDER BY ${safeOrder.field} ${safeOrder.dir}`;
 
   // Add pagination
   query += ` LIMIT ? OFFSET ?`;

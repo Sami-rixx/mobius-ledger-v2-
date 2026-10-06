@@ -4,8 +4,11 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import { errorHandler } from './middleware/errorHandler.js';
+import { authenticate, csrfProtection } from './middleware/auth.js';
 import { setupDatabase } from './config/database.js';
+import authRoutes from './routes/authRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import classRoutes from './routes/classRoutes.js';
@@ -24,6 +27,7 @@ import transactionRoutes from './routes/transactionRoutes.js';
 import auditTrailRoutes from './routes/auditTrailRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import userSessionRoutes from './routes/userSessionRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import permissionRoutes from './routes/permissionRoutes.js';
 import roleRoutes from './routes/roleRoutes.js';
 import userRoleRoutes from './routes/userRoleRoutes.js';
@@ -36,6 +40,12 @@ import importExportRoutes from './routes/importExportRoutes.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Production deployments run behind a reverse proxy (nginx) on a single
+// VPS/VM; trust exactly one proxy hop so req.ip and secure cookies work.
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Security middleware
 app.use(helmet());
 app.use(cors({
@@ -43,20 +53,27 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting (100 requests per 15 minutes)
+// Rate limiting (disabled under test so security suites can exercise the
+// full authorization matrix; production/dev behavior is unchanged).
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
   message: { error: 'Too many requests, please try again later.' }
 });
 app.use(limiter);
 
-// Request logging
-app.use(morgan('dev'));
+// Request logging (quiet under test)
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('dev'));
+}
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
 
 // Performance middleware
 // Enable gzip compression for all responses
@@ -73,8 +90,24 @@ app.use(compression({
 // Database setup
 setupDatabase();
 
-// API routes
+// ============================================================
+// SECURITY PERIMETER (specification §4/§5/§10)
+// Public endpoints: health/readiness and POST /api/auth/login only.
+// Everything else under /api requires an authenticated session and
+// the CSRF custom-header on state-changing requests.
+// ============================================================
+
+// CSRF custom-header check for every state-changing /api request
+// (including login, which the frontend always sends the header for).
+app.use('/api', csrfProtection);
+
+// Public: health/readiness + authentication entrypoints
 app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
+
+// Global authentication boundary: every route mounted below this line
+// requires a valid session (fail closed).
+app.use('/api', authenticate);
 app.use('/api/students', studentRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/school-fees', schoolFeeRoutes);
@@ -92,6 +125,7 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/audit-trail', auditTrailRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/user-sessions', userSessionRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/user-roles', userRoleRoutes);

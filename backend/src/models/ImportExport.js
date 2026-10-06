@@ -29,6 +29,23 @@ if (!fs.existsSync(EXPORT_DIR)) {
   fs.mkdirSync(EXPORT_DIR, { recursive: true });
 }
 
+// Filename safety (specification §8): server-controlled identifiers only.
+// No traversal, no absolute paths, no arbitrary filesystem input.
+const SAFE_FILENAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,200}$/;
+
+function isSafeFilename(name) {
+  if (typeof name !== 'string' || !SAFE_FILENAME_PATTERN.test(name)) return false;
+  if (name.includes('..')) return false;
+  return true;
+}
+
+function resolveWithin(dir, filename) {
+  if (!isSafeFilename(filename)) return null;
+  const resolved = path.resolve(dir, filename);
+  if (!resolved.startsWith(path.resolve(dir) + path.sep)) return null;
+  return resolved;
+}
+
 // Import/Export status constants
 const IMPORT_EXPORT_STATUS = {
   PENDING: 'pending',
@@ -168,7 +185,8 @@ const ImportExport = {
   async exportDatabase(filename = null) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupFilename = filename || `backup-${timestamp}.sql`;
-    const filepath = path.join(BACKUP_DIR, backupFilename);
+    const filepath = resolveWithin(BACKUP_DIR, backupFilename);
+    if (!filepath) return { success: false, error: 'Invalid filename', message: 'Invalid filename' };
     try {
       const tables = await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all();
       let sql = '';
@@ -199,8 +217,15 @@ const ImportExport = {
     }
   },
 
-  // Import database from SQL
-  async importDatabase(filepath) {
+  // Import database from a SERVER-CONTROLLED backup file. Arbitrary
+  // client-supplied filesystem paths / SQL are rejected (specification §8):
+  // only validated filenames inside BACKUP_DIR (created by exportDatabase/
+  // createBackup) can ever be executed.
+  async importDatabase(filename) {
+    const filepath = resolveWithin(BACKUP_DIR, filename);
+    if (!filepath || !fs.existsSync(filepath)) {
+      return { success: false, error: 'Invalid or unknown backup file', message: 'Invalid or unknown backup file' };
+    }
     try {
       const sql = await fs.promises.readFile(filepath, 'utf8');
       const statements = sql.split(';').filter(s => s.trim());
@@ -208,7 +233,14 @@ const ImportExport = {
         const batch = statements.slice(i, i + 100);
         await db.exec(batch.join(';') + ';');
       }
-      return { success: true, message: 'Database imported successfully' };
+      const integrity = db.pragma('integrity_check');
+      const integrityOk = Array.isArray(integrity)
+        ? integrity.length === 1 && integrity[0].integrity_check === 'ok'
+        : integrity === 'ok';
+      if (!integrityOk) {
+        return { success: false, error: 'Integrity check failed after restore', message: 'Integrity check failed after restore' };
+      }
+      return { success: true, message: 'Database imported successfully', integrity: 'ok' };
     } catch (error) {
       return { success: false, error: error.message, message: 'Failed to import database' };
     }
@@ -221,7 +253,8 @@ const ImportExport = {
     }
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const csvFilename = filename || `${tableName}-${timestamp}.csv`;
-    const filepath = path.join(EXPORT_DIR, csvFilename);
+    const filepath = resolveWithin(EXPORT_DIR, csvFilename);
+    if (!filepath) return { success: false, error: 'Invalid filename', message: 'Invalid filename' };
     try {
       const rows = await db.prepare(`SELECT * FROM ${tableName}`).all();
       if (rows.length === 0) return { success: true, filepath, filename: csvFilename, recordCount: 0, message: 'No data' };
@@ -257,13 +290,27 @@ const ImportExport = {
     values.push(current); return values;
   },
 
-  // Import from CSV
-  async importFromCSV(tableName, filepath, userId = null) {
+  // Import from CSV content (staged + validated + transactional).
+  // `source` is either { content } (direct upload) or { filename } which
+  // must resolve inside EXPORT_DIR; arbitrary paths are rejected.
+  async importFromCSV(tableName, source, userId = null) {
     if (!SUPPORTED_TABLES.includes(tableName)) {
       return { success: false, error: 'Unsupported table', message: `Table ${tableName} not supported` };
     }
     try {
-      const content = await fs.promises.readFile(filepath, 'utf8');
+      let content;
+      let sourceName = 'upload.csv';
+      if (source && typeof source === 'object' && typeof source.content === 'string') {
+        content = source.content;
+      } else {
+        const filename = typeof source === 'object' ? source.filename : source;
+        const fp = resolveWithin(EXPORT_DIR, filename);
+        if (!fp || !fs.existsSync(fp)) {
+          return { success: false, error: 'Invalid or unknown CSV file', message: 'Invalid or unknown CSV file' };
+        }
+        sourceName = filename;
+        content = await fs.promises.readFile(fp, 'utf8');
+      }
       const lines = content.split('\n').filter(l => l.trim());
       if (lines.length < 2) return { success: true, message: 'No data', recordCount: 0 };
       const headers = this.parseCSVLine(lines[0]);
@@ -278,15 +325,33 @@ const ImportExport = {
       if (records.length === 0) return { success: true, message: 'No data', recordCount: 0 };
       const tableInfo = await db.prepare(`PRAGMA table_info(${tableName})`).all();
       const tableCols = tableInfo.map(c => c.name);
+      // Every CSV header must be a real column of the allowlisted table —
+      // headers are interpolated as SQL identifiers, so unknown names are
+      // rejected outright (no client-supplied SQL fragments).
+      const unknown = headers.filter(h => !tableCols.includes(h));
+      if (unknown.length > 0) {
+        return { success: false, error: 'Unknown columns', message: `Unknown columns: ${unknown.join(',')}` };
+      }
       const missing = tableCols.filter(c => !headers.includes(c) && c !== 'id' && !c.endsWith('_at'));
       if (missing.length > 0) return { success: false, error: 'Column mismatch', message: `Missing: ${missing.join(',')}` };
-      const log = await this.createLog({ type: EXPORT_TYPES.CSV, action: 'import', tableName, fileName: path.basename(filepath), recordCount: records.length, status: IMPORT_EXPORT_STATUS.IN_PROGRESS, userId });
+      const log = await this.createLog({ type: EXPORT_TYPES.CSV, action: 'import', tableName, fileName: sourceName, recordCount: records.length, status: IMPORT_EXPORT_STATUS.IN_PROGRESS, userId });
+      // All-or-nothing: validation failures roll back the entire import so
+      // a partially imported CSV can never corrupt financial state.
       let inserted = 0;
-      for (const record of records) {
-        const cols = Object.keys(record);
-        const ph = cols.map(() => '?').join(',');
-        const vals = cols.map(c => record[c]);
-        try { await db.prepare(`INSERT INTO ${tableName} (${cols.join(',')}) VALUES (${ph})`).run(vals); inserted++; } catch (e) { console.error(e.message); }
+      try {
+        const insertAll = db.transaction(() => {
+          for (const record of records) {
+            const cols = Object.keys(record).filter(c => tableCols.includes(c));
+            const ph = cols.map(() => '?').join(',');
+            const vals = cols.map(c => record[c] === '' ? null : record[c]);
+            db.prepare(`INSERT INTO ${tableName} (${cols.join(',')}) VALUES (${ph})`).run(vals);
+            inserted++;
+          }
+        });
+        insertAll();
+      } catch (e) {
+        await this.updateLogStatus(log.id, { status: IMPORT_EXPORT_STATUS.FAILED, errorMessage: e.message, recordCount: 0 });
+        return { success: false, error: 'CSV import failed validation and was rolled back', message: 'CSV import failed validation and was rolled back' };
       }
       await this.updateLogStatus(log.id, { status: IMPORT_EXPORT_STATUS.COMPLETED, recordCount: inserted });
       return { success: true, message: 'CSV imported', recordCount: inserted, totalRecords: records.length };
@@ -301,11 +366,19 @@ const ImportExport = {
     return this.exportDatabase(filename || `backup-${ts}.sql`);
   },
 
-  // Restore backup
+  // Restore backup (server-controlled identifier, traversal rejected).
+  // A pre-restore safety backup is always created first.
   async restoreBackup(filename) {
-    const fp = path.join(BACKUP_DIR, filename);
-    if (!fs.existsSync(fp)) return { success: false, error: 'Not found', message: `Backup ${filename} not found` };
-    return this.importDatabase(fp);
+    const fp = resolveWithin(BACKUP_DIR, filename);
+    if (!fp || !fs.existsSync(fp)) return { success: false, error: 'Not found', message: 'Backup not found' };
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const preRestore = await this.exportDatabase(`pre-restore-${ts}.sql`);
+    if (!preRestore.success) {
+      return { success: false, error: 'Failed to create pre-restore backup', message: 'Failed to create pre-restore backup' };
+    }
+    const result = await this.importDatabase(filename);
+    if (result.success) result.preRestoreBackup = preRestore.filename;
+    return result;
   },
 
   // List backups
@@ -330,16 +403,16 @@ const ImportExport = {
 
   // Delete backup
   async deleteBackup(filename) {
-    const fp = path.join(BACKUP_DIR, filename);
-    if (!fs.existsSync(fp)) return { success: false, error: 'Not found' };
+    const fp = resolveWithin(BACKUP_DIR, filename);
+    if (!fp || !fs.existsSync(fp)) return { success: false, error: 'Not found' };
     try { await fs.promises.unlink(fp); return { success: true, message: 'Deleted' }; }
     catch (e) { return { success: false, error: e.message }; }
   },
 
   // Delete export
   async deleteExport(filename) {
-    const fp = path.join(EXPORT_DIR, filename);
-    if (!fs.existsSync(fp)) return { success: false, error: 'Not found' };
+    const fp = resolveWithin(EXPORT_DIR, filename);
+    if (!fp || !fs.existsSync(fp)) return { success: false, error: 'Not found' };
     try { await fs.promises.unlink(fp); return { success: true, message: 'Deleted' }; }
     catch (e) { return { success: false, error: e.message }; }
   },

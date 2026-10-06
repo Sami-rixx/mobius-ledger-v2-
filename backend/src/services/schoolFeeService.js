@@ -2,6 +2,7 @@ import * as SchoolFeeModel from '../models/SchoolFee.js';
 import * as TransactionModel from '../models/Transaction.js';
 import * as StudentModel from '../models/Student.js';
 import db from '../config/database.js';
+import { recordAuditEvent, recordAuditEventStrict, AUDIT } from './auditService.js';
 import { generateReceiptNumber } from '../utils/receiptGenerator.js';
 
 /**
@@ -215,15 +216,16 @@ export const createSchoolFeePaymentWithTransaction = (data) => {
     // Create the transaction record
     const txStmt = db.prepare(`
       INSERT INTO transactions 
-      (receipt_number, transaction_type, amount, student_id, description, 
+      (receipt_number, transaction_type, amount, amount_cents, student_id, description, 
        payment_method_id, transaction_date, notes, created_by, updated_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     
     const txResult = txStmt.run(
       receiptNumber,
       'school_fee',
       amountNum.toFixed(2),
+      Math.round(amountNum * 100),
       studentId,
       description || `School fee payment for ${student.admission_number}`,
       paymentMethodId,
@@ -238,14 +240,15 @@ export const createSchoolFeePaymentWithTransaction = (data) => {
     // Create the school fee payment record
     const sfpStmt = db.prepare(`
       INSERT INTO school_fee_payments 
-      (student_id, transaction_id, amount, payment_date, academic_year, term, notes, created_by, updated_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (student_id, transaction_id, amount, amount_cents, payment_date, academic_year, term, notes, created_by, updated_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    sfpStmt.run(
+    const sfpResult = sfpStmt.run(
       studentId,
       transactionId,
       amountNum.toFixed(2),
+      Math.round(amountNum * 100),
       paymentDate,
       academicYear,
       term,
@@ -254,11 +257,19 @@ export const createSchoolFeePaymentWithTransaction = (data) => {
       createdBy
     );
 
-    return { transactionId, receiptNumber };
+    recordAuditEventStrict({
+      action: AUDIT.CREATE,
+      tableName: 'school_fee_payments',
+      recordId: sfpResult.lastInsertRowid,
+      newValues: { studentId, amount: amountNum, academicYear, term, transactionId },
+      userId: createdBy ?? null
+    });
+
+    return { transactionId, receiptNumber, schoolFeeId: sfpResult.lastInsertRowid };
   })();
 
   // Return the created school fee payment
-  const payment = SchoolFeeModel.getSchoolFeePaymentById(transaction.school_fee_id);
+  const payment = SchoolFeeModel.getSchoolFeePaymentById(transaction.schoolFeeId);
   return {
     ...payment,
     receipt_number: transaction.receiptNumber,
@@ -282,7 +293,40 @@ export const createSchoolFeePayment = (data) => {
  * @returns {Object|null} - Updated school fee payment
  */
 export const updateSchoolFeePayment = (id, data) => {
-  return SchoolFeeModel.updateSchoolFeePayment(id, data);
+  const existing = SchoolFeeModel.getSchoolFeePaymentById(id);
+  if (!existing) {
+    return null;
+  }
+
+  // POSTED-RECORD IMMUTABILITY (owner decision / specification §11):
+  // monetary facts of a posted fee payment are immutable — corrections
+  // use POST /api/school-fees/:id/reverse.
+  const immutable =
+    (data.amount !== undefined && parseFloat(data.amount) !== parseFloat(existing.amount)) ||
+    (data.paymentDate !== undefined && data.paymentDate !== existing.payment_date) ||
+    (data.studentId !== undefined && Number(data.studentId) !== Number(existing.student_id)) ||
+    (data.transactionId !== undefined && Number(data.transactionId) !== Number(existing.transaction_id));
+  if (immutable) {
+    const err = new Error('Posted school fee payments are immutable (amount, date, student, transaction). Reverse the payment and record a new one instead.');
+    err.statusCode = 409;
+    throw err;
+  }
+  if (existing.reversed_by_id || existing.reversal_of_id) {
+    const err = new Error('Reversed or reversal payments cannot be edited.');
+    err.statusCode = 409;
+    throw err;
+  }
+
+  const updated = SchoolFeeModel.updateSchoolFeePayment(id, data);
+  recordAuditEvent({
+    action: AUDIT.UPDATE,
+    tableName: 'school_fee_payments',
+    recordId: id,
+    oldValues: { notes: existing.notes, term: existing.term, academic_year: existing.academic_year },
+    newValues: { notes: updated.notes, term: updated.term, academic_year: updated.academic_year },
+    userId: data.updatedBy ?? null
+  });
+  return updated;
 };
 
 /**
@@ -291,7 +335,105 @@ export const updateSchoolFeePayment = (id, data) => {
  * @returns {boolean} - True if deleted, false if not found
  */
 export const deleteSchoolFeePayment = (id) => {
-  return SchoolFeeModel.deleteSchoolFeePayment(id);
+  // POSTED-RECORD IMMUTABILITY (owner decision): posted fee payments are
+  // never hard-deleted; corrections happen through reversals.
+  const existing = SchoolFeeModel.getSchoolFeePaymentById(id);
+  if (!existing) {
+    return null;
+  }
+  const err = new Error('Posted school fee payments cannot be deleted. Use POST /api/school-fees/:id/reverse to create a correcting reversal.');
+  err.statusCode = 409;
+  throw err;
+};
+
+/**
+ * Reverse a posted school fee payment: creates a compensating negative
+ * payment and transaction, linked to the originals, atomically.
+ */
+export const reverseSchoolFeePayment = (id, actorId, reason = null) => {
+  const existing = SchoolFeeModel.getSchoolFeePaymentById(id);
+  if (!existing) {
+    const err = new Error('School fee payment not found');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (existing.reversed_by_id) {
+    const err = new Error('This school fee payment has already been reversed');
+    err.statusCode = 409;
+    throw err;
+  }
+  if (existing.reversal_of_id) {
+    const err = new Error('Reversal payments cannot themselves be reversed');
+    err.statusCode = 409;
+    throw err;
+  }
+
+  const receiptNumber = generateReceiptNumber();
+  const today = new Date().toISOString().split('T')[0];
+  const amountNum = parseFloat(existing.amount);
+
+  const result = db.transaction(() => {
+    const txResult = db.prepare(`
+      INSERT INTO transactions 
+      (receipt_number, transaction_type, amount, amount_cents, student_id, description,
+       transaction_date, notes, created_by, updated_by, reversal_of_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      receiptNumber,
+      'school_fee',
+      (-amountNum).toFixed(2),
+      -Math.round(amountNum * 100),
+      existing.student_id,
+      `Reversal of school fee payment #${id}${reason ? `: ${reason}` : ''}`,
+      today,
+      reason || '',
+      actorId,
+      actorId,
+      existing.transaction_id ?? null
+    );
+    const reversalTransactionId = txResult.lastInsertRowid;
+
+    const sfpResult = db.prepare(`
+      INSERT INTO school_fee_payments 
+      (student_id, transaction_id, amount, amount_cents, payment_date, academic_year, term, notes, created_by, updated_by, reversal_of_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      existing.student_id,
+      reversalTransactionId,
+      (-amountNum).toFixed(2),
+      -Math.round(amountNum * 100),
+      today,
+      existing.academic_year,
+      existing.term,
+      reason || `Reversal of payment #${id}`,
+      actorId,
+      actorId,
+      id
+    );
+
+    db.prepare('UPDATE school_fee_payments SET reversed_by_id = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+      .run(sfpResult.lastInsertRowid, actorId, id);
+    if (existing.transaction_id) {
+      db.prepare('UPDATE transactions SET reversed_by_id = ? WHERE id = ?')
+        .run(reversalTransactionId, existing.transaction_id);
+    }
+
+    recordAuditEventStrict({
+      action: AUDIT.REVERSAL,
+      tableName: 'school_fee_payments',
+      recordId: id,
+      oldValues: { amount: existing.amount },
+      newValues: { reversal_id: sfpResult.lastInsertRowid, reason },
+      userId: actorId
+    });
+
+    return sfpResult.lastInsertRowid;
+  })();
+
+  return {
+    original_id: id,
+    reversal: SchoolFeeModel.getSchoolFeePaymentById(result)
+  };
 };
 
 /**

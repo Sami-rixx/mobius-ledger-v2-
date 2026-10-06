@@ -20,6 +20,7 @@
  */
 
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
 import {
   listRoles,
   countRoles,
@@ -40,45 +41,45 @@ import {
 const router = Router();
 
 // GET /api/roles - List roles with pagination and filtering
-router.get('/', listRoles);
+router.get('/', requirePermission('roles.manage'), listRoles);
 
 // GET /api/roles/count - Get role count
-router.get('/count', countRoles);
+router.get('/count', requirePermission('roles.manage'), countRoles);
 
 // GET /api/roles/:id - Get a single role by ID
-router.get('/:id', getSingleRole);
+router.get('/:id', requirePermission('roles.manage'), getSingleRole);
 
 // GET /api/roles/name/:name - Get role by name
-router.get('/name/:name', getRoleByNameHandler);
+router.get('/name/:name', requirePermission('roles.manage'), getRoleByNameHandler);
 
 // GET /api/roles/default - Get default role
-router.get('/default', getDefaultRoleHandler);
+router.get('/default', requirePermission('roles.manage'), getDefaultRoleHandler);
 
 // GET /api/roles/check/:name - Check if role exists
-router.get('/check/:name', checkRoleExists);
+router.get('/check/:name', requirePermission('roles.manage'), checkRoleExists);
 
 // GET /api/roles/search - Search roles
-router.get('/search', searchRolesHandler);
+router.get('/search', requirePermission('roles.manage'), searchRolesHandler);
 
 // GET /api/roles/with-permissions - Get roles with permission count
-router.get('/with-permissions', getRolesWithPermissionCountHandler);
+router.get('/with-permissions', requirePermission('roles.manage'), getRolesWithPermissionCountHandler);
 
 // GET /api/roles/statistics - Get role statistics
-router.get('/statistics', getRoleStatsHandler);
+router.get('/statistics', requirePermission('roles.manage'), getRoleStatsHandler);
 
 // GET /api/roles/default-names - Get all default role names
-router.get('/default-names', getDefaultRoleNamesHandler);
+router.get('/default-names', requirePermission('roles.manage'), getDefaultRoleNamesHandler);
 
 // POST /api/roles - Create a new role
-router.post('/', createRoleHandler);
+router.post('/', requirePermission('roles.manage'), createRoleHandler);
 
 // PUT /api/roles/:id - Update a role
-router.put('/:id', updateRoleHandler);
+router.put('/:id', requirePermission('roles.manage'), updateRoleHandler);
 
 // DELETE /api/roles/:id - Delete a role
-router.delete('/:id', deleteRoleHandler);
+router.delete('/:id', requirePermission('roles.manage'), deleteRoleHandler);
 
 // POST /api/roles/set-default - Set a role as default
-router.post('/set-default', setDefaultRoleHandler);
+router.post('/set-default', requirePermission('roles.manage'), setDefaultRoleHandler);
 
 export default router;

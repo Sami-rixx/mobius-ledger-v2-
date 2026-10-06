@@ -252,28 +252,20 @@ const importExportService = {
    * @returns {Promise<Object>} - Import result
    */
   async importDatabase(params = {}) {
-    const { filepath, userId } = params;
-    
-    // Validate file
-    const fileValidation = this.validateFile(filepath, 'sql');
-    if (!fileValidation.isValid) {
-      return {
-        success: false,
-        error: fileValidation.error
-      };
-    }
-    
-    // Create log entry
+    const { filename, userId } = params;
+
+    // Create log entry (filename is validated inside the model against the
+    // server-controlled backup directory; traversal is rejected).
     const log = await ImportExport.createLog({
       type: 'database',
       action: 'import',
-      fileName: path.basename(filepath),
+      fileName: filename || null,
       status: 'in_progress',
       userId
     });
-    
+
     try {
-      const result = await ImportExport.importDatabase(filepath);
+      const result = await ImportExport.importDatabase(filename);
       
       // Update log
       await ImportExport.updateLogStatus(log.id, {
@@ -359,8 +351,8 @@ const importExportService = {
    * @returns {Promise<Object>} - Import result
    */
   async importFromCSV(params = {}) {
-    const { tableName, filepath, userId } = params;
-    
+    const { tableName, content, filename, userId } = params;
+
     // Validate parameters
     const validation = this.validateParams({ tableName, type: 'csv', action: 'import' });
     if (!validation.isValid) {
@@ -369,28 +361,27 @@ const importExportService = {
         errors: validation.errors
       };
     }
-    
-    // Validate file
-    const fileValidation = this.validateFile(filepath, 'csv');
-    if (!fileValidation.isValid) {
-      return {
-        success: false,
-        error: fileValidation.error
-      };
+
+    if (typeof content !== 'string' && !filename) {
+      return { success: false, error: 'Provide csv `content` or a server-side export `filename`' };
     }
-    
+
     // Create log entry
     const log = await ImportExport.createLog({
       type: 'csv',
       action: 'import',
       tableName,
-      fileName: path.basename(filepath),
+      fileName: filename || 'upload.csv',
       status: 'in_progress',
       userId
     });
-    
+
     try {
-      const result = await ImportExport.importFromCSV(tableName, filepath, userId);
+      const result = await ImportExport.importFromCSV(
+        tableName,
+        typeof content === 'string' ? { content } : { filename },
+        userId
+      );
       
       // Update log
       await ImportExport.updateLogStatus(log.id, {

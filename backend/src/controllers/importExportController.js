@@ -6,6 +6,7 @@
 import importExportService from '../services/importExportService.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { recordAuditEvent, AUDIT, auditContext } from '../services/auditService.js';
 
 // This controller previously used CommonJS `require`/`module.exports` while
 // the rest of the backend is an ES module project ("type": "module" in
@@ -38,7 +39,7 @@ const importExportController = {
         message: 'Import/export logs retrieved successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to retrieve import/export logs'
@@ -61,7 +62,7 @@ const importExportController = {
         message: 'Import/export logs count retrieved successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to count import/export logs'
@@ -92,7 +93,7 @@ const importExportController = {
         message: 'Import/export log retrieved successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to retrieve import/export log'
@@ -114,7 +115,7 @@ const importExportController = {
         message: 'Import/export statistics retrieved successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to retrieve import/export statistics'
@@ -129,7 +130,7 @@ const importExportController = {
   async exportDatabase(req, res) {
     try {
       const { filename } = req.query;
-      const userId = req.user ? req.user.id : null;
+      const userId = req.user.id;
       
       const result = await importExportService.exportDatabase({
         filename,
@@ -144,18 +145,23 @@ const importExportController = {
         });
       }
       
+      recordAuditEvent({
+        action: AUDIT.EXPORT,
+        tableName: 'database',
+        newValues: { filename: result.filename },
+        ...auditContext(req)
+      });
       res.json({
         success: true,
         data: {
           filename: result.filename,
-          filepath: result.filepath,
           size: result.size,
           sizeFormatted: importExportService.formatFileSize(result.size)
         },
         message: 'Database exported successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to export database'
@@ -170,37 +176,25 @@ const importExportController = {
    */
   async importDatabase(req, res) {
     try {
-      const { filepath } = req.body;
-      const userId = req.user ? req.user.id : null;
-      
-      if (!filepath) {
+      // SECURITY (specification §8): arbitrary filesystem paths are no
+      // longer accepted. Only a server-controlled backup filename (as
+      // returned by the backup/export endpoints) may be imported.
+      const { filename } = req.body || {};
+      const userId = req.user.id;
+
+      if (!filename) {
         return res.status(400).json({
           success: false,
-          error: 'File path is required',
-          message: 'Please provide the filepath parameter'
+          error: 'filename is required',
+          message: 'Provide the backup filename to import'
         });
       }
-      
-      // Validate that the file is within allowed directories
-      const backupDir = importExportService.BACKUP_DIR || path.join(__dirname, '../../backups');
-      const exportDir = importExportService.EXPORT_DIR || path.join(__dirname, '../../exports');
-      
-      const resolvedPath = path.resolve(filepath);
-      if (!resolvedPath.startsWith(path.resolve(backupDir)) && 
-          !resolvedPath.startsWith(path.resolve(exportDir)) &&
-          !resolvedPath.startsWith(path.resolve(__dirname, '../../../'))) {
-        return res.status(403).json({
-          success: false,
-          error: 'Access denied',
-          message: 'Cannot access files outside allowed directories'
-        });
-      }
-      
+
       const result = await importExportService.importDatabase({
-        filepath: resolvedPath,
+        filename,
         userId
       });
-      
+
       if (!result.success) {
         return res.status(400).json({
           success: false,
@@ -208,13 +202,19 @@ const importExportController = {
           message: result.message || 'Database import failed'
         });
       }
-      
+
+      recordAuditEvent({
+        action: AUDIT.IMPORT,
+        tableName: 'database',
+        newValues: { filename },
+        ...auditContext(req)
+      });
       res.json({
         success: true,
         message: 'Database imported successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to import database'
@@ -229,7 +229,7 @@ const importExportController = {
   async exportToCSV(req, res) {
     try {
       const { tableName, filename } = req.query;
-      const userId = req.user ? req.user.id : null;
+      const userId = req.user.id;
       
       if (!tableName) {
         return res.status(400).json({
@@ -254,11 +254,16 @@ const importExportController = {
         });
       }
       
+      recordAuditEvent({
+        action: AUDIT.EXPORT,
+        tableName: result.filename ? String(req.query.tableName) : 'csv',
+        newValues: { filename: result.filename, recordCount: result.recordCount },
+        ...auditContext(req)
+      });
       res.json({
         success: true,
         data: {
           filename: result.filename,
-          filepath: result.filepath,
           recordCount: result.recordCount,
           size: result.size,
           sizeFormatted: importExportService.formatFileSize(result.size)
@@ -266,7 +271,7 @@ const importExportController = {
         message: 'CSV export completed successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to export to CSV'
@@ -281,36 +286,27 @@ const importExportController = {
    */
   async importFromCSV(req, res) {
     try {
-      const { tableName, filepath } = req.body;
-      const userId = req.user ? req.user.id : null;
-      
-      if (!tableName || !filepath) {
+      // SECURITY (specification §8): arbitrary filesystem paths are no
+      // longer accepted. Clients either upload the CSV `content` directly
+      // or reference a server-side export `filename` (traversal rejected).
+      const { tableName, content, filename } = req.body || {};
+      const userId = req.user.id;
+
+      if (!tableName || (typeof content !== 'string' && !filename)) {
         return res.status(400).json({
           success: false,
-          error: 'Table name and file path are required',
-          message: 'Please provide both tableName and filepath parameters'
+          error: 'tableName and csv content (or export filename) are required',
+          message: 'Provide tableName plus `content` or `filename`'
         });
       }
-      
-      // Validate that the file is within allowed directories
-      const exportDir = importExportService.EXPORT_DIR || path.join(__dirname, '../../exports');
-      const resolvedPath = path.resolve(filepath);
-      
-      if (!resolvedPath.startsWith(path.resolve(exportDir)) &&
-          !resolvedPath.startsWith(path.resolve(__dirname, '../../../'))) {
-        return res.status(403).json({
-          success: false,
-          error: 'Access denied',
-          message: 'Cannot access files outside allowed directories'
-        });
-      }
-      
+
       const result = await importExportService.importFromCSV({
         tableName,
-        filepath: resolvedPath,
+        content,
+        filename,
         userId
       });
-      
+
       if (!result.success) {
         return res.status(400).json({
           success: false,
@@ -319,7 +315,13 @@ const importExportController = {
           message: result.message || 'CSV import failed'
         });
       }
-      
+
+      recordAuditEvent({
+        action: AUDIT.IMPORT,
+        tableName: String(tableName),
+        newValues: { recordCount: result.recordCount },
+        ...auditContext(req)
+      });
       res.json({
         success: true,
         data: {
@@ -329,7 +331,7 @@ const importExportController = {
         message: 'CSV import completed successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to import from CSV'
@@ -344,7 +346,7 @@ const importExportController = {
   async createBackup(req, res) {
     try {
       const { filename } = req.body;
-      const userId = req.user ? req.user.id : null;
+      const userId = req.user.id;
       
       const result = await importExportService.createBackup({
         filename,
@@ -359,18 +361,23 @@ const importExportController = {
         });
       }
       
+      recordAuditEvent({
+        action: AUDIT.BACKUP,
+        tableName: 'database',
+        newValues: { filename: result.filename },
+        ...auditContext(req)
+      });
       res.json({
         success: true,
         data: {
           filename: result.filename,
-          filepath: result.filepath,
           size: result.size,
           sizeFormatted: importExportService.formatFileSize(result.size)
         },
         message: 'Database backup created successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to create backup'
@@ -384,9 +391,9 @@ const importExportController = {
    */
   async restoreBackup(req, res) {
     try {
-      const { filename } = req.body;
-      const userId = req.user ? req.user.id : null;
-      
+      const { filename, confirm } = req.body || {};
+      const userId = req.user.id;
+
       if (!filename) {
         return res.status(400).json({
           success: false,
@@ -394,12 +401,23 @@ const importExportController = {
           message: 'Please provide the filename parameter'
         });
       }
-      
+
+      // Destructive-operation confirmation: the caller must repeat the
+      // filename in `confirm`. A pre-restore backup is created
+      // automatically and integrity is verified after the restore.
+      if (confirm !== filename) {
+        return res.status(400).json({
+          success: false,
+          error: 'Confirmation required',
+          message: 'Set `confirm` to the exact backup filename to proceed with a restore'
+        });
+      }
+
       const result = await importExportService.restoreBackup({
         filename,
         userId
       });
-      
+
       if (!result.success) {
         return res.status(400).json({
           success: false,
@@ -407,13 +425,20 @@ const importExportController = {
           message: result.message || 'Restore failed'
         });
       }
-      
+
+      recordAuditEvent({
+        action: AUDIT.RESTORE,
+        tableName: 'database',
+        newValues: { filename, preRestoreBackup: result.preRestoreBackup },
+        ...auditContext(req)
+      });
       res.json({
         success: true,
+        data: { preRestoreBackup: result.preRestoreBackup },
         message: 'Database restored successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to restore backup'
@@ -427,7 +452,8 @@ const importExportController = {
    */
   async listBackups(req, res) {
     try {
-      const backups = await importExportService.listBackups();
+      const backups = (await importExportService.listBackups())
+        .map(({ filepath, ...rest }) => rest); // never leak server paths
       
       res.json({
         success: true,
@@ -436,7 +462,7 @@ const importExportController = {
         message: 'Backups listed successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to list backups'
@@ -450,7 +476,8 @@ const importExportController = {
    */
   async listExports(req, res) {
     try {
-      const exports = await importExportService.listExports();
+      const exports = (await importExportService.listExports())
+        .map(({ filepath, ...rest }) => rest); // never leak server paths
       
       res.json({
         success: true,
@@ -459,7 +486,7 @@ const importExportController = {
         message: 'Exports listed successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to list exports'
@@ -474,7 +501,7 @@ const importExportController = {
   async deleteBackup(req, res) {
     try {
       const { filename } = req.params;
-      const userId = req.user ? req.user.id : null;
+      const userId = req.user.id;
       
       if (!filename) {
         return res.status(400).json({
@@ -502,7 +529,7 @@ const importExportController = {
         message: 'Backup deleted successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to delete backup'
@@ -517,7 +544,7 @@ const importExportController = {
   async deleteExport(req, res) {
     try {
       const { filename } = req.params;
-      const userId = req.user ? req.user.id : null;
+      const userId = req.user.id;
       
       if (!filename) {
         return res.status(400).json({
@@ -545,7 +572,7 @@ const importExportController = {
         message: 'Export deleted successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to delete export'
@@ -568,7 +595,7 @@ const importExportController = {
         message: 'Supported tables retrieved successfully'
       });
     } catch (error) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         error: error.message,
         message: 'Failed to retrieve supported tables'

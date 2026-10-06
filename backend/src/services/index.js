@@ -15,7 +15,6 @@ export { default as directorWithdrawalService } from './directorWithdrawalServic
 export { default as transactionService } from './transactionService.js';
 export { default as auditTrailService } from './auditTrailService.js';
 export { default as notificationService } from './notificationService.js';
-export { default as userSessionService } from './userSessionService.js';
 export { default as permissionService } from './permissionService.js';
 export { default as roleService } from './roleService.js';
 export { default as userRoleService } from './userRoleService.js';

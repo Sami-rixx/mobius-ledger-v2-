@@ -2,6 +2,8 @@ import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { runMigrations } from '../db/migrations.js';
+import { seedRbac } from '../db/rbacSeed.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,6 +62,11 @@ const applySchema = () => {
   if (schemaApplied) return;
   const schemaSql = fs.readFileSync(SCHEMA_PATH, 'utf8');
   db.exec(schemaSql);
+  // Numbered migrations evolve both fresh and existing databases beyond the
+  // idempotent baseline in schema.sql (tracked in schema_migrations).
+  runMigrations(db);
+  // Idempotent RBAC catalog seeding (roles/permissions/default grants).
+  seedRbac(db);
   schemaApplied = true;
 };
 

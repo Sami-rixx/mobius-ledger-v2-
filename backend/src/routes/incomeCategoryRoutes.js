@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
 import * as IncomeCategoryController from '../controllers/incomeCategoryController.js';
 
 /**
@@ -11,34 +12,34 @@ import * as IncomeCategoryController from '../controllers/incomeCategoryControll
 const router = Router();
 
 // GET /api/income-categories - Get paginated list of income categories
-router.get('/', IncomeCategoryController.getIncomeCategories);
+router.get('/', requirePermission('income.read'), IncomeCategoryController.getIncomeCategories);
 
 // GET /api/income-categories/all - Get all income categories without pagination
-router.get('/all', IncomeCategoryController.getAllIncomeCategories);
+router.get('/all', requirePermission('income.read'), IncomeCategoryController.getAllIncomeCategories);
 
 // GET /api/income-categories/active - Get all active income categories
-router.get('/active', IncomeCategoryController.getActiveIncomeCategories);
+router.get('/active', requirePermission('income.read'), IncomeCategoryController.getActiveIncomeCategories);
 
 // GET /api/income-categories/:id - Get a single income category by ID
-router.get('/:id', IncomeCategoryController.getIncomeCategoryById);
+router.get('/:id', requirePermission('income.read'), IncomeCategoryController.getIncomeCategoryById);
 
 // GET /api/income-categories/name/:name - Get income category by name
-router.get('/name/:name', IncomeCategoryController.getIncomeCategoryByName);
+router.get('/name/:name', requirePermission('income.read'), IncomeCategoryController.getIncomeCategoryByName);
 
 // GET /api/income-categories/usage - Get categories with usage count
-router.get('/usage', IncomeCategoryController.getIncomeCategoriesWithUsage);
+router.get('/usage', requirePermission('income.read'), IncomeCategoryController.getIncomeCategoriesWithUsage);
 
 // GET /api/income-categories/count - Get count of income categories
-router.get('/count', IncomeCategoryController.getIncomeCategoryCount);
+router.get('/count', requirePermission('income.read'), IncomeCategoryController.getIncomeCategoryCount);
 
 // POST /api/income-categories - Create a new income category
-router.post('/', IncomeCategoryController.createIncomeCategory);
+router.post('/', requirePermission('income.update'), IncomeCategoryController.createIncomeCategory);
 
 // PUT /api/income-categories/:id - Update an income category
-router.put('/:id', IncomeCategoryController.updateIncomeCategory);
+router.put('/:id', requirePermission('income.update'), IncomeCategoryController.updateIncomeCategory);
 
 // DELETE /api/income-categories/:id - Delete an income category
-router.delete('/:id', IncomeCategoryController.deleteIncomeCategory);
+router.delete('/:id', requirePermission('income.update'), IncomeCategoryController.deleteIncomeCategory);
 
 /**
  * Income Category Routes Summary:

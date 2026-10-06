@@ -96,7 +96,7 @@ export const getExpenses = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -139,7 +139,7 @@ export const getAllExpenses = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -171,7 +171,7 @@ export const getExpenseById = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -203,7 +203,7 @@ export const getExpenseByReceiptNumber = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -258,7 +258,7 @@ export const getExpensesByCategory = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -290,7 +290,7 @@ export const getExpensesByDateRange = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -318,7 +318,7 @@ export const getExpenseStatistics = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -338,7 +338,7 @@ export const getExpenseStatistics = async (req, res, next) => {
  * - paymentMethodId (optional): Payment method ID
  * - expenseDate (required): Expense date (YYYY-MM-DD)
  * - notes (optional): Additional notes
- * - createdBy (required): User ID who created the record
+ * - actor: taken from the authenticated session (req.user)
  * 
  * Response: 201 Created with the created expense record or 400 if validation fails
  */
@@ -347,10 +347,10 @@ export const createExpense = async (req, res, next) => {
     const body = req.body;
 
     // Validate required fields
-    if (!body.expenseCategoryId || !body.amount || !body.vendorName || !body.expenseDate || !body.createdBy) {
+    if (!body.expenseCategoryId || !body.amount || !body.vendorName || !body.expenseDate) {
       return res.status(400).json({
         success: false,
-        error: 'Required fields: expenseCategoryId, amount, vendorName, expenseDate, createdBy'
+        error: 'Required fields: expenseCategoryId, amount, vendorName, expenseDate'
       });
     }
 
@@ -371,14 +371,6 @@ export const createExpense = async (req, res, next) => {
       });
     }
 
-    // Validate createdBy is a number
-    if (isNaN(parseInt(body.createdBy, 10))) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid createdBy. Must be a number.'
-      });
-    }
-
     const result = await expenseService.createExpense({
       expenseCategoryId: parseInt(body.expenseCategoryId, 10),
       amount: amountNum,
@@ -388,7 +380,7 @@ export const createExpense = async (req, res, next) => {
       paymentMethodId: body.paymentMethodId ? parseInt(body.paymentMethodId, 10) : undefined,
       expenseDate: body.expenseDate,
       notes: body.notes,
-      createdBy: parseInt(body.createdBy, 10)
+      createdBy: req.user.id
     });
 
     if (!result.success) {
@@ -397,7 +389,7 @@ export const createExpense = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -437,13 +429,6 @@ export const updateExpense = async (req, res, next) => {
     const body = req.body;
 
     // Validate updatedBy is a number
-    if (body.updatedBy !== undefined && isNaN(parseInt(body.updatedBy, 10))) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid updatedBy. Must be a number.'
-      });
-    }
-
     // If amount is provided, validate it's positive
     if (body.amount !== undefined) {
       const amountNum = parseFloat(body.amount);
@@ -474,16 +459,16 @@ export const updateExpense = async (req, res, next) => {
       receiptNumber: body.receiptNumber,
       notes: body.notes,
       isVerified: body.isVerified !== undefined ? body.isVerified : undefined,
-      updatedBy: body.updatedBy ? parseInt(body.updatedBy, 10) : undefined
+      updatedBy: req.user.id
     });
 
     if (!result.success) {
-      return res.status(result.error.includes('not found') ? 404 : 400).json(result);
+      return res.status(result.statusCode || (result.error.includes('not found') ? 404 : 400)).json(result);
     }
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -510,12 +495,12 @@ export const deleteExpense = async (req, res, next) => {
     const result = await expenseService.deleteExpense(id);
 
     if (!result.success) {
-      return res.status(result.error.includes('not found') ? 404 : 400).json(result);
+      return res.status(result.statusCode || (result.error.includes('not found') ? 404 : 400)).json(result);
     }
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -542,14 +527,7 @@ export const verifyExpense = async (req, res, next) => {
       });
     }
 
-    const { verifiedBy } = req.body;
-
-    if (!verifiedBy) {
-      return res.status(400).json({
-        success: false,
-        error: 'verifiedBy is required.'
-      });
-    }
+    const verifiedBy = req.user.id;
 
     const verifiedByNum = parseInt(verifiedBy, 10);
     if (isNaN(verifiedByNum)) {
@@ -567,7 +545,7 @@ export const verifyExpense = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -621,7 +599,7 @@ export const searchExpenses = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -629,6 +607,27 @@ export const searchExpenses = async (req, res, next) => {
 };
 
 // Export all controller functions
+/**
+ * Reverse a posted expense record (correction via reversal, never deletion)
+ * POST /api/expenses/:id/reverse
+ */
+export const reverseExpense = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid expense ID. Must be a number.' });
+    }
+
+    const result = await expenseService.reverseExpense(id, req.user.id, req.body?.reason ?? null);
+    if (!result.success) {
+      return res.status(result.statusCode || 400).json(result);
+    }
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, error: 'Failed to reverse expense record' });
+  }
+};
+
 export default {
   getExpenses,
   getAllExpenses,
@@ -640,6 +639,7 @@ export default {
   createExpense,
   updateExpense,
   deleteExpense,
+  reverseExpense,
   verifyExpense,
   searchExpenses
 };

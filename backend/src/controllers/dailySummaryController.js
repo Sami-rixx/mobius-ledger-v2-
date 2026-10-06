@@ -65,7 +65,7 @@ export const getDailySummaries = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -90,7 +90,7 @@ export const getAllDailySummaries = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -122,7 +122,7 @@ export const getDailySummaryByDate = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -154,7 +154,7 @@ export const getDailySummaryById = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -177,7 +177,7 @@ export const getLatestDailySummary = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -213,7 +213,7 @@ export const getDailySummariesByDateRange = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -245,7 +245,7 @@ export const getDailySummariesByMonth = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -277,7 +277,7 @@ export const getDailySummariesByWeek = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -309,7 +309,7 @@ export const generateAndSaveDailySummary = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -341,7 +341,7 @@ export const generateDailySummary = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -373,7 +373,7 @@ export const createDailySummary = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -408,7 +408,7 @@ export const updateDailySummary = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -440,7 +440,7 @@ export const deleteDailySummary = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -469,7 +469,7 @@ export const getDailySummaryStatistics = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -505,7 +505,7 @@ export const generateDailySummariesForRange = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -537,7 +537,7 @@ export const getWeeklySummary = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -569,7 +569,7 @@ export const getMonthlySummary = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

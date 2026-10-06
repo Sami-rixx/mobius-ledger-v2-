@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
+import { idempotency } from '../middleware/idempotency.js';
 import * as ExpenseController from '../controllers/expenseController.js';
 
 /**
@@ -11,40 +13,43 @@ import * as ExpenseController from '../controllers/expenseController.js';
 const router = Router();
 
 // GET /api/expenses - Get paginated list of expense records
-router.get('/', ExpenseController.getExpenses);
+router.get('/', requirePermission('expenses.read'), ExpenseController.getExpenses);
 
 // GET /api/expenses/all - Get all expense records without pagination
-router.get('/all', ExpenseController.getAllExpenses);
+router.get('/all', requirePermission('expenses.read'), ExpenseController.getAllExpenses);
 
 // GET /api/expenses/:id - Get a single expense record by ID
-router.get('/:id', ExpenseController.getExpenseById);
+router.get('/:id', requirePermission('expenses.read'), ExpenseController.getExpenseById);
 
 // GET /api/expenses/receipt/:receiptNumber - Get expense by receipt number
-router.get('/receipt/:receiptNumber', ExpenseController.getExpenseByReceiptNumber);
+router.get('/receipt/:receiptNumber', requirePermission('expenses.read'), ExpenseController.getExpenseByReceiptNumber);
 
 // GET /api/expenses/category/:categoryId - Get expenses by category
-router.get('/category/:categoryId', ExpenseController.getExpensesByCategory);
+router.get('/category/:categoryId', requirePermission('expenses.read'), ExpenseController.getExpensesByCategory);
 
 // GET /api/expenses/date-range - Get expenses by date range
-router.get('/date-range', ExpenseController.getExpensesByDateRange);
+router.get('/date-range', requirePermission('expenses.read'), ExpenseController.getExpensesByDateRange);
 
 // GET /api/expenses/statistics - Get expense statistics
-router.get('/statistics', ExpenseController.getExpenseStatistics);
+router.get('/statistics', requirePermission('expenses.read'), ExpenseController.getExpenseStatistics);
 
 // GET /api/expenses/search - Search expenses
-router.get('/search', ExpenseController.searchExpenses);
+router.get('/search', requirePermission('expenses.read'), ExpenseController.searchExpenses);
 
 // POST /api/expenses - Create a new expense record
-router.post('/', ExpenseController.createExpense);
+router.post('/', requirePermission('expenses.create'), idempotency(), ExpenseController.createExpense);
 
 // PUT /api/expenses/:id - Update an expense record
-router.put('/:id', ExpenseController.updateExpense);
+router.put('/:id', requirePermission('expenses.update'), ExpenseController.updateExpense);
 
 // DELETE /api/expenses/:id - Delete an expense record
-router.delete('/:id', ExpenseController.deleteExpense);
+router.delete('/:id', requirePermission('expenses.delete'), ExpenseController.deleteExpense);
+
+// POST /api/expenses/:id/reverse - Reverse a posted expense record (correction)
+router.post('/:id/reverse', requirePermission('expenses.delete'), ExpenseController.reverseExpense);
 
 // POST /api/expenses/:id/verify - Mark expense as verified
-router.post('/:id/verify', ExpenseController.verifyExpense);
+router.post('/:id/verify', requirePermission('expenses.update'), ExpenseController.verifyExpense);
 
 /**
  * Expense Routes Summary:

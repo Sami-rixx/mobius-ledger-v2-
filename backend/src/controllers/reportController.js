@@ -82,7 +82,7 @@ export const getReports = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -122,7 +122,7 @@ export const getAllReports = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -154,7 +154,7 @@ export const getReportById = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -208,7 +208,7 @@ export const getReportsByType = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -240,7 +240,7 @@ export const getLatestReportByType = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -286,7 +286,7 @@ export const generateDailySummaryReport = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -341,7 +341,7 @@ export const generateDateRangeReport = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -389,7 +389,7 @@ export const generateIncomeVsExpenseReport = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -433,7 +433,7 @@ export const generateCategorySummaryReport = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -497,7 +497,7 @@ export const createReport = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -532,7 +532,7 @@ export const updateReport = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -564,7 +564,7 @@ export const deleteReport = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -582,7 +582,7 @@ export const getReportStatistics = async (req, res, next) => {
     const result = await reportService.getReportStatistics();
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -622,7 +622,7 @@ export const searchReports = async (req, res, next) => {
     const result = await reportService.searchReports(q, limitNum);
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

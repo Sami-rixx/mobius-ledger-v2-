@@ -62,7 +62,7 @@ export const listPermissions = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -82,7 +82,7 @@ export const countPermissions = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -110,7 +110,7 @@ export const getSinglePermission = (req, res) => {
       data: permission
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -138,7 +138,7 @@ export const getPermissionByNameHandler = (req, res) => {
       data: permission
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -160,7 +160,7 @@ export const getPermissionsByModuleHandler = (req, res) => {
       data: permissions
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -181,7 +181,7 @@ export const checkPermissionExists = (req, res) => {
       exists
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -209,7 +209,7 @@ export const searchPermissionsHandler = (req, res) => {
       data: permissions
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -228,7 +228,7 @@ export const getPermissionStatsHandler = (req, res) => {
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -247,7 +247,7 @@ export const getPermissionModulesHandler = (req, res) => {
       data: modules
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -266,7 +266,7 @@ export const getPermissionCountByModuleHandler = (req, res) => {
       data: countByModule
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -345,7 +345,7 @@ export const deletePermissionHandler = (req, res) => {
       message: `Permission with ID ${id} deleted successfully`
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

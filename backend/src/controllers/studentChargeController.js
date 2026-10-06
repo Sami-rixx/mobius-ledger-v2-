@@ -64,7 +64,7 @@ export const getStudentCharges = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -108,7 +108,7 @@ export const getAllStudentCharges = (req, res) => {
       data: charges
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -144,7 +144,7 @@ export const getStudentChargeById = (req, res) => {
       data: charge
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -178,7 +178,7 @@ export const getStudentChargesByClass = (req, res) => {
       data: charges
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -212,7 +212,7 @@ export const getActiveStudentCharges = (req, res) => {
       data: charges
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -237,7 +237,7 @@ export const getActiveStudentCharges = (req, res) => {
 export const createStudentCharge = (req, res) => {
   try {
     const chargeData = req.body;
-    const createdBy = req.user?.id || 1; // Default to user 1 if not authenticated
+    const createdBy = req.user.id; // Default to user 1 if not authenticated
 
     // Validate required fields
     if (!chargeData.name) {
@@ -262,7 +262,7 @@ export const createStudentCharge = (req, res) => {
       message: 'Student charge created successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -296,7 +296,7 @@ export const updateStudentCharge = (req, res) => {
     }
 
     const chargeData = req.body;
-    const updatedBy = req.user?.id || 1;
+    const updatedBy = req.user.id;
 
     // Validate amount if provided
     if (chargeData.amount !== undefined && chargeData.amount <= 0) {
@@ -314,7 +314,7 @@ export const updateStudentCharge = (req, res) => {
       message: 'Student charge updated successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -336,7 +336,7 @@ export const deleteStudentCharge = (req, res) => {
       });
     }
 
-    const deletedBy = req.user?.id || 1;
+    const deletedBy = req.user.id;
     const deleted = studentChargeService.deleteStudentCharge(id, deletedBy);
 
     if (!deleted) {
@@ -351,7 +351,7 @@ export const deleteStudentCharge = (req, res) => {
       message: 'Student charge deleted successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -373,7 +373,7 @@ export const forceDeleteStudentCharge = (req, res) => {
       });
     }
 
-    const deletedBy = req.user?.id || 1;
+    const deletedBy = req.user.id;
     const deleted = studentChargeService.forceDeleteStudentCharge(id, deletedBy);
 
     if (!deleted) {
@@ -388,7 +388,7 @@ export const forceDeleteStudentCharge = (req, res) => {
       message: 'Student charge and all assignments deleted successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -408,7 +408,7 @@ export const getStudentChargeStatistics = (req, res) => {
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -438,7 +438,7 @@ export const assignChargeToStudents = (req, res) => {
     }
 
     const { studentIds, amount, notes } = req.body;
-    const assignedBy = req.user?.id || 1;
+    const assignedBy = req.user.id;
 
     if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
       return res.status(400).json({
@@ -461,7 +461,7 @@ export const assignChargeToStudents = (req, res) => {
       message: `${assignments.length} assignments created successfully`
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -490,7 +490,7 @@ export const getChargesForStudent = (req, res) => {
       data: charges
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -519,7 +519,7 @@ export const getUnpaidChargesForStudent = (req, res) => {
       data: charges
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -548,7 +548,7 @@ export const getStudentOutstandingChargeAmount = (req, res) => {
       data: { outstandingAmount: amount }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

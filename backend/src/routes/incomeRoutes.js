@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { requirePermission } from '../middleware/auth.js';
+import { idempotency } from '../middleware/idempotency.js';
 import * as IncomeController from '../controllers/incomeController.js';
 
 /**
@@ -11,37 +13,40 @@ import * as IncomeController from '../controllers/incomeController.js';
 const router = Router();
 
 // GET /api/income - Get paginated list of income records
-router.get('/', IncomeController.getIncome);
+router.get('/', requirePermission('income.read'), IncomeController.getIncome);
 
 // GET /api/income/all - Get all income records without pagination
-router.get('/all', IncomeController.getAllIncome);
+router.get('/all', requirePermission('income.read'), IncomeController.getAllIncome);
 
 // GET /api/income/:id - Get a single income record by ID
-router.get('/:id', IncomeController.getIncomeById);
+router.get('/:id', requirePermission('income.read'), IncomeController.getIncomeById);
 
 // GET /api/income/receipt/:receiptNumber - Get income by receipt number
-router.get('/receipt/:receiptNumber', IncomeController.getIncomeByReceiptNumber);
+router.get('/receipt/:receiptNumber', requirePermission('income.read'), IncomeController.getIncomeByReceiptNumber);
 
 // GET /api/income/category/:categoryId - Get income by category
-router.get('/category/:categoryId', IncomeController.getIncomeByCategory);
+router.get('/category/:categoryId', requirePermission('income.read'), IncomeController.getIncomeByCategory);
 
 // GET /api/income/date-range - Get income by date range
-router.get('/date-range', IncomeController.getIncomeByDateRange);
+router.get('/date-range', requirePermission('income.read'), IncomeController.getIncomeByDateRange);
 
 // GET /api/income/statistics - Get income statistics
-router.get('/statistics', IncomeController.getIncomeStatistics);
+router.get('/statistics', requirePermission('income.read'), IncomeController.getIncomeStatistics);
 
 // POST /api/income - Create a new income record
-router.post('/', IncomeController.createIncome);
+router.post('/', requirePermission('income.create'), idempotency(), IncomeController.createIncome);
 
 // PUT /api/income/:id - Update an income record
-router.put('/:id', IncomeController.updateIncome);
+router.put('/:id', requirePermission('income.update'), IncomeController.updateIncome);
 
 // DELETE /api/income/:id - Delete an income record
-router.delete('/:id', IncomeController.deleteIncome);
+router.delete('/:id', requirePermission('income.delete'), IncomeController.deleteIncome);
+
+// POST /api/income/:id/reverse - Reverse a posted income record (correction)
+router.post('/:id/reverse', requirePermission('income.delete'), IncomeController.reverseIncome);
 
 // POST /api/income/:id/verify - Mark income as verified
-router.post('/:id/verify', IncomeController.verifyIncome);
+router.post('/:id/verify', requirePermission('income.update'), IncomeController.verifyIncome);
 
 /**
  * Income Routes Summary:

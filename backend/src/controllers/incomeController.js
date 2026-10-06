@@ -96,7 +96,7 @@ export const getIncome = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -139,7 +139,7 @@ export const getAllIncome = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -171,7 +171,7 @@ export const getIncomeById = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -203,7 +203,7 @@ export const getIncomeByReceiptNumber = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -258,7 +258,7 @@ export const getIncomeByCategory = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -289,7 +289,7 @@ export const getIncomeByDateRange = async (req, res, next) => {
     const result = await incomeService.getIncomeByDateRange(startDate, endDate);
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -309,7 +309,7 @@ export const getIncomeByDateRange = async (req, res, next) => {
  * - paymentMethodId (number, optional): Payment method ID
  * - incomeDate (string, required): Date of income (YYYY-MM-DD)
  * - notes (string, optional): Additional notes
- * - createdBy (number, required): User ID who created the record
+ * - actor: taken from the authenticated session (req.user)
  * 
  * Response: 201 Created with created income record or 400/404 with error
  */
@@ -318,10 +318,10 @@ export const createIncome = async (req, res, next) => {
     const data = req.body;
 
     // Validate required fields
-    if (!data.incomeCategoryId || !data.amount || !data.payerName || !data.incomeDate || !data.createdBy) {
+    if (!data.incomeCategoryId || !data.amount || !data.payerName || !data.incomeDate) {
       return res.status(400).json({
         success: false,
-        error: 'Required fields: incomeCategoryId, amount, payerName, incomeDate, createdBy'
+        error: 'Required fields: incomeCategoryId, amount, payerName, incomeDate'
       });
     }
 
@@ -329,7 +329,8 @@ export const createIncome = async (req, res, next) => {
     const incomeCategoryId = parseInt(data.incomeCategoryId, 10);
     const amount = parseFloat(data.amount);
     const paymentMethodId = data.paymentMethodId ? parseInt(data.paymentMethodId, 10) : undefined;
-    const createdBy = parseInt(data.createdBy, 10);
+    // Actor identity ALWAYS comes from the authenticated session.
+    const createdBy = req.user.id;
 
     if (isNaN(incomeCategoryId)) {
       return res.status(400).json({
@@ -342,13 +343,6 @@ export const createIncome = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         error: 'Invalid amount. Must be a positive number.'
-      });
-    }
-
-    if (isNaN(createdBy)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid createdBy. Must be a number.'
       });
     }
 
@@ -377,7 +371,7 @@ export const createIncome = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -399,7 +393,7 @@ export const createIncome = async (req, res, next) => {
  * - incomeDate (string, optional): Date of income (YYYY-MM-DD)
  * - notes (string, optional): Additional notes
  * - isVerified (boolean, optional): Verification status
- * - updatedBy (number, required): User ID who updated the record
+ * - actor: taken from the authenticated session (req.user)
  * 
  * Response: 200 OK with updated income record or 400/404 with error
  */
@@ -416,24 +410,9 @@ export const updateIncome = async (req, res, next) => {
 
     const data = req.body;
 
-    // Validate updatedBy is required
-    if (!data.updatedBy) {
-      return res.status(400).json({
-        success: false,
-        error: 'updatedBy is required.'
-      });
-    }
+    const updatedBy = req.user.id;
 
-    const updatedBy = parseInt(data.updatedBy, 10);
-
-    if (isNaN(updatedBy)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid updatedBy. Must be a number.'
-      });
-    }
-
-    // Validate amount if provided
+        // Validate amount if provided
     if (data.amount !== undefined) {
       const amount = parseFloat(data.amount);
       if (isNaN(amount) || amount <= 0) {
@@ -470,12 +449,12 @@ export const updateIncome = async (req, res, next) => {
     });
 
     if (!result.success) {
-      return res.status(result.error.includes('not found') ? 404 : 400).json(result);
+      return res.status(result.statusCode || (result.error.includes('not found') ? 404 : 400)).json(result);
     }
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -502,12 +481,12 @@ export const deleteIncome = async (req, res, next) => {
     const result = await incomeService.deleteIncome(id);
 
     if (!result.success) {
-      return res.status(result.error.includes('not found') ? 404 : 400).json(result);
+      return res.status(result.statusCode || (result.error.includes('not found') ? 404 : 400)).json(result);
     }
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -519,7 +498,7 @@ export const deleteIncome = async (req, res, next) => {
  * POST /api/income/:id/verify
  * 
  * Request Body:
- * - verifiedBy (number, required): User ID who verified the record
+ * - actor: taken from the authenticated session (req.user)
  * 
  * Response: 200 OK with updated income record or 404 if not found
  */
@@ -534,14 +513,7 @@ export const verifyIncome = async (req, res, next) => {
       });
     }
 
-    const { verifiedBy } = req.body;
-
-    if (!verifiedBy) {
-      return res.status(400).json({
-        success: false,
-        error: 'verifiedBy is required.'
-      });
-    }
+    const verifiedBy = req.user.id;
 
     const verifiedByNum = parseInt(verifiedBy, 10);
 
@@ -560,7 +532,7 @@ export const verifyIncome = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -588,7 +560,7 @@ export const getIncomeStatistics = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -596,6 +568,27 @@ export const getIncomeStatistics = async (req, res, next) => {
 };
 
 // Export all controller functions
+/**
+ * Reverse a posted income record (correction via reversal, never deletion)
+ * POST /api/income/:id/reverse
+ */
+export const reverseIncome = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid income ID. Must be a number.' });
+    }
+
+    const result = await incomeService.reverseIncome(id, req.user.id, req.body?.reason ?? null);
+    if (!result.success) {
+      return res.status(result.statusCode || 400).json(result);
+    }
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, error: 'Failed to reverse income record' });
+  }
+};
+
 export default {
   getIncome,
   getAllIncome,
@@ -606,6 +599,7 @@ export default {
   createIncome,
   updateIncome,
   deleteIncome,
+  reverseIncome,
   verifyIncome,
   getIncomeStatistics
 };

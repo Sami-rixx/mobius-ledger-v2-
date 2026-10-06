@@ -76,7 +76,7 @@ export const listNotifications = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -115,7 +115,7 @@ export const countNotifications = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -143,7 +143,7 @@ export const getSingleNotification = (req, res) => {
       data: notification
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -223,7 +223,7 @@ export const deleteNotificationHandler = (req, res) => {
       message: 'Notification deleted successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -419,7 +419,7 @@ export const getStatisticsHandler = (req, res) => {
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -437,7 +437,7 @@ export const getTypesHandler = (req, res) => {
       data: NOTIFICATION_TYPES
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -455,7 +455,7 @@ export const getPrioritiesHandler = (req, res) => {
       data: NOTIFICATION_PRIORITIES
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

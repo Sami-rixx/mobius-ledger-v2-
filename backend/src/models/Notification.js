@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
 
 /**
  * Notification Model
@@ -124,7 +125,8 @@ export const getAllNotifications = (options = {}) => {
     query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const safeOrder = parseOrder(orderBy === 'created_at' ? undefined : orderBy, orderDir, ['created_at', 'updated_at', 'id', 'is_read', 'type', 'title'], 'created_at', 'DESC');
+  query += ` ORDER BY ${safeOrder.field} ${safeOrder.dir} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   try {

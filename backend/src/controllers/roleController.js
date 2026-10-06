@@ -61,7 +61,7 @@ export const listRoles = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -80,7 +80,7 @@ export const countRoles = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -108,7 +108,7 @@ export const getSingleRole = (req, res) => {
       data: role
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -136,7 +136,7 @@ export const getRoleByNameHandler = (req, res) => {
       data: role
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -163,7 +163,7 @@ export const getDefaultRoleHandler = (req, res) => {
       data: role
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -184,7 +184,7 @@ export const checkRoleExists = (req, res) => {
       exists
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -212,7 +212,7 @@ export const searchRolesHandler = (req, res) => {
       data: roles
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -231,7 +231,7 @@ export const getRolesWithPermissionCountHandler = (req, res) => {
       data: roles
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -250,7 +250,7 @@ export const getRoleStatsHandler = (req, res) => {
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -269,7 +269,7 @@ export const getDefaultRoleNamesHandler = (req, res) => {
       data: names
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -348,7 +348,7 @@ export const deleteRoleHandler = (req, res) => {
       message: `Role with ID ${id} deleted successfully`
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -384,7 +384,7 @@ export const setDefaultRoleHandler = (req, res) => {
       message: `Role with ID ${roleId} set as default`
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

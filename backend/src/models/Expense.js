@@ -1,4 +1,6 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * Expense Model
@@ -114,8 +116,9 @@ export async function getAll(options = {}) {
     FIELDS.RECEIPT_NUMBER,
     FIELDS.CREATED_AT
   ];
-  const orderField = validOrderFields.includes(orderBy) ? orderBy : FIELDS.EXPENSE_DATE;
-  const validDirection = orderDirection === 'ASC' ? 'ASC' : 'DESC';
+  const safeOrder = parseOrder(orderBy, orderDirection, validOrderFields, FIELDS.EXPENSE_DATE, 'DESC');
+  const orderField = safeOrder.field;
+  const validDirection = safeOrder.dir;
 
   const query = `
     SELECT ${TABLE}.*, 
@@ -284,12 +287,14 @@ export async function create(data) {
     notes,
     isVerified = false,
     createdBy,
-    updatedBy
+    updatedBy,
+    reversalOfId = null
   } = data;
 
   const query = `
     INSERT INTO ${TABLE} (
       ${FIELDS.AMOUNT},
+      amount_cents,
       ${FIELDS.EXPENSE_CATEGORY_ID},
       ${FIELDS.DESCRIPTION},
       ${FIELDS.VENDOR_NAME},
@@ -301,12 +306,14 @@ export async function create(data) {
       ${FIELDS.NOTES},
       ${FIELDS.IS_VERIFIED},
       ${FIELDS.CREATED_BY},
-      ${FIELDS.UPDATED_BY}
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ${FIELDS.UPDATED_BY},
+      reversal_of_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
     amount,
+    toCents(amount, { allowNegative: true }),
     expenseCategoryId,
     description,
     vendorName,
@@ -318,7 +325,8 @@ export async function create(data) {
     notes,
     isVerified ? 1 : 0,
     createdBy,
-    updatedBy
+    updatedBy,
+    reversalOfId
   ];
 
   try {
@@ -358,6 +366,8 @@ export async function update(id, data) {
   if (amount !== undefined) {
     updates.push(`${FIELDS.AMOUNT} = ?`);
     params.push(amount);
+    updates.push(`amount_cents = ?`);
+    params.push(toCents(amount, { allowNegative: true }));
   }
   if (expenseCategoryId !== undefined) {
     updates.push(`${FIELDS.EXPENSE_CATEGORY_ID} = ?`);

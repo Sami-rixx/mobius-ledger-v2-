@@ -1,4 +1,6 @@
 import db from '../config/database.js';
+import { AUDIT_ACTIONS } from '../db/migrations.js';
+import { parseOrder } from '../utils/sqlSafety.js';
 
 /**
  * AuditTrail Model
@@ -31,8 +33,11 @@ const FIELDS = {
   CREATED_AT: 'created_at'
 };
 
-// Valid actions
-const VALID_ACTIONS = ['CREATE', 'UPDATE', 'DELETE'];
+// Valid actions: expanded security taxonomy (specification §7)
+const VALID_ACTIONS = AUDIT_ACTIONS;
+
+// Allowlisted sortable columns (specification §9 — no client-supplied SQL)
+const ORDERABLE_FIELDS = ['id', 'action', 'table_name', 'record_id', 'user_id', 'created_at'];
 
 // Valid table names for financial operations
 const TRACKED_TABLES = [
@@ -109,7 +114,8 @@ export const getAllAuditTrails = (options = {}) => {
     query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const order = parseOrder(orderBy, orderDir, ORDERABLE_FIELDS, 'created_at');
+  query += ` ORDER BY ${order.field} ${order.dir} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);
@@ -203,7 +209,8 @@ export const getAuditTrailByTable = (tableName, options = {}) => {
   let query = `SELECT * FROM ${TABLE} WHERE table_name = ?`;
   const params = [tableName];
 
-  query += ` ORDER BY ${orderBy} ${orderDir} LIMIT ? OFFSET ?`;
+  const order = parseOrder(orderBy, orderDir, ORDERABLE_FIELDS, 'created_at');
+  query += ` ORDER BY ${order.field} ${order.dir} LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const stmt = db.prepare(query);
@@ -259,22 +266,6 @@ export const createAuditTrail = (data) => {
   );
 
   return getAuditTrailById(result.lastInsertRowid);
-};
-
-/**
- * Delete an audit trail entry (use with caution)
- * @param {number} id - Audit trail entry ID
- * @returns {boolean} - True if deleted
- */
-export const deleteAuditTrail = (id) => {
-  const existing = getAuditTrailById(id);
-  if (!existing) {
-    return false;
-  }
-
-  const stmt = db.prepare(`DELETE FROM ${TABLE} WHERE id = ?`);
-  stmt.run(id);
-  return true;
 };
 
 /**
@@ -366,6 +357,5 @@ export default {
   getAuditTrailByTable,
   getRecentAuditTrails,
   createAuditTrail,
-  deleteAuditTrail,
   getAuditTrailStatistics
 };

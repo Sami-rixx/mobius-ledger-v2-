@@ -32,7 +32,7 @@ export const getDashboardSummary = async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -54,7 +54,7 @@ export const getQuickStats = async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -103,7 +103,7 @@ export const getIncomeVsExpenseChart = async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -139,7 +139,7 @@ export const getIncomeByCategory = async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -175,7 +175,7 @@ export const getExpensesByCategory = async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -211,7 +211,7 @@ export const getRecentActivity = async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -233,7 +233,7 @@ export const getStudentDistribution = async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -289,7 +289,7 @@ export const getFilteredSummary = async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

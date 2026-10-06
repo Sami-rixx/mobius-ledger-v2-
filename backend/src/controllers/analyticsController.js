@@ -33,7 +33,7 @@ export const getDashboardData = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -75,7 +75,7 @@ export const getIncomeVsExpense = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -118,7 +118,7 @@ export const getIncomeByCategory = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -161,7 +161,7 @@ export const getExpensesByCategory = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -204,7 +204,7 @@ export const getTopIncomeSources = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -247,7 +247,7 @@ export const getTopExpenses = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -276,7 +276,7 @@ export const getOverallStatistics = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -318,7 +318,7 @@ export const getIncomeTrends = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -360,7 +360,7 @@ export const getExpenseTrends = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -402,7 +402,7 @@ export const getNetFlowTrends = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -439,7 +439,7 @@ export const getRecentDailySummaries = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -468,7 +468,7 @@ export const getDailySummaryStatistics = async (req, res, next) => {
     
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

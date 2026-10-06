@@ -83,7 +83,7 @@ export const getIncomeCategories = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -132,7 +132,7 @@ export const getAllIncomeCategories = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -150,7 +150,7 @@ export const getActiveIncomeCategories = async (req, res, next) => {
     const result = await incomeCategoryService.getActiveIncomeCategories();
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -182,7 +182,7 @@ export const getIncomeCategoryById = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -214,7 +214,7 @@ export const getIncomeCategoryByName = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -239,7 +239,7 @@ export const createIncomeCategory = async (req, res, next) => {
     const data = req.body;
 
     // Validate required fields
-    if (!data.name || !data.createdBy) {
+    if (!data.name) {
       return res.status(400).json({
         success: false,
         error: 'Required fields: name, createdBy'
@@ -247,7 +247,7 @@ export const createIncomeCategory = async (req, res, next) => {
     }
 
     // Validate numeric fields
-    const createdBy = parseInt(data.createdBy, 10);
+    const createdBy = req.user.id;
 
     if (isNaN(createdBy)) {
       return res.status(400).json({
@@ -270,7 +270,7 @@ export const createIncomeCategory = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -303,15 +303,7 @@ export const updateIncomeCategory = async (req, res, next) => {
 
     const data = req.body;
 
-    // Validate updatedBy is required
-    if (!data.updatedBy) {
-      return res.status(400).json({
-        success: false,
-        error: 'updatedBy is required.'
-      });
-    }
-
-    const updatedBy = parseInt(data.updatedBy, 10);
+    const updatedBy = req.user.id;
 
     if (isNaN(updatedBy)) {
       return res.status(400).json({
@@ -334,7 +326,7 @@ export const updateIncomeCategory = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -366,7 +358,7 @@ export const deleteIncomeCategory = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -384,7 +376,7 @@ export const getIncomeCategoriesWithUsage = async (req, res, next) => {
     const result = await incomeCategoryService.getIncomeCategoriesWithUsage();
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -430,7 +422,7 @@ export const getIncomeCategoryCount = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

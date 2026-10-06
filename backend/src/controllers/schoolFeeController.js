@@ -60,7 +60,7 @@ export const getSchoolFeePayments = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -88,7 +88,7 @@ export const getAllSchoolFeePayments = (req, res) => {
       data: payments
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -124,7 +124,7 @@ export const getSchoolFeePaymentById = (req, res) => {
       data: payment
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -153,7 +153,7 @@ export const getSchoolFeePaymentsByStudent = (req, res) => {
       data: payments
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -182,7 +182,7 @@ export const getStudentSchoolFeeBalance = (req, res) => {
       data: balance
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -208,7 +208,7 @@ export const getStudentsInArrears = (req, res) => {
       data: students
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -234,7 +234,7 @@ export const getSchoolFeeStatistics = (req, res) => {
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -254,7 +254,7 @@ export const getSchoolFeeSummary = (req, res) => {
       data: summary
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -286,9 +286,9 @@ export const createSchoolFeePayment = async (req, res) => {
       term,
       paymentMethodId,
       description,
-      notes,
-      createdBy
+      notes
     } = req.body;
+    const createdBy = req.user.id;
 
     // Validate required fields
     if (!studentId || !amount || !paymentDate || !academicYear || !term) {
@@ -334,7 +334,7 @@ export const createSchoolFeePayment = async (req, res) => {
       message: 'School fee payment recorded successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -373,9 +373,9 @@ export const updateSchoolFeePayment = (req, res) => {
       paymentDate,
       academicYear,
       term,
-      notes,
-      updatedBy
+      notes
     } = req.body;
+    const updatedBy = req.user.id;
 
     // Validate amount if provided
     if (amount !== undefined) {
@@ -423,7 +423,7 @@ export const updateSchoolFeePayment = (req, res) => {
       message: 'School fee payment updated successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -459,10 +459,28 @@ export const deleteSchoolFeePayment = (req, res) => {
       message: 'School fee payment deleted successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
+  }
+};
+
+/**
+ * Reverse a posted school fee payment (correction via reversal)
+ * POST /api/school-fees/:id/reverse
+ */
+export const reverseSchoolFeePayment = (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid school fee payment ID' });
+    }
+
+    const data = schoolFeeService.reverseSchoolFeePayment(id, req.user.id, req.body?.reason ?? null);
+    res.status(201).json({ success: true, data, message: 'School fee payment reversed successfully' });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, error: error.message });
   }
 };
 

@@ -59,7 +59,7 @@ export const listUserRoles = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -78,7 +78,7 @@ export const countUserRoles = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -106,7 +106,7 @@ export const getSingleUserRole = (req, res) => {
       data: userRole
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -134,7 +134,7 @@ export const getUserRoleByUserAndRoleHandler = (req, res) => {
       data: userRole
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -155,7 +155,7 @@ export const getRolesForUserHandler = (req, res) => {
       data: roles
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -176,7 +176,7 @@ export const getRoleIdsForUserHandler = (req, res) => {
       data: roleIds
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -197,7 +197,7 @@ export const getUsersForRoleHandler = (req, res) => {
       data: userIds
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -218,7 +218,7 @@ export const checkUserHasRoleHandler = (req, res) => {
       hasRole
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -248,7 +248,7 @@ export const checkUserHasAnyRoleHandler = (req, res) => {
       hasAnyRole
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -269,7 +269,7 @@ export const getUserCountForRoleHandler = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -290,7 +290,7 @@ export const getRoleCountForUserHandler = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -309,7 +309,7 @@ export const getUserRoleStatsHandler = (req, res) => {
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -358,7 +358,7 @@ export const removeRoleFromUserHandler = (req, res) => {
       message: `Role ${roleId} removed from user ${userId} successfully`
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -386,7 +386,7 @@ export const removeAllRolesFromUserHandler = (req, res) => {
       message: `All roles removed from user ${userId} successfully`
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

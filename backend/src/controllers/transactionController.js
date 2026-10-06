@@ -19,6 +19,7 @@ import {
   createTransactionRecord,
   updateTransactionRecord,
   deleteTransactionRecord,
+  reverseTransactionRecord,
   searchTransactions,
   getTransactionStatistics,
   getTransactionCountByFilter
@@ -64,7 +65,7 @@ export const listTransactions = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -100,7 +101,7 @@ export const countTransactions = (req, res) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -128,7 +129,7 @@ export const getSingleTransaction = (req, res) => {
       data: transaction
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -156,7 +157,7 @@ export const getTransactionByReceiptHandler = (req, res) => {
       data: transaction
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -170,12 +171,12 @@ export const getTransactionByReceiptHandler = (req, res) => {
 export const createTransaction = (req, res) => {
   try {
     const transactionData = req.body;
-    const userContext = req.user || {};
-    
+    const userContext = { userId: req.user.id };
+
     const result = createTransactionRecord(transactionData, userContext);
-    
+
     if (!result.success) {
-      return res.status(400).json({
+      return res.status(result.statusCode || 400).json({
         success: false,
         error: result.error
       });
@@ -186,7 +187,7 @@ export const createTransaction = (req, res) => {
       data: result.data
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -201,12 +202,12 @@ export const updateTransaction = (req, res) => {
   try {
     const { id } = req.params;
     const transactionData = req.body;
-    const userContext = req.user || {};
-    
+    const userContext = { userId: req.user.id };
+
     const result = updateTransactionRecord(parseInt(id), transactionData, userContext);
-    
+
     if (!result.success) {
-      return res.status(400).json({
+      return res.status(result.statusCode || (result.error.includes('not found') ? 404 : 400)).json({
         success: false,
         error: result.error
       });
@@ -217,7 +218,7 @@ export const updateTransaction = (req, res) => {
       data: result.data
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -232,9 +233,9 @@ export const deleteTransaction = (req, res) => {
   try {
     const { id } = req.params;
     const result = deleteTransactionRecord(parseInt(id));
-    
+
     if (!result.success) {
-      return res.status(400).json({
+      return res.status(result.statusCode || (result.error.includes('not found') ? 404 : 400)).json({
         success: false,
         error: result.error
       });
@@ -246,7 +247,7 @@ export const deleteTransaction = (req, res) => {
       message: 'Transaction deleted successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -281,7 +282,7 @@ export const searchTransactionHandler = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -314,7 +315,7 @@ export const filterTransactions = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -348,10 +349,34 @@ export const getTransactionStats = (req, res) => {
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
+  }
+};
+
+/**
+ * POST /api/transactions/:id/reverse
+ * Reverse a posted transaction (correction via reversal, never deletion)
+ */
+export const reverseTransaction = (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid transaction ID' });
+    }
+
+    const result = reverseTransactionRecord(id, req.user.id, req.body?.reason ?? null);
+    if (!result.success) {
+      return res.status(result.statusCode || (result.error.includes('not found') ? 404 : 400)).json({
+        success: false,
+        error: result.error
+      });
+    }
+    res.status(201).json({ success: true, data: result.data, message: 'Transaction reversed successfully' });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, error: 'Failed to reverse transaction' });
   }
 };
 
@@ -363,6 +388,7 @@ export default {
   createTransaction,
   updateTransaction,
   deleteTransaction,
+  reverseTransaction,
   searchTransactionHandler,
   filterTransactions,
   getTransactionStats

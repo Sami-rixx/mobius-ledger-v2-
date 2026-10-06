@@ -104,7 +104,7 @@ export const getExpenseCategories = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -174,7 +174,7 @@ export const getAllExpenseCategories = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -192,7 +192,7 @@ export const getActiveExpenseCategories = async (req, res, next) => {
     const result = await expenseCategoryService.getActiveExpenseCategories();
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -210,7 +210,7 @@ export const getKitchenExpenseCategories = async (req, res, next) => {
     const result = await expenseCategoryService.getKitchenExpenseCategories();
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -243,7 +243,7 @@ export const getRootExpenseCategories = async (req, res, next) => {
     });
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -270,7 +270,7 @@ export const getChildExpenseCategories = async (req, res, next) => {
     const result = await expenseCategoryService.getChildExpenseCategories(parentId);
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -288,7 +288,7 @@ export const getExpenseCategoryTree = async (req, res, next) => {
     const result = await expenseCategoryService.getExpenseCategoryTree();
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -320,7 +320,7 @@ export const getExpenseCategoryById = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -352,7 +352,7 @@ export const getExpenseCategoryByName = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -377,18 +377,10 @@ export const createExpenseCategory = async (req, res, next) => {
     const body = req.body;
 
     // Validate required fields
-    if (!body.name || !body.createdBy) {
+    if (!body.name) {
       return res.status(400).json({
         success: false,
         error: 'Required fields: name, createdBy'
-      });
-    }
-
-    // Validate createdBy is a number
-    if (isNaN(parseInt(body.createdBy, 10))) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid createdBy. Must be a number.'
       });
     }
 
@@ -405,7 +397,7 @@ export const createExpenseCategory = async (req, res, next) => {
       parentId: body.parentId ? parseInt(body.parentId, 10) : null,
       description: body.description,
       isKitchen: body.isKitchen !== undefined ? body.isKitchen : false,
-      createdBy: parseInt(body.createdBy, 10)
+      createdBy: req.user.id
     });
 
     if (!result.success) {
@@ -414,7 +406,7 @@ export const createExpenseCategory = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -449,14 +441,6 @@ export const updateExpenseCategory = async (req, res, next) => {
 
     const body = req.body;
 
-    // Validate updatedBy is a number
-    if (!body.updatedBy || isNaN(parseInt(body.updatedBy, 10))) {
-      return res.status(400).json({
-        success: false,
-        error: 'updatedBy is required and must be a number.'
-      });
-    }
-
     // Validate parentId if provided
     if (body.parentId !== undefined && body.parentId !== null && isNaN(parseInt(body.parentId, 10))) {
       return res.status(400).json({
@@ -472,7 +456,7 @@ export const updateExpenseCategory = async (req, res, next) => {
       isActive: body.isActive,
       isSystem: body.isSystem,
       isKitchen: body.isKitchen,
-      updatedBy: parseInt(body.updatedBy, 10)
+      updatedBy: req.user.id
     });
 
     if (!result.success) {
@@ -481,7 +465,7 @@ export const updateExpenseCategory = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -513,7 +497,7 @@ export const deleteExpenseCategory = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -531,7 +515,7 @@ export const getExpenseCategoriesWithUsage = async (req, res, next) => {
     const result = await expenseCategoryService.getExpenseCategoriesWithUsage();
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -607,7 +591,7 @@ export const getExpenseCategoryCount = async (req, res, next) => {
       data: { count: countResult.data.length > 0 ? 1 : 0 } // Simplified - actual count would need a count function
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -646,7 +630,7 @@ export const checkExpenseCategoryNameExists = async (req, res, next) => {
     const result = await expenseCategoryService.checkExpenseCategoryNameExists(name, excludeIdNum);
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
 
 /**
  * Expense Category Model
@@ -101,8 +102,9 @@ export async function getAll(options = {}) {
     FIELDS.IS_KITCHEN,
     FIELDS.CREATED_AT
   ];
-  const orderField = validOrderFields.includes(orderBy) ? orderBy : FIELDS.NAME;
-  const validDirection = orderDirection === 'ASC' ? 'ASC' : 'DESC';
+  const safeOrder = parseOrder(orderBy, orderDirection, validOrderFields, FIELDS.NAME, 'ASC');
+  const orderField = safeOrder.field;
+  const validDirection = safeOrder.dir;
 
   const query = `
     SELECT ${TABLE}.*

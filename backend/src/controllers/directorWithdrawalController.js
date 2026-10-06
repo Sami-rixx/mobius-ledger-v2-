@@ -85,7 +85,7 @@ export const getWithdrawals = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to fetch withdrawals',
       details: error.message
@@ -135,7 +135,7 @@ export const getAllWithdrawals = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to fetch all withdrawals',
       details: error.message
@@ -173,7 +173,7 @@ export const getWithdrawalById = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to fetch withdrawal',
       details: error.message
@@ -199,7 +199,7 @@ export const getWithdrawalById = async (req, res, next) => {
  * }
  * 
  * Headers:
- * - X-User-ID: ID of user creating the withdrawal (temporary until auth is implemented)
+ * - Actor: derived from the authenticated session (req.user)
  * 
  * Response: 201 Created with created withdrawal record or 400 for validation errors
  */
@@ -217,8 +217,8 @@ export const createWithdrawal = async (req, res, next) => {
       notes
     } = req.body;
 
-    // Get user ID from headers (temporary until auth is implemented)
-    const createdBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    // Get user ID from headers
+    const createdBy = req.user.id;
 
     // Validate required fields
     if (amount === undefined || amount === null || amount === '') {
@@ -260,7 +260,7 @@ export const createWithdrawal = async (req, res, next) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to create withdrawal',
       details: error.message
@@ -290,7 +290,7 @@ export const createWithdrawal = async (req, res, next) => {
  * }
  * 
  * Headers:
- * - X-User-ID: ID of user updating the withdrawal (temporary until auth is implemented)
+ * - Actor: derived from the authenticated session (req.user)
  * 
  * Response: 200 OK with updated withdrawal record or 400/404 for errors
  */
@@ -307,8 +307,8 @@ export const updateWithdrawal = async (req, res, next) => {
       });
     }
 
-    // Get user ID from headers (temporary until auth is implemented)
-    const updatedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    // Get user ID from headers
+    const updatedBy = req.user.id;
 
     const {
       amount,
@@ -346,7 +346,7 @@ export const updateWithdrawal = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to update withdrawal',
       details: error.message
@@ -362,7 +362,7 @@ export const updateWithdrawal = async (req, res, next) => {
  * - id: Director withdrawal ID
  * 
  * Headers:
- * - X-User-ID: ID of user deleting the withdrawal (temporary until auth is implemented)
+ * - Actor: derived from the authenticated session (req.user)
  * 
  * Response: 200 OK with success message or 400/404 for errors
  */
@@ -379,8 +379,8 @@ export const deleteWithdrawal = async (req, res, next) => {
       });
     }
 
-    // Get user ID from headers (temporary until auth is implemented)
-    const deletedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    // Get user ID from headers
+    const deletedBy = req.user.id;
 
     const result = await directorWithdrawalService.deleteWithdrawal(withdrawalId, deletedBy);
 
@@ -390,7 +390,7 @@ export const deleteWithdrawal = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to delete withdrawal',
       details: error.message
@@ -411,7 +411,7 @@ export const deleteWithdrawal = async (req, res, next) => {
  * }
  * 
  * Headers:
- * - X-User-ID: ID of user approving the withdrawal (temporary until auth is implemented)
+ * - Actor: derived from the authenticated session (req.user)
  * 
  * Response: 200 OK with updated withdrawal record or 400/404 for errors
  */
@@ -428,8 +428,8 @@ export const approveWithdrawal = async (req, res, next) => {
       });
     }
 
-    // Get user ID from headers (temporary until auth is implemented)
-    const approvedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    // Get user ID from headers
+    const approvedBy = req.user.id;
 
     const { notes } = req.body;
 
@@ -441,7 +441,7 @@ export const approveWithdrawal = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to approve withdrawal',
       details: error.message
@@ -462,7 +462,7 @@ export const approveWithdrawal = async (req, res, next) => {
  * }
  * 
  * Headers:
- * - X-User-ID: ID of user rejecting the withdrawal (temporary until auth is implemented)
+ * - Actor: derived from the authenticated session (req.user)
  * 
  * Response: 200 OK with updated withdrawal record or 400/404 for errors
  */
@@ -479,8 +479,8 @@ export const rejectWithdrawal = async (req, res, next) => {
       });
     }
 
-    // Get user ID from headers (temporary until auth is implemented)
-    const rejectedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    // Get user ID from headers
+    const rejectedBy = req.user.id;
 
     const { reason } = req.body;
 
@@ -499,7 +499,7 @@ export const rejectWithdrawal = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to reject withdrawal',
       details: error.message
@@ -520,7 +520,7 @@ export const rejectWithdrawal = async (req, res, next) => {
  * }
  * 
  * Headers:
- * - X-User-ID: ID of user marking as completed (temporary until auth is implemented)
+ * - Actor: derived from the authenticated session (req.user)
  * 
  * Response: 200 OK with updated withdrawal record or 400/404 for errors
  */
@@ -537,8 +537,8 @@ export const completeWithdrawal = async (req, res, next) => {
       });
     }
 
-    // Get user ID from headers (temporary until auth is implemented)
-    const updatedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    // Get user ID from headers
+    const updatedBy = req.user.id;
 
     const { transactionId } = req.body;
 
@@ -554,7 +554,7 @@ export const completeWithdrawal = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to complete withdrawal',
       details: error.message
@@ -575,7 +575,7 @@ export const completeWithdrawal = async (req, res, next) => {
  * }
  * 
  * Headers:
- * - X-User-ID: ID of user cancelling the withdrawal (temporary until auth is implemented)
+ * - Actor: derived from the authenticated session (req.user)
  * 
  * Response: 200 OK with updated withdrawal record or 400/404 for errors
  */
@@ -592,8 +592,8 @@ export const cancelWithdrawal = async (req, res, next) => {
       });
     }
 
-    // Get user ID from headers (temporary until auth is implemented)
-    const updatedBy = parseInt(req.headers['x-user-id'] || '1', 10);
+    // Get user ID from headers
+    const updatedBy = req.user.id;
 
     const { reason } = req.body;
 
@@ -605,7 +605,7 @@ export const cancelWithdrawal = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to cancel withdrawal',
       details: error.message
@@ -624,7 +624,7 @@ export const getWithdrawalStatistics = async (req, res, next) => {
     const result = await directorWithdrawalService.getWithdrawalStatistics();
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to fetch withdrawal statistics',
       details: error.message
@@ -643,7 +643,7 @@ export const getAllLabels = async (req, res, next) => {
     const result = await directorWithdrawalService.getAllLabels();
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to fetch labels',
       details: error.message
@@ -699,7 +699,7 @@ export const getPendingWithdrawals = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to fetch pending withdrawals',
       details: error.message
@@ -764,7 +764,7 @@ export const searchWithdrawals = async (req, res, next) => {
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to search withdrawals',
       details: error.message
@@ -817,7 +817,7 @@ export const getWithdrawalsCount = async (req, res, next) => {
       count
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: 'Failed to get withdrawal count',
       details: error.message

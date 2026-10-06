@@ -1,4 +1,6 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
+import { toCents } from '../utils/money.js';
 
 /**
  * Income Model
@@ -113,8 +115,9 @@ export async function getAll(options = {}) {
     FIELDS.PAYER_NAME,
     FIELDS.CREATED_AT
   ];
-  const orderField = validOrderFields.includes(orderBy) ? orderBy : FIELDS.INCOME_DATE;
-  const validDirection = orderDirection === 'ASC' ? 'ASC' : 'DESC';
+  const safeOrder = parseOrder(orderBy, orderDirection, validOrderFields, FIELDS.INCOME_DATE, 'DESC');
+  const orderField = safeOrder.field;
+  const validDirection = safeOrder.dir;
 
   const query = `
     SELECT ${TABLE}.*, 
@@ -280,13 +283,15 @@ export async function create(data) {
     notes,
     isVerified = false,
     createdBy,
-    updatedBy
+    updatedBy,
+    reversalOfId = null
   } = data;
 
   const query = `
     INSERT INTO ${TABLE} (
       ${FIELDS.RECEIPT_NUMBER},
       ${FIELDS.AMOUNT},
+      amount_cents,
       ${FIELDS.INCOME_CATEGORY_ID},
       ${FIELDS.DESCRIPTION},
       ${FIELDS.PAYER_NAME},
@@ -297,13 +302,15 @@ export async function create(data) {
       ${FIELDS.NOTES},
       ${FIELDS.IS_VERIFIED},
       ${FIELDS.CREATED_BY},
-      ${FIELDS.UPDATED_BY}
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ${FIELDS.UPDATED_BY},
+      reversal_of_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const params = [
     receiptNumber,
     amount,
+    toCents(amount, { allowNegative: true }),
     incomeCategoryId,
     description,
     payerName,
@@ -314,7 +321,8 @@ export async function create(data) {
     notes,
     isVerified ? 1 : 0,
     createdBy,
-    updatedBy
+    updatedBy,
+    reversalOfId
   ];
 
   try {
@@ -358,6 +366,8 @@ export async function update(id, data) {
   if (amount !== undefined) {
     updates.push(`${FIELDS.AMOUNT} = ?`);
     params.push(amount);
+    updates.push(`amount_cents = ?`);
+    params.push(toCents(amount, { allowNegative: true }));
   }
   if (incomeCategoryId !== undefined) {
     updates.push(`${FIELDS.INCOME_CATEGORY_ID} = ?`);

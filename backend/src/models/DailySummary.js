@@ -1,4 +1,5 @@
 import db from '../config/database.js';
+import { parseOrder } from '../utils/sqlSafety.js';
 
 /**
  * DailySummary Model
@@ -89,8 +90,8 @@ export async function getAll(options = {}) {
   }
 
   // Add ordering
-  const orderByField = validOrderByFields.includes(orderBy) ? orderBy : FIELDS.DATE;
-  query += ` ORDER BY ${orderByField} ${orderDirection}`;
+  const safeOrder = parseOrder(orderBy, orderDirection, validOrderByFields, FIELDS.DATE, 'DESC');
+  query += ` ORDER BY ${safeOrder.field} ${safeOrder.dir}`;
 
   // Add pagination
   query += ` LIMIT ? OFFSET ?`;

@@ -66,7 +66,7 @@ export const getStudentChargeAssignments = (req, res) => {
       pagination: result.pagination
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -105,7 +105,7 @@ export const getAllStudentChargeAssignments = (req, res) => {
       data: assignments
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -141,7 +141,7 @@ export const getStudentChargeAssignmentById = (req, res) => {
       data: assignment
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -176,7 +176,7 @@ export const getStudentChargeAssignmentsByCharge = (req, res) => {
       data: assignments
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -211,7 +211,7 @@ export const getStudentChargeAssignmentsByStudent = (req, res) => {
       data: assignments
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -240,7 +240,7 @@ export const getUnpaidStudentChargeAssignmentsByStudent = (req, res) => {
       data: assignments
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -269,7 +269,7 @@ export const getUnpaidStudentChargeAssignmentsByCharge = (req, res) => {
       data: assignments
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -291,7 +291,7 @@ export const getUnpaidStudentChargeAssignmentsByCharge = (req, res) => {
 export const createStudentChargeAssignment = (req, res) => {
   try {
     const assignmentData = req.body;
-    const assignedBy = req.user?.id || 1;
+    const assignedBy = req.user.id;
 
     // Validate required fields
     if (!assignmentData.chargeId) {
@@ -319,7 +319,7 @@ export const createStudentChargeAssignment = (req, res) => {
       message: 'Assignment created successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -343,7 +343,7 @@ export const createStudentChargeAssignment = (req, res) => {
 export const createMultipleStudentChargeAssignments = (req, res) => {
   try {
     const { assignments } = req.body;
-    const assignedBy = req.user?.id || 1;
+    const assignedBy = req.user.id;
 
     if (!assignments || !Array.isArray(assignments) || assignments.length === 0) {
       return res.status(400).json({
@@ -363,7 +363,7 @@ export const createMultipleStudentChargeAssignments = (req, res) => {
       message: `${createdAssignments.length} assignments created successfully`
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -392,7 +392,7 @@ export const updateStudentChargeAssignment = (req, res) => {
     }
 
     const assignmentData = req.body;
-    const updatedBy = req.user?.id || 1;
+    const updatedBy = req.user.id;
 
     // Validate amount if provided
     if (assignmentData.amount !== undefined && assignmentData.amount <= 0) {
@@ -414,7 +414,7 @@ export const updateStudentChargeAssignment = (req, res) => {
       message: 'Assignment updated successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -446,7 +446,7 @@ export const markAssignmentAsPaid = async (req, res) => {
     }
 
     const paymentData = req.body;
-    const recordedBy = req.user?.id || 1;
+    const recordedBy = req.user.id;
 
     const result = await studentChargeAssignmentService.markAssignmentAsPaid(
       id,
@@ -460,7 +460,7 @@ export const markAssignmentAsPaid = async (req, res) => {
       message: 'Assignment marked as paid successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -482,7 +482,7 @@ export const markAssignmentAsUnpaid = (req, res) => {
       });
     }
 
-    const reversedBy = req.user?.id || 1;
+    const reversedBy = req.user.id;
 
     const assignment = studentChargeAssignmentService.markAssignmentAsUnpaid(id, reversedBy);
 
@@ -492,7 +492,7 @@ export const markAssignmentAsUnpaid = (req, res) => {
       message: 'Assignment marked as unpaid successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -514,7 +514,7 @@ export const deleteStudentChargeAssignment = (req, res) => {
       });
     }
 
-    const deletedBy = req.user?.id || 1;
+    const deletedBy = req.user.id;
     const deleted = studentChargeAssignmentService.deleteStudentChargeAssignment(id, deletedBy);
 
     if (!deleted) {
@@ -529,7 +529,7 @@ export const deleteStudentChargeAssignment = (req, res) => {
       message: 'Assignment deleted successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -551,7 +551,7 @@ export const deleteStudentChargeAssignmentsByCharge = (req, res) => {
       });
     }
 
-    const deletedBy = req.user?.id || 1;
+    const deletedBy = req.user.id;
     const deletedCount = studentChargeAssignmentService.deleteStudentChargeAssignmentsByCharge(
       chargeId,
       deletedBy
@@ -563,7 +563,7 @@ export const deleteStudentChargeAssignmentsByCharge = (req, res) => {
       message: `${deletedCount} assignments deleted successfully`
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -589,7 +589,7 @@ export const getStudentChargeAssignmentStatistics = (req, res) => {
       data: stats
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -635,7 +635,7 @@ export const isStudentAssignedToCharge = (req, res) => {
       data: { isAssigned }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -664,7 +664,7 @@ export const getStudentOutstandingChargeAmount = (req, res) => {
       data: { outstandingAmount: amount }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });
@@ -684,7 +684,7 @@ export const getOutstandingChargesSummary = (req, res) => {
       data: summary
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message
     });

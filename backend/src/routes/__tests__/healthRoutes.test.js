@@ -44,14 +44,15 @@ describe('Health Routes', () => {
     });
   });
 
-  describe('404 Handler', () => {
-    it('should return 404 for unknown routes', async () => {
+  describe('Unknown routes', () => {
+    it('should return 401 for unknown API routes when unauthenticated (no route enumeration)', async () => {
+      // The global authentication perimeter runs before the 404 handler,
+      // so unauthenticated requests can never probe which routes exist.
       const response = await request(app)
         .get('/api/unknown')
-        .expect(404);
+        .expect(401);
 
-      expect(response.body).toHaveProperty('error', 'Not Found');
-      expect(response.body).toHaveProperty('message');
+      expect(response.body).toHaveProperty('success', false);
     });
   });
 });
