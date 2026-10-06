@@ -52,6 +52,18 @@ describe('Role Module', () => {
       CREATE INDEX IF NOT EXISTS idx_roles_is_active ON roles(is_active);
     `);
 
+
+    // The shared singleton db is pre-seeded with the production RBAC
+    // catalog (db/rbacSeed.js). These suites assert against their own
+    // fixed fixtures, so start from empty RBAC tables.
+    testDb.exec(`
+      DELETE FROM role_permissions;
+      DELETE FROM user_roles;
+      DELETE FROM permissions;
+      DELETE FROM roles;
+      DELETE FROM sqlite_sequence WHERE name IN ('permissions','roles','role_permissions','user_roles');
+    `);
+
     // Insert test roles
     const insertRole = testDb.prepare(`
       INSERT INTO roles (name, display_name, description, is_default, is_active)

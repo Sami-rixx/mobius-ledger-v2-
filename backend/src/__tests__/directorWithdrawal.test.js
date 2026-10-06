@@ -144,6 +144,12 @@ describe('Director Withdrawal Module', () => {
     const userResult = db.prepare('INSERT OR IGNORE INTO users (username, full_name, email) VALUES (?, ?, ?)').run('testuser', 'Test User', 'test@example.com');
     const userId = userResult.lastInsertRowid || db.prepare('SELECT id FROM users WHERE username = ?').get('testuser').id;
 
+    // Maker-checker: approvals/rejections must come from a DIFFERENT user
+    // than the creator, so seed a dedicated approver account.
+    const approverResult = db.prepare('INSERT OR IGNORE INTO users (username, full_name, email) VALUES (?, ?, ?)').run('testapprover', 'Test Approver', 'approver@example.com');
+    const approverId = approverResult.lastInsertRowid || db.prepare('SELECT id FROM users WHERE username = ?').get('testapprover').id;
+    global.testApproverId = approverId;
+
     db.prepare('INSERT OR IGNORE INTO payment_methods (name, description) VALUES (?, ?)').run('Cash', 'Cash payment');
     db.prepare('INSERT OR IGNORE INTO payment_methods (name, description) VALUES (?, ?)').run('Bank Transfer', 'Bank transfer payment');
     
@@ -172,6 +178,7 @@ describe('Director Withdrawal Module', () => {
       db.prepare('DELETE FROM director_withdrawals WHERE purpose LIKE ? OR created_by = ? OR updated_by = ?')
         .run('%Test%', global.testUserId, global.testUserId);
       db.prepare('DELETE FROM users WHERE username = ?').run('testuser');
+      db.prepare('DELETE FROM users WHERE username = ?').run('testapprover');
       db.prepare('DELETE FROM payment_methods WHERE name = ? OR name = ?').run('Cash', 'Bank Transfer');
     } catch (error) {
       console.error('Error cleaning up test data:', error.message);
@@ -420,7 +427,7 @@ describe('Director Withdrawal Module', () => {
           );
 
           expect(result.success).toBe(false);
-          expect(result.error).toContain('Cannot transition');
+          expect(result.error).toContain('Status cannot be changed through update');
         }
       });
     });
@@ -453,10 +460,10 @@ describe('Director Withdrawal Module', () => {
         }, global.testUserId);
 
         if (createResult.success) {
-          // Approve it first
+          // Approve it first (by a different user - maker-checker)
           await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
 
           // Try to delete approved withdrawal
@@ -492,13 +499,15 @@ describe('Director Withdrawal Module', () => {
         if (createResult.success) {
           const approveResult = await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId,
+            global.testApproverId,
             'Approval notes'
           );
 
           expect(approveResult.success).toBe(true);
           expect(approveResult.data.status).toBe('approved');
           expect(approveResult.data.is_approved).toBe(true);
+          // Approval posts a linked financial transaction atomically
+          expect(approveResult.data.transaction_id).toBeDefined();
         }
       });
 
@@ -511,16 +520,16 @@ describe('Director Withdrawal Module', () => {
         }, global.testUserId);
 
         if (createResult.success) {
-          // Approve it first
+          // Approve it first (by a different user - maker-checker)
           await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
 
           // Try to approve again
           const approveResult = await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
 
           expect(approveResult.success).toBe(false);
@@ -531,10 +540,45 @@ describe('Director Withdrawal Module', () => {
       it('should fail for non-existent withdrawal', async () => {
         const result = await directorWithdrawalService.approveWithdrawal(
           99999,
-          global.testUserId
+          global.testApproverId
         );
         expect(result.success).toBe(false);
         expect(result.error).toBe('Withdrawal not found');
+      });
+
+      it('should refuse self-approval (maker-checker, 403)', async () => {
+        const createResult = await directorWithdrawalService.createWithdrawal({
+          amount: 1000,
+          purpose: 'Test Purpose Self Approval',
+          recipientName: 'Test Recipient'
+        }, global.testUserId);
+
+        expect(createResult.success).toBe(true);
+        const approveResult = await directorWithdrawalService.approveWithdrawal(
+          createResult.data.id,
+          global.testUserId
+        );
+        expect(approveResult.success).toBe(false);
+        expect(approveResult.statusCode).toBe(403);
+        expect(approveResult.error).toContain('Separation of duties');
+      });
+
+      it('should refuse self-rejection (maker-checker, 403)', async () => {
+        const createResult = await directorWithdrawalService.createWithdrawal({
+          amount: 1000,
+          purpose: 'Test Purpose Self Rejection',
+          recipientName: 'Test Recipient'
+        }, global.testUserId);
+
+        expect(createResult.success).toBe(true);
+        const rejectResult = await directorWithdrawalService.rejectWithdrawal(
+          createResult.data.id,
+          global.testUserId,
+          'Trying to reject my own withdrawal'
+        );
+        expect(rejectResult.success).toBe(false);
+        expect(rejectResult.statusCode).toBe(403);
+        expect(rejectResult.error).toContain('Separation of duties');
       });
     });
 
@@ -550,7 +594,7 @@ describe('Director Withdrawal Module', () => {
         if (createResult.success) {
           const rejectResult = await directorWithdrawalService.rejectWithdrawal(
             createResult.data.id,
-            global.testUserId,
+            global.testApproverId,
             'Insufficient funds'
           );
 
@@ -579,16 +623,16 @@ describe('Director Withdrawal Module', () => {
         }, global.testUserId);
 
         if (createResult.success) {
-          // Approve it first
+          // Approve it first (by a different user - maker-checker)
           await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
 
           // Try to reject approved withdrawal
           const rejectResult = await directorWithdrawalService.rejectWithdrawal(
             createResult.data.id,
-            global.testUserId,
+            global.testApproverId,
             'Reason'
           );
 
@@ -618,10 +662,10 @@ describe('Director Withdrawal Module', () => {
         }, global.testUserId);
 
         if (createResult.success) {
-          // Approve it first
+          // Approve it first (by a different user - maker-checker)
           await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
 
           // Mark as completed
@@ -700,7 +744,7 @@ describe('Director Withdrawal Module', () => {
           // Approve and complete it
           await directorWithdrawalService.approveWithdrawal(
             createResult.data.id,
-            global.testUserId
+            global.testApproverId
           );
           await directorWithdrawalService.completeWithdrawal(
             createResult.data.id,

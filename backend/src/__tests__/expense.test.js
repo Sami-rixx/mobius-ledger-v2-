@@ -250,28 +250,53 @@ describe('Expense Management - Backend Tests', () => {
       expect(created.data.id).toBeDefined();
     });
 
-    it('should update an expense via service', async () => {
+    it('should update non-monetary fields via service', async () => {
       const updated = await ExpenseService.updateExpense(expense1Id, {
         description: 'EXP Test Updated via service',
-        amount: 175.00
+        updatedBy: userId
       });
       expect(updated).toBeDefined();
       expect(updated.success).toBe(true);
     });
 
-    it('should delete an expense via service', async () => {
-      // Create one to delete
+    it('should reject amount changes on a posted expense (immutability)', async () => {
+      const updated = await ExpenseService.updateExpense(expense1Id, {
+        amount: 175.00,
+        updatedBy: userId
+      });
+      expect(updated.success).toBe(false);
+      expect(updated.statusCode).toBe(409);
+    });
+
+    it('should refuse to hard-delete a posted expense and allow reversal instead', async () => {
       const newExpense = await ExpenseService.createExpense({
         amount: 99.99,
         expenseCategoryId: categoryId,
-        description: 'EXP Test To be deleted via service',
+        description: 'EXP Test To be reversed via service',
         vendorName: 'Delete Vendor',
         expenseDate: '2026-07-26',
         createdBy: userId
       });
 
+      // Hard delete is forbidden for posted records
       const deleted = await ExpenseService.deleteExpense(newExpense.data.id);
-      expect(deleted.success).toBe(true);
+      expect(deleted.success).toBe(false);
+      expect(deleted.statusCode).toBe(409);
+
+      // Correction happens through a reversal that preserves history
+      const reversed = await ExpenseService.reverseExpense(newExpense.data.id, userId, 'test correction');
+      expect(reversed.success).toBe(true);
+      expect(parseFloat(reversed.data.reversal.amount)).toBeCloseTo(-99.99);
+
+      // Original record still exists and is marked reversed
+      const original = await ExpenseService.getExpenseById(newExpense.data.id);
+      expect(original.success).toBe(true);
+      expect(original.data.reversed_by_id).toBe(reversed.data.reversal.id);
+
+      // Double reversal is rejected
+      const again = await ExpenseService.reverseExpense(newExpense.data.id, userId, 'again');
+      expect(again.success).toBe(false);
+      expect(again.statusCode).toBe(409);
     });
   });
 

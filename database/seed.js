@@ -5,6 +5,18 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// SAFETY GUARD (specification §16): this seed DESTROYS financial data and
+// must never run against a production database.
+if (process.env.NODE_ENV === 'production') {
+  console.error('FATAL: db:seed is a destructive development/demo seed and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+if (process.env.SEED_CONFIRM !== 'yes' && process.stdout.isTTY !== true) {
+  // Non-interactive environments must opt in explicitly.
+  console.error('Refusing to run destructive seed non-interactively. Set SEED_CONFIRM=yes to proceed.');
+  process.exit(1);
+}
+
 // Database path
 const DB_PATH = path.resolve(__dirname, 'mobius_ledger.db');
 
@@ -38,9 +50,12 @@ try {
     DELETE FROM students WHERE admission_number NOT LIKE 'SYS%';
     DELETE FROM classes WHERE name NOT LIKE 'SYS%';
     DELETE FROM daily_ledger;
-    DELETE FROM audit_trail;
     DELETE FROM cached_reports;
   `);
+
+  // NOTE: audit_trail is intentionally NOT cleared - it is protected by
+  // UPDATE/DELETE-rejecting SQLite triggers (immutable audit log). Demo
+  // reseeding simply appends to history.
 
   // Reset receipt sequence
   db.prepare('UPDATE system_settings SET value = ? WHERE key = ?').run('0', 'receipt_sequence');

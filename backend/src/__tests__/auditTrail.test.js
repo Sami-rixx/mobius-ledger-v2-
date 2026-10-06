@@ -12,7 +12,6 @@ import {
   getAuditTrailByTable,
   getRecentAuditTrails,
   createAuditTrail,
-  deleteAuditTrail,
   getAuditTrailStatistics
 } from '../models/AuditTrail.js';
 
@@ -24,7 +23,6 @@ import {
   getAuditTrailsByTable,
   getRecentAuditTrails as getRecentAuditTrailsService,
   createAuditTrailRecord,
-  deleteAuditTrailRecord,
   searchAuditTrails,
   getAuditTrailStats,
   getAuditTrailCountByFilter,
@@ -132,8 +130,9 @@ describe('Audit Trail Module', () => {
       expect(typeof createAuditTrail).toBe('function');
     });
 
-    it('should export deleteAuditTrail function', () => {
-      expect(typeof deleteAuditTrail).toBe('function');
+    it('should NOT export a deleteAuditTrail function (immutable audit log)', async () => {
+      const model = await import('../models/AuditTrail.js');
+      expect(model.deleteAuditTrail).toBeUndefined();
     });
 
     it('should export getAuditTrailStatistics function', () => {
@@ -159,8 +158,9 @@ describe('Audit Trail Module', () => {
       expect(typeof createAuditTrailRecord).toBe('function');
     });
 
-    it('should export deleteAuditTrailRecord function', () => {
-      expect(typeof deleteAuditTrailRecord).toBe('function');
+    it('should NOT export a deleteAuditTrailRecord function (immutable audit log)', async () => {
+      const service = await import('../services/auditTrailService.js');
+      expect(service.deleteAuditTrailRecord).toBeUndefined();
     });
 
     it('should export searchAuditTrails function', () => {
@@ -201,7 +201,7 @@ describe('Audit Trail Module', () => {
       };
       const result = validateAuditTrail(invalidData);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Invalid action. Must be one of: CREATE, UPDATE, DELETE');
+      expect(result.errors.some((e) => e.startsWith('Invalid action. Must be one of: CREATE, UPDATE, DELETE'))).toBe(true);
     });
 
     it('should reject missing action', () => {
