@@ -19,7 +19,11 @@
     "test:backend": "cd backend && npm test",
     "test:frontend": "cd frontend && npm test",
     "lint:frontend": "cd frontend && npm run lint",
-    "gatecheck": "npm run build:frontend && npm run test:backend && npm run test:frontend && npm run lint:frontend"
+    "gatecheck": "npm run build:frontend && npm run test:backend && npm run test:frontend && npm run lint:frontend && npm run check:routes && npm run check:seed && npm run check:deps",
+    "bootstrap:admin": "npm run bootstrap:admin --workspace=backend",
+    "check:routes": "node scripts/gatecheck/route-protection-check.mjs",
+    "check:seed": "node scripts/gatecheck/seed-safety-check.mjs",
+    "check:deps": "npm audit --omit=dev --audit-level=high"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
